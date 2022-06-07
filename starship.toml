@@ -1,0 +1,85 @@
+# Get editor completions based on the config schema
+"$schema" = 'https://starship.rs/config-schema.json'
+
+# Inserts a blank line between shell prompts
+add_newline = true
+
+format = "$username$hostname$battery$all$character"
+right_format = "$time"
+
+[aws]
+disabled = true
+
+[time]
+style = "244"
+format = "∙[$time]($style)∙"
+disabled = false
+
+[username]
+format = "[$user]($style)"
+show_always = true
+disabled = false
+
+[hostname]
+style = "244"
+format = "/[$ssh_symbol$hostname]($style)"
+ssh_only = false
+disabled = false
+
+[battery]
+format = "  [$symbol$percentage]($style)"
+disabled = false
+
+[[battery.display]]
+threshold = 90
+style = "bold red"
+
+[directory]
+format = '  [$path]($style)[$read_only]($read_only_style)'
+
+[git_branch]
+format = "   [$branch(:$remote_branch)]($style) "
+
+[git_commit]
+style = "244"
+format = '\([$hash$tag]($style)\) '
+only_detached = false
+
+[git_status]
+format = ': \([$all_status$ahead_behind]($style) \)'
+conflicted = " = [$count](244)" #This branch has merge conflicts.
+ahead = " ⇡ [$count](244)" #The format of ahead
+behind = " [⇣]()" #The format of behind
+diverged = " [⇕]()" #The format of diverged
+up_to_date = "" #The format of up_to_date
+untracked = " ? [$count](244)" #The format of untracked
+stashed = " 📦 [$count](244)" #The format of stashed
+modified = "  [$count](244)" #The format of modified
+staged = " ﰙ [$count](244)" #The format of staged
+renamed = " » [$count](244)" #The format of renamed
+deleted	= " ✘ [$count](244)"
+
+[package]
+symbol = '📦'
+format = "  [$symbol]($style)/[$version](244)"
+disabled = false
+
+[nodejs]
+symbol = "node"
+format = "  [$symbol]($style)/[$version](244)"
+
+[rust]
+symbol = "rust"
+format = "  [$symbol]($style)/[$version](244)"
+
+[cmd_duration]
+min_time = 500
+show_milliseconds = false
+format = "  [祥$duration]($style) "
+
+# Replace the "❯" symbol in the prompt with "➜"
+[character] # The name of the module we are configuring is "character"
+success_symbol = "[ﲤ](bold green)" # The "success_symbol" segment is being set to "➜" with the color "bold green"
+error_symbol = "[ﲤ](bold red)"
+vicmd_symbol = "[](bold purple)"
+
