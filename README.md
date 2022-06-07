@@ -7,6 +7,8 @@ my dots
 ```
 OS: Manjaro 21.2.6 Qonos (community i3)
 Shell: zsh 5.9 w/ starship prompt
+Terminal: kitty
+Transparency: picom
 WM: i3
 GTK Theme: Matcha-dark-azul [GTK2/3]
 Icon Theme: Papirus-Dark
