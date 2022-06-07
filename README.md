@@ -1,6 +1,6 @@
 # dotfiles.
 
-personal dotfiles
+personal dotfiles from a manjaro (arch) based installation
 
 ### Screens
 
