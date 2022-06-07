@@ -339,9 +339,9 @@ bar {
         separator  $term_color10
 
 #                          border  backgr. text
-        focused_workspace  $term_foreground $term_color4 $term_background
-        active_workspace   $term_color10 $term_background $term_color4
-        inactive_workspace $term_color10 $term_background $term_color10
+        focused_workspace  $term_color10 $term_color10 $term_background
+        active_workspace   $term_color10 $term_background $term_color10
+        inactive_workspace $term_color8 $term_background $term_color8
         binding_mode       $term_color8 $term_color9 $term_foreground
         urgent_workspace   $term_color8 $term_color9 $term_foreground
     }
