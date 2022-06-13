@@ -4,15 +4,15 @@
 # Inserts a blank line between shell prompts
 add_newline = true
 
-format = "$username$hostname$battery$all$character"
-right_format = "$time"
+format = "$username$hostname$battery$all$time$character"
+right_format = ""
 
 [aws]
 disabled = true
 
 [time]
 style = "244"
-format = "∙[$time]($style)∙"
+format = "[$time]($style) "
 disabled = false
 
 [username]

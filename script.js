@@ -4,16 +4,25 @@ const path = require("path");
 const argv = require("yargs");
 
 const config = {
-  files: [".zshrc", ".gitconfig", ".config/starship.toml"],
+  files: [
+    ".zshrc",
+    ".gitconfig",
+    ".config/starship.toml",
+    ".config/picom.conf",
+  ],
   folders: [".config/i3/", ".config/kitty/", ".config/micro/"],
 };
 
 argv.command("save", ": save current config files", () => {
   // Copy files
   config.files.forEach((file) => {
-    fs.copy(path.join(process.env.HOME, file), path.join(__dirname, file), {
-      overwrite: true,
-    })
+    fs.copy(
+      path.join(process.env.HOME, file),
+      path.join(__dirname, "src", file),
+      {
+        overwrite: true,
+      }
+    )
       .then(() => {
         console.log(`${file} copied`);
       })
@@ -24,9 +33,13 @@ argv.command("save", ": save current config files", () => {
 
   // Copy folders
   config.folders.forEach((folder) => {
-    fs.copy(path.join(process.env.HOME, folder), path.join(__dirname, folder), {
-      overwrite: true,
-    })
+    fs.copy(
+      path.join(process.env.HOME, folder),
+      path.join(__dirname, "src", folder),
+      {
+        overwrite: true,
+      }
+    )
       .then(() => {
         console.log(`${folder} copied`);
       })
@@ -39,7 +52,10 @@ argv.command("save", ": save current config files", () => {
 argv.command("install", "install saved dotfiles", () => {
   // Copy files
   config.files.forEach((file) => {
-    fs.copy(path.join(__dirname, file), path.join(process.env.HOME, file))
+    fs.copy(
+      path.join(__dirname, "src", file),
+      path.join(process.env.HOME, file)
+    )
       .then(() => {
         console.log(`${file} copied`);
       })
@@ -50,7 +66,10 @@ argv.command("install", "install saved dotfiles", () => {
 
   // Copy folders
   config.folders.forEach((folder) => {
-    fs.copy(path.join(__dirname, folder), path.join(process.env.HOME, folder))
+    fs.copy(
+      path.join(__dirname, "src", folder),
+      path.join(process.env.HOME, folder)
+    )
       .then(() => {
         console.log(`${folder} copied`);
       })
