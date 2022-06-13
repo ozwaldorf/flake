@@ -1,0 +1,14 @@
+{
+  "author": "ossian <self@ossian.dev>",
+  "name": "dotfiles",
+  "description": "ossian's dotfiles",
+  "scripts": {
+    "help": "./script.js help",
+    "save": "./script.js save",
+    "install": "./script.js install"
+  },
+  "dependencies": {
+    "fs-extra": "^10.1.0",
+    "yargs": "^17.5.1"
+  }
+}
