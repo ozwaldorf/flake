@@ -1,12 +1,10 @@
 # dotfiles
 
-my dots
+---
 
-## TOC
+=> [info](#info) . [screens](#screens) . [usage](#usage) <=
 
-1. [`info`](#info)
-2. [`screens`](#screens)
-3. [`usage`](#usage)
+---
 
 ## \__info_
 
@@ -21,10 +19,14 @@ Icon Theme: Papirus-Dark
 Font: FiraCode Nerd Font Mono
 ```
 
+---
+
 ## \__screens_
 
 ![2022-06-06-233037_3455x2154_scrot](https://user-images.githubusercontent.com/8976745/172289839-868b085c-0698-44ef-9c0c-3c727953f238.png)
 ![2022-06-06-232920_3455x2156_scrot](https://user-images.githubusercontent.com/8976745/172289838-603356d2-dedd-42c3-b53e-49afdb5f99a1.png)
+
+---
 
 ## \_usage
 
@@ -35,5 +37,3 @@ Font: FiraCode Nerd Font Mono
 #### install dotfiles
 
 `yarn install`
-
-> > > > > > > 72f48ad (feat: move all configs to `src` folder)
