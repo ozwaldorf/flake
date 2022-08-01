@@ -208,7 +208,7 @@ alias add="git add"
 source ~/.env
 export EDITOR="code"
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
-export PATH="/home/oz/bin:/home/oz/.cargo/bin:$PATH"
+export PATH="/home/oz/go/bin:/home/oz/bin:/home/oz/.cargo/bin:$PATH"
 
 eval $(starship init zsh)
 
@@ -221,3 +221,6 @@ ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=244'
 source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 source /usr/share/zsh/plugins/zsh-autocomplete/zsh-autocomplete.plugin.zsh
 zstyle ':completion::complete:*' gain-privileges 1
+
+eval $(thefuck --alias)
+eval $(go-chromecast completion zsh)
