@@ -36,4 +36,4 @@ Font: FiraCode Nerd Font Mono
 
 #### install dotfiles
 
-`yarn install`
+`yarn installer`

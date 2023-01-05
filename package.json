@@ -6,7 +6,7 @@
     "help": "./script.js help",
     "format": "prettier --write .",
     "save": "./script.js save",
-    "run": "./script.js install"
+    "installer": "./script.js install"
   },
   "dependencies": {
     "fs-extra": "^10.1.0",
