@@ -1,0 +1,19 @@
+theme = "dark_plus"
+
+[editor]
+gutters = ["diagnostics", "spacer", "line-numbers", "spacer", "diff"]
+cursorline = true
+bufferline = "always"
+
+[editor.cursor-shape]
+insert = "bar"
+normal = "block"
+select = "underline"
+
+[editor.file-picker]
+hidden = false
+
+[editor.indent-guides]
+render = true
+character = "▏" # Some characters that work well: "", "┆", "┊", "⸽"
+skip-levels = 1
