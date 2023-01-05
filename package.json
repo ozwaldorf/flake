@@ -4,7 +4,7 @@
   "description": "ossian's dotfiles",
   "scripts": {
     "help": "./script.js help",
-    "format": "prettier --write .",
+    "format": "prettier --write script.js",
     "save": "./script.js save",
     "installer": "./script.js install"
   },

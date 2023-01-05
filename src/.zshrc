@@ -192,6 +192,17 @@ autoload -U add-zsh-hook
 add-zsh-hook precmd mzc_termsupport_precmd
 add-zsh-hook preexec mzc_termsupport_preexec
 
+# Display onefetch for git repo information on first entering projects
+# This will only run once for each git project you cd into for the terminal session
+fetched_git_dirs=()
+onefetch_git_dir() {
+	 if [[ -r .git/HEAD && ! " ${fetched_git_dirs[*]} " =~ " $PWD " ]]; then
+	     fetched_git_dirs+=("$PWD")
+	     echo "\n" && onefetch
+	 fi
+}
+add-zsh-hook chpwd onefetch_git_dir
+
 eval "$(dircolors -b)"
 
 # Alias
@@ -210,12 +221,9 @@ export EDITOR="code"
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
 export PATH="/home/oz/go/bin:/home/oz/bin:/home/oz/.cargo/bin:$PATH"
 
-eval $(starship init zsh)
-
-nerdfetch
-
 # Plugins 
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
 ## Completions
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=244'
 source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
@@ -223,4 +231,9 @@ source /usr/share/zsh/plugins/zsh-autocomplete/zsh-autocomplete.plugin.zsh
 zstyle ':completion::complete:*' gain-privileges 1
 
 eval $(thefuck --alias)
-eval $(go-chromecast completion zsh)
+
+# Prompt
+eval $(starship init zsh)
+
+# Fetch host info on startup 
+nerdfetch
