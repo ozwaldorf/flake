@@ -3,78 +3,64 @@ const fs = require("fs-extra");
 const path = require("path");
 const argv = require("yargs");
 
+const dir = "src";
+
 const config = {
   files: [
     ".zshrc",
     ".gitconfig",
     ".config/starship.toml",
     ".config/picom.conf",
+    ".config/helix/config.toml",
+    ".config/micro/settings.json",
   ],
-  folders: [".config/i3/", ".config/kitty/", ".config/micro/"],
+  folders: [".config/i3/", ".config/kitty/"],
+};
+
+const copy = (fromPath, toPath, name) => {
+  fs.copy(fromPath, toPath, {
+    overwrite: true,
+  })
+    .then(() => {
+      console.log(`${name} copied`);
+    })
+    .catch((err) => {
+      console.log(`error copying ${name}: ${err}`);
+    });
 };
 
 argv.command("save", ": save current config files", () => {
-  // Copy files
   config.files.forEach((file) => {
-    fs.copy(
+    copy(
       path.join(process.env.HOME, file),
-      path.join(__dirname, "src", file),
-      {
-        overwrite: true,
-      }
-    )
-      .then(() => {
-        console.log(`${file} copied`);
-      })
-      .catch((err) => {
-        console.log(`${file}: ${err}`);
-      });
+      path.join(__dirname, dir, file),
+      file
+    );
   });
 
-  // Copy folders
   config.folders.forEach((folder) => {
-    fs.copy(
+    copy(
       path.join(process.env.HOME, folder),
-      path.join(__dirname, "src", folder),
-      {
-        overwrite: true,
-      }
-    )
-      .then(() => {
-        console.log(`${folder} copied`);
-      })
-      .catch((err) => {
-        console.log(`${folder}: ${err}`);
-      });
+      path.join(__dirname, dir, folder),
+      folder
+    );
   });
 });
 
 argv.command("install", "install saved dotfiles", () => {
-  // Copy files
   config.files.forEach((file) => {
-    fs.copy(
-      path.join(__dirname, "src", file),
-      path.join(process.env.HOME, file)
-    )
-      .then(() => {
-        console.log(`${file} copied`);
-      })
-      .catch((err) => {
-        console.log(`${file}: ${err}`);
-      });
+    copy(
+      path.join(__dirname, dir, file),
+      path.join(process.env.HOME, file),
+      file
+    );
   });
 
-  // Copy folders
   config.folders.forEach((folder) => {
-    fs.copy(
-      path.join(__dirname, "src", folder),
-      path.join(process.env.HOME, folder)
-    )
-      .then(() => {
-        console.log(`${folder} copied`);
-      })
-      .catch((err) => {
-        console.log(`${folder}: ${err}`);
-      });
+    copy(
+      path.join(__dirname, dir, folder),
+      path.join(process.env.HOME, folder),
+      folder
+    );
   });
 }).argv;

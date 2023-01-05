@@ -2,7 +2,7 @@
 
 ---
 
-=> [info](#info) . [screens](#screens) . [usage](#usage) <=
+=> [info](#_info) . [screens](#_screens) . [usage](#_usage) <=
 
 ---
 

@@ -4,11 +4,15 @@
   "description": "ossian's dotfiles",
   "scripts": {
     "help": "./script.js help",
+    "format": "prettier --write .",
     "save": "./script.js save",
-    "install": "./script.js install"
+    "run": "./script.js install"
   },
   "dependencies": {
     "fs-extra": "^10.1.0",
     "yargs": "^17.5.1"
+  },
+  "devDependencies": {
+    "prettier": "^2.5.1"
   }
 }
