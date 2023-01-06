@@ -7,5 +7,37 @@
 [user]
 	email = self@ossian.dev
 	name = ozwaldorf
+	signingkey = ~/.ssh/id_rsa.pub
+[gpg]
+	format = ssh
+[commit]
+	gpgsign = true
 [core]
 	editor = micro
+	pager = delta
+[interactive]
+	diffFilter = delta --color-only
+[merge]
+    conflictstyle = diff3
+[diff]
+    colorMoved = default
+
+# git-delta diff viewer config
+[delta]
+	syntax-theme = 1337
+	side-by-side = true
+	navigate = true
+	features = unobtrusive-line-numbers decorations
+
+[delta "unobtrusive-line-numbers"]
+	line-numbers = true
+	line-numbers-left-format = "{nm:>4}│"
+	line-numbers-right-format = "{np:>4}│"
+	line-numbers-left-style = grey
+	line-numbers-right-style = grey
+
+[delta "decorations"]
+	commit-decoration-style = bold grey box ul
+	file-style = bold blue
+	file-decoration-style = ul
+	hunk-header-decoration-style = box
