@@ -40,10 +40,15 @@ Editor: clion / micro / helix
 
 ## ↛ 💻 usage
 
-clone the repo
+clone and enter the repo:
 
 ```sh
 git clone https://github.com/ozwaldorf/dotfiles && cd dotfiles
+```
+
+install packages:
+```sh
+bash packages.sh
 ```
 
 initialize script dependencies
@@ -54,7 +59,7 @@ yarn
 install dotfiles to system:
 
 ```sh
-yarn installer
+yarn configs
 ```
 
 backup/save configuration from system:

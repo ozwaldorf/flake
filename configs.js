@@ -30,6 +30,7 @@ const copy = (fromPath, toPath, name) => {
 };
 
 argv.command("save", ": save current config files", () => {
+  console.log("saving config files --\n");
   config.files.forEach((file) => {
     copy(
       path.join(process.env.HOME, file),
@@ -48,6 +49,7 @@ argv.command("save", ": save current config files", () => {
 });
 
 argv.command("install", "install saved dotfiles", () => {
+  console.log("installing config files --\n");
   config.files.forEach((file) => {
     copy(
       path.join(__dirname, dir, file),
