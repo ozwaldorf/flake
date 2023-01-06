@@ -196,10 +196,17 @@ add-zsh-hook preexec mzc_termsupport_preexec
 # This will only run once for each git project you cd into for the terminal session
 fetched_git_dirs=()
 onefetch_git_dir() {
-	 if [[ -r .git/HEAD && ! " ${fetched_git_dirs[*]} " =~ " $PWD " ]]; then
-	     fetched_git_dirs+=("$PWD")
-	     echo "\n" && onefetch
-	 fi
+    if [[ -r .git/HEAD && ! " ${fetched_git_dirs[*]} " =~ " $PWD " ]]; then
+        fetched_git_dirs+=("$PWD") && echo "\n"
+        if [[ "$TERM" =~ "kitty" ]] && [[ -r $PWD/../onefetch.png ]]; then
+            # if term is kitty, lets use an image if it's provided in the parent dir
+            onefetch --image $PWD/../onefetch.png
+        else
+            onefetch
+        fi
+    else
+        return 1
+    fi
 }
 add-zsh-hook chpwd onefetch_git_dir
 
@@ -235,5 +242,5 @@ eval $(thefuck --alias)
 # Prompt
 eval $(starship init zsh)
 
-# Fetch host info on startup 
-nerdfetch
+# Launch fetch on terminal startup
+onefetch_git_dir || nerdfetch
