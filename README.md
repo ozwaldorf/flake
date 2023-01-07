@@ -72,5 +72,5 @@ yarn save
 
 ## ↛ 📷 screens
 
-![2022-06-06-233037_3455x2154_scrot](https://user-images.githubusercontent.com/8976745/172289839-868b085c-0698-44ef-9c0c-3c727953f238.png)
-![2022-06-06-232920_3455x2156_scrot](https://user-images.githubusercontent.com/8976745/172289838-603356d2-dedd-42c3-b53e-49afdb5f99a1.png)
+![2023-01-06-192909_3456x2160_scrot](https://user-images.githubusercontent.com/8976745/211121837-05601f7e-2380-495e-a412-5cd5c8630e3f.png)
+![2023-01-06-193331_3456x2160_scrot](https://user-images.githubusercontent.com/8976745/211122049-b5621ec2-325c-4b28-8a48-bfe29868ceb7.png)
