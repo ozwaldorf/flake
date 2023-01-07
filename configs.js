@@ -8,13 +8,14 @@ const dir = "src";
 const config = {
   files: [
     ".zshrc",
+    ".Xresources",
     ".gitconfig",
     ".config/starship.toml",
     ".config/picom.conf",
     ".config/helix/config.toml",
     ".config/micro/settings.json",
   ],
-  folders: [".config/i3/", ".config/kitty/"],
+  folders: [".config/i3/", ".config/i3status-rust", ".config/kitty/"],
 };
 
 const copy = (fromPath, toPath, name) => {
