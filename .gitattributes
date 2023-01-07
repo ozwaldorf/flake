@@ -1,1 +1,1 @@
-dots/ -linguist-detectable
+dots/** -linguist-detectable

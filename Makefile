@@ -1,45 +1,45 @@
 .PHONY: deps save install
 
-define HEADER
+define ASCII
 .  ───── oz's ─────  .
 ┌┬┐┌─┐┌┬┐┌─┐┬┬  ┌─┐┌─┐
  │││ │ │ ├┤ ││  ├┤ └─┐
 ─┴┘└─┘ ┴ └  ┴┴─┘└─┘└─┘
 ·  ───── ·  · ─────  ·
 endef
-export HEADER
-
-header:
-	@echo "$$HEADER"
+export ASCII
 
 configs= \
 	.zshrc \
-    .Xresources \
-    .gitconfig \
-    .config/starship.toml \
-    .config/picom.conf \
-    .config/helix/config.toml \
-    .config/micro/settings.json \
-    .config/i3 \
-    .config/i3status-rust \
-    .config/kitty \
-    .config/rofi
+	.Xresources \
+	.gitconfig \
+	.config/starship.toml \
+	.config/picom.conf \
+	.config/helix/config.toml \
+	.config/micro/settings.json \
+	.config/i3 \
+	.config/i3status-rust \
+	.config/kitty \
+	.config/rofi
 
- pkgs= \
- 	kitty \
-    git-delta \
-    zsh \
-    starship \
-    helix \
-    bat \
-    exa \
-    nodejs \
-    yarn \
-    i3status-rust \
-    github-cli \
-    rofi
+pkgs= \
+  kitty \
+  git-delta \
+  zsh \
+  starship \
+  helix \
+  bat \
+  exa \
+  nodejs \
+  yarn \
+  i3status-rust \
+  github-cli \
+  rofi
 
-deps: header
+ascii:
+	@echo "$$ASCII"
+
+deps: ascii
 	@which yay || { echo "yay is not installed"; exit 1; }
 	# Install packages
 	sudo -S yay -S --needed --noconfirm ${pkgs}
@@ -51,11 +51,11 @@ deps: header
 		@echo "gh is not logged in, please set \"GH_TOKEN\" and \"I3RS_GITHUB_TOKEN\""
 	fi
 
-install: header
+install: ascii
 	# Installing dotfiles
 	GLOBIGNORE='.:..' cp -rv ./dots/$(.*) $$HOME
 
-save: header
+save: ascii
 	# Saving dotfiles
 	@for path in ${configs}; do to=$$HOME/$$path; \
 		if [[ -f "$$to" ]]; then \
