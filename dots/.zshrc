@@ -25,8 +25,6 @@ zstyle ':completion:*' rehash true                              # automatically 
 HISTFILE=~/.zhistory
 HISTSIZE=10000
 SAVEHIST=10000
-#export EDITOR=/usr/bin/nano
-#export VISUAL=/usr/bin/nano
 WORDCHARS=${WORDCHARS//\/[&.;]}                                 # Don't consider certain characters part of the word
 
 ## Keybindings section
@@ -224,7 +222,8 @@ alias add="git add"
 
 # Environment
 source ~/.env
-export EDITOR="code"
+export EDITOR="micro"
+export VISUAL="micro"
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
 export PATH="/home/oz/go/bin:/home/oz/bin:/home/oz/.cargo/bin:$PATH"
 
