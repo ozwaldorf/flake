@@ -40,6 +40,8 @@ Editor: clion / micro / helix
 
 ## ↛ 💻 usage
 
+> Note: you will need `make` and `yay` installed
+
 clone and enter the repo:
 
 ```sh
@@ -48,24 +50,19 @@ git clone https://github.com/ozwaldorf/dotfiles && cd dotfiles
 
 install packages:
 ```sh
-bash packages.sh
-```
-
-initialize script dependencies
-```sh
-yarn
+make deps
 ```
 
 install dotfiles to system:
 
 ```sh
-yarn configs
+make install
 ```
 
 backup/save configuration from system:
 
 ```sh
-yarn save
+make save
 ```
 
 ---
