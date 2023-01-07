@@ -33,7 +33,7 @@ bindsym $mod+Return exec terminal
 bindsym $mod+Shift+q kill
 
 # start program launcher
-bindsym $mod+d exec --no-startup-id rofi -i -p "Run:" -show drun
+bindsym $mod+d exec --no-startup-id rofi -i -p "Run:" -show-icons -show drun
 
 # launch categorized menu
 bindsym $mod+z exec --no-startup-id morc_menu

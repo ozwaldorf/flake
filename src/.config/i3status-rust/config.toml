@@ -13,7 +13,7 @@ memory = ""
 [[block]]
 block = "github"
 format = "{total}"
-on_click = "gh notifications  -s | sed -r \"s/\\x1B\\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g\" | rofi -dmenu -p \"Github Notifications\" && gh notifications -r"
+on_click = "gh notifications  -s | sed -r \"s/\\x1B\\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g\" | rofi -dmenu -p \"Github (unread)\" && gh notifications -r"
 
 [[block]]
 block = "pacman"

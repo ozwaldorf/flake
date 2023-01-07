@@ -2,3 +2,4 @@ node_modules/
 yarn.lock
 src/.config/micro/buffers/
 src/.config/micro/backups/
+.idea/
