@@ -96,10 +96,6 @@ get_options() {
   echo "  Region  File"
   echo "  Screen  Clip"
   echo "  Screen  File"
-  echo "  Region  File (GIF)"
-  echo "  Screen  File (GIF)"
-  echo "  Region  File (MP4)"
-  echo "  Screen  File (MP4)"
 }
 
 check_deps() {
@@ -117,25 +113,6 @@ main() {
   check_deps xclip
   check_deps rofi
 
-  if [[ $1 == '--help' ]] || [[ $1 = '-h' ]]
-  then
-    echo ### rofi-screenshot
-    echo "USAGE: rofi-screenshot [OPTION]"
-    echo "(no option)"
-    echo "    show the screenshot menu"
-    echo "-s, --stop"
-    echo "    stop recording"
-    echo "-h, --help"
-    echo "    this screen"
-    exit 1
-  fi
-
-  if [[ $1 = '--stop' ]] || [[ $1 = '-s' ]]
-  then
-    pkill -fxn '(/\S+)*ffmpeg\s.*\sx11grab\s.*'
-    exit 1
-  fi
-
   # Get choice from rofi
   choice=$( (get_options) | rofi -dmenu -i -fuzzy -p "Screenshot" )
 
@@ -149,26 +126,14 @@ main() {
     '  Region  Clip')
       crtc
       ;;
-    '  Region  File')
-      crtf
-      ;;
     '  Screen  Clip')
       cstc
       ;;
+    '  Region  File')
+      crtf
+      ;;
     '  Screen  File')
       cstf
-      ;;
-    '  Region  File (GIF)')
-      rgrtf
-      ;;
-    '  Screen  File (GIF)')
-      rgstf
-      ;;
-    '  Region  File (MP4)')
-      rvrtf
-      ;;
-    '  Screen  File (MP4)')
-      rvstf
       ;;
   esac
 

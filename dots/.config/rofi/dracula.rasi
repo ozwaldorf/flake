@@ -2,17 +2,24 @@
 
 * {
     font: "FiraMono Nerd Font 20";
-    foreground: #f8f8f2;
-    background-color:   #282a36;
 
+    background-color:   #282a36;
+    foreground: #f8f8f2;
+    normal-background: @background-color;
+    normal-foreground: @foreground;
     active-background: #6272a4;
+    active-foreground: @foreground;
+    alternate-background: @background-color;
+    alternate-foreground: @foreground;
     urgent-background: #ff5555;
     urgent-foreground: #282a36;
     selected-background: @active-background;
+    selected-foreground: @foreground;
     selected-urgent-background: @urgent-background;
     selected-active-background: @active-background;
     separator-color: @active-background;
     border-color: @active-background;
+    handle-color: @urgent-background;
 }
 
 #window {
