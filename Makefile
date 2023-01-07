@@ -53,14 +53,14 @@ deps: header
 
 install: header
 	# Installing dotfiles
-	GLOBIGNORE='.:..' cp -rv ./src/$(.*) $$HOME
+	GLOBIGNORE='.:..' cp -rv ./dots/$(.*) $$HOME
 
 save: header
 	# Saving dotfiles
 	@for path in ${configs}; do to=$$HOME/$$path; \
 		if [[ -f "$$to" ]]; then \
-			\cp -v "$$to" "./src/$$path"; \
+			\cp -v "$$to" "./dots/$$path"; \
 		elif [[ -d "$$to" ]]; then \
-			\cp -rv $$to/* "./src/$$path/"; \
+			\cp -rv $$to/* "./dots/$$path/"; \
 		fi \
 	done
