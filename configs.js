@@ -3,20 +3,18 @@ const fs = require("fs-extra");
 const path = require("path");
 const argv = require("yargs");
 
-const dir = "src";
+const backupDir = "src";
 
-const config = {
-  files: [
-    ".zshrc",
-    ".Xresources",
-    ".gitconfig",
-    ".config/starship.toml",
-    ".config/picom.conf",
-    ".config/helix/config.toml",
-    ".config/micro/settings.json",
-  ],
-  folders: [".config/i3/", ".config/i3status-rust", ".config/kitty/"],
-};
+const items = [
+  ".zshrc",
+  ".Xresources",
+  ".gitconfig",
+  ".config/starship.toml",
+  ".config/picom.conf",
+  ".config/helix/config.toml",
+  ".config/micro/settings.json",
+  ".config/i3/", ".config/i3status-rust", ".config/kitty/", ".config/rofi/"
+]
 
 const copy = (fromPath, toPath, name) => {
   fs.copy(fromPath, toPath, {
@@ -32,38 +30,22 @@ const copy = (fromPath, toPath, name) => {
 
 argv.command("save", ": save current config files", () => {
   console.log("saving config files --\n");
-  config.files.forEach((file) => {
+  items.forEach((item_path) => {
     copy(
-      path.join(process.env.HOME, file),
-      path.join(__dirname, dir, file),
-      file
-    );
-  });
-
-  config.folders.forEach((folder) => {
-    copy(
-      path.join(process.env.HOME, folder),
-      path.join(__dirname, dir, folder),
-      folder
+      path.join(process.env.HOME, item_path),
+      path.join(__dirname, backupDir, item_path),
+      item_path
     );
   });
 });
 
 argv.command("install", "install saved dotfiles", () => {
   console.log("installing config files --\n");
-  config.files.forEach((file) => {
+  items.forEach((item_path) => {
     copy(
-      path.join(__dirname, dir, file),
-      path.join(process.env.HOME, file),
-      file
-    );
-  });
-
-  config.folders.forEach((folder) => {
-    copy(
-      path.join(__dirname, dir, folder),
-      path.join(process.env.HOME, folder),
-      folder
+      path.join(__dirname, backupDir, item_path),
+      path.join(process.env.HOME, item_path),
+      item_path
     );
   });
 }).argv;
