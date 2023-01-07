@@ -2,9 +2,9 @@
 
 ---
 
-🖹 [info](#-info)
-💻 [usage](#-usage) 
-📷 [screens](#-screens)
+🖹 [info](#--info)
+💻 [usage](#--usage) 
+📷 [screens](#--screens)
 
 ---
 
@@ -69,5 +69,5 @@ make save
 
 ## ↛ 📷 screens
 
-![2023-01-06-192909_3456x2160_scrot](https://user-images.githubusercontent.com/8976745/211121837-05601f7e-2380-495e-a412-5cd5c8630e3f.png)
-![2023-01-06-193331_3456x2160_scrot](https://user-images.githubusercontent.com/8976745/211122049-b5621ec2-325c-4b28-8a48-bfe29868ceb7.png)
+![image](https://user-images.githubusercontent.com/8976745/211140304-826de384-d901-4368-8c63-dc44a5d3ea9b.png)
+![image](https://user-images.githubusercontent.com/8976745/211140344-0457a13e-3e92-43fc-9c22-8bc4875331c0.png)
