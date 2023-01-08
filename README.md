@@ -68,6 +68,6 @@ make save
 ---
 
 ## ↛ 📷 screens
-
-![image](https://user-images.githubusercontent.com/8976745/211140304-826de384-d901-4368-8c63-dc44a5d3ea9b.png)
+![image](https://user-images.githubusercontent.com/8976745/211219369-3a192a96-7eac-448a-9b15-099159f83427.png)
+![image](https://user-images.githubusercontent.com/8976745/211219147-6feb50ee-5b67-4952-ae33-8411bcf7b3b4.png)
 ![image](https://user-images.githubusercontent.com/8976745/211141026-f4bf4129-604f-4826-9469-799764e66df0.png)
