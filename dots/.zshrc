@@ -195,7 +195,7 @@ add-zsh-hook preexec mzc_termsupport_preexec
 fetched_git_dirs=()
 onefetch_git_dir() {
     if [[ -r .git/HEAD && ! " ${fetched_git_dirs[*]} " =~ " $PWD " ]]; then
-        fetched_git_dirs+=("$PWD") && echo "\n"
+        fetched_git_dirs+=("$PWD")
         if [[ "$TERM" =~ "kitty" ]] && [[ -r $PWD/../onefetch.png ]]; then
             # if term is kitty, lets use an image if it's provided in the parent dir
             onefetch --image $PWD/../onefetch.png
@@ -242,4 +242,4 @@ eval $(thefuck --alias)
 eval $(starship init zsh)
 
 # Launch fetch on terminal startup
-onefetch_git_dir || nerdfetch
+onefetch_git_dir || punfetch -i ~/.config/term.png --show-logo auto

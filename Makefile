@@ -1,11 +1,13 @@
 .PHONY: deps save install
 
 define ASCII
+
 .  ───── oz's ─────  .
 ┌┬┐┌─┐┌┬┐┌─┐┬┬  ┌─┐┌─┐
  │││ │ │ ├┤ ││  ├┤ └─┐
 ─┴┘└─┘ ┴ └  ┴┴─┘└─┘└─┘
 ·  ───── ·  · ─────  ·
+
 endef
 export ASCII
 
@@ -20,7 +22,8 @@ configs= \
 	.config/i3 \
 	.config/i3status-rust \
 	.config/kitty \
-	.config/rofi
+	.config/rofi \
+	.config/term.png
 
 pkgs= \
   kitty \
@@ -34,7 +37,11 @@ pkgs= \
   yarn \
   i3status-rust \
   github-cli \
-  rofi
+  rofi \
+  rustup
+
+cargo_pkgs= \
+	punfetch
 
 ascii:
 	@echo "$$ASCII"
@@ -44,12 +51,16 @@ deps: ascii
 	# Install packages
 	sudo -S yay -S --needed --noconfirm ${pkgs}
 	# Check if gh is logged in,
-	if gh auth status &>/dev/null; then
-		# check notifications is installed, or install it
-		gh notifications -help &>/dev/null || gh extension install daniel-leinweber/gh-notifications
-	else
-		@echo "gh is not logged in, please set \"GH_TOKEN\" and \"I3RS_GITHUB_TOKEN\""
+	@if gh auth status &>/dev/null; then \
+		# check notifications is installed, or install it \
+		gh notifications -help &>/dev/null || gh extension install daniel-leinweber/gh-notifications; \
+	else \
+		echo "gh is not logged in, please set \"GH_TOKEN\" and \"I3RS_GITHUB_TOKEN\""; \
 	fi
+	# Verify rustup is setup
+	@cargo -V || rustup install stable && rustup default stable
+	# Install cargo packages
+	cargo install ${cargo_pkgs}
 
 install: ascii
 	# Installing dotfiles

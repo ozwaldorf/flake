@@ -63,7 +63,7 @@ interval = 3600
 
 [[block]]
 block = "backlight"
-minimum = 15
+minimum = 5
 maximum = 100
 cycle = [100, 75, 50, 25, 9, 25, 50, 75, 100]
 format = " {brightness} "
