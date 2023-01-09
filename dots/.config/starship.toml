@@ -60,7 +60,7 @@ renamed = " » [$count](244)" #The format of renamed
 deleted	= " ✘ [$count](244)"
 
 [package]
-symbol = '📦'
+symbol = 'pkg'
 format = "  [$symbol]($style)/[$version](244)"
 disabled = false
 
