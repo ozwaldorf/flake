@@ -14,7 +14,7 @@ configuration {
     disable-history:            false;
     font:                       "FiraMono Nerd Font 16";
     scroll-method:              0;
-    dpi:                        140;
+    dpi:                        120;
 }
 
 /*****----- Theme -----*****/

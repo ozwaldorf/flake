@@ -54,12 +54,6 @@ bindkey '^[[1;5C' forward-word                                  #
 bindkey '^H' backward-kill-word                                 # delete previous word with ctrl+backspace
 bindkey '^[[Z' undo                                             # Shift+tab undo last action
 
-## Alias section 
-alias cp="cp -i"                                                # Confirm before overwriting something
-alias df='df -h'                                                # Human-readable sizes
-alias free='free -m'                                            # Show sizes in MB
-alias gitu='git add . && git commit && git push'
-
 # Theming section  
 autoload -U compinit colors zcalc
 compinit -d
@@ -211,7 +205,6 @@ add-zsh-hook chpwd onefetch_git_dir
 eval "$(dircolors -b)"
 
 # Alias
-alias cat="bat"
 ls_args="--git --icons"
 alias ls="exa -lh $ls_args"
 alias la="exa -lah $ls_args"
@@ -219,9 +212,25 @@ alias l="exa -lah $ls_args"
 alias lg="exa -lah $ls_args --git-ignore"
 alias commit="git commit"
 alias add="git add"
+alias cp="cp -i" # Confirm before overwriting something
+alias df='df -h' # Human-readable sizes
+alias free='free -m' # Show sizes in MB
+alias gitu='git add . && git commit && git push'
+alias clip='xclip -selection clipboard'
+alias icat="kitty +kitten icat"
+
+smart_cat() {
+	if [[ $1 =~ \.(png|jpeg|jpg|ico)$ ]]; then
+		icat $@
+	else
+		bat $@ 
+	fi
+}
+alias cat="smart_cat"
 
 # Environment
 source ~/.env
+export BROWSER="brave"
 export EDITOR="micro"
 export VISUAL="micro"
 export CARGO_NET_GIT_FETCH_WITH_CLI=true

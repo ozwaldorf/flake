@@ -1,85 +1,208 @@
-# Get editor completions based on the config schema
-"$schema" = 'https://starship.rs/config-schema.json'
+format = """$directory\
+$all\
+$cmd_duration\
+$jobs\
+$status\
+$shell\
+$line_break\
+$env_var$username$sudo$character"""
 
-# Inserts a blank line between shell prompts
+right_format = """$battery$time"""
+
 add_newline = true
 
-format = "$username$hostname$battery$all$time$character"
-right_format = ""
+[character]
+format = "$symbol "
+success_symbol = "[●](italic bright-green)"
+error_symbol = "[●](italic red)"
+vicmd_symbol = "[◆](italic blue)"
 
-[aws]
-disabled = true
+[env_var.VIMSHELL] # vim subshell
+format = "[$env_value]($style)"
+style = 'green italic'
 
-[time]
-style = "244"
-format = "[$time]($style) "
+[sudo]
+format = "[$symbol]($style)"
+style = "italic bright-purple"
+symbol = ":"
 disabled = false
 
 [username]
-format = "[$user]($style)"
-show_always = true
+style_user = "yellow bold"
+style_root = "purple bold"
+format = "[$user]($style) ▻ "
 disabled = false
-
-[hostname]
-style = "244"
-format = "/[$ssh_symbol$hostname]($style)"
-ssh_only = false
-disabled = false
-
-[battery]
-format = "  [$symbol$percentage]($style)"
-disabled = false
-
-[[battery.display]]
-threshold = 90
-style = "bold red"
+show_always = false
 
 [directory]
-format = '  [$path]($style)[$read_only]($read_only_style)'
-
-[git_branch]
-format = "   [$branch(:$remote_branch)]($style) "
-
-[git_commit]
-style = "244"
-format = '\([$hash$tag]($style)\) '
-only_detached = false
-
-[git_status]
-format = ': \([$all_status$ahead_behind]($style) \)'
-conflicted = " = [$count](244)" #This branch has merge conflicts.
-ahead = " ⇡ [$count](244)" #The format of ahead
-behind = " [⇣]()" #The format of behind
-diverged = " [⇕]()" #The format of diverged
-up_to_date = "" #The format of up_to_date
-untracked = " ? [$count](244)" #The format of untracked
-stashed = " 📦 [$count](244)" #The format of stashed
-modified = "  [$count](244)" #The format of modified
-staged = " ﰙ [$count](244)" #The format of staged
-renamed = " » [$count](244)" #The format of renamed
-deleted	= " ✘ [$count](244)"
-
-[package]
-symbol = 'pkg'
-format = "  [$symbol]($style)/[$version](244)"
-disabled = false
-
-[nodejs]
-symbol = "node"
-format = "  [$symbol]($style)/[$version](244)"
-
-[rust]
-symbol = "rust"
-format = "  [$symbol]($style)/[$version](244)"
+home_symbol = "⌂"
+truncation_length = 2
+truncation_symbol = "□ "
+read_only = " △"
+use_os_path_sep = true
+style = "italic bright-blue"
 
 [cmd_duration]
-min_time = 500
-show_milliseconds = false
-format = "  [祥$duration]($style) "
+min_time = 1000
+format = "[ ◕ $duration](244)"
 
-# Replace the "❯" symbol in the prompt with "➜"
-[character] # The name of the module we are configuring is "character"
-success_symbol = "[ﲤ](bold green)" # The "success_symbol" segment is being set to "➜" with the color "bold green"
-error_symbol = "[ﲤ](bold red)"
-vicmd_symbol = "[](bold purple)"
+[jobs]
+format = "[$symbol$number]($style) "
+style = "white"
+symbol = "[▶ ](blue italic)"
 
+[localip]
+ssh_only = true
+format = "◯[$localipv4](bold magenta) "
+disabled = false
+
+[time]
+disabled = false
+format = "[ $time [◔](italic white)]($style)"
+time_format = "%R"
+utc_time_offset = "local"
+style = "dimmed white"
+time_range = "00:00:00-07:00:00"
+
+[battery]
+format = "[$percentage $symbol]($style)"
+full_symbol = "[█](italic green)"
+charging_symbol = "[▲](italic green)"
+discharging_symbol = "[▽](italic)"
+unknown_symbol = "[░](italic)"
+empty_symbol = "[▃](italic red)"
+disabled=false
+
+[[battery.display]]
+threshold = 40
+style = "dimmed yellow"
+
+[[battery.display]]
+threshold = 70
+style = "dimmed white"
+
+[git_branch]
+format = "[$symbol $branch(:$remote_branch)]($style)"
+symbol = "[▽](italic cyan)"
+style = "bold cyan"
+
+[git_status]
+style = "italic cyan"
+format = """ ([$ahead_behind$staged$modified$untracked$renamed$deleted$conflicted$stashed]($style))"""
+conflicted = "[◪◦](italic bright-magenta)"
+ahead = "[▲ [${count}](bold white) ](italic green)"
+behind = "[▽ [${count}](bold white) ](italic red)"
+diverged = "[◇ [${ahead_count}](bold green) [${behind_count}](bold red) ](italic bright-magenta)"
+untracked = "[◌ ](italic bright-yellow)"
+stashed = "[◫ ](italic white)"
+modified = "[● ](italic yellow)"
+staged = "[■ ](italic bright-cyan)"
+renamed = "[◎ ](italic bright-blue)"
+deleted = "[✕ ](italic red)"
+
+[deno]
+format = "deno [∫ $version](blue italic) "
+version_format = "${major}.${minor}"
+
+[nodejs]
+format = "node [◫ ($version)](italic bright-green) "
+detect_files = ["package.json"]
+version_format = "${major}.${minor}"
+# detect_folders = ["node_modules"]
+# detect_extensions = ["js", "mjs", "cjs", "ts", "mts", "cts"]
+
+[python]
+format = "py [${symbol}${version}]($style) "
+symbol = "[⌉](italic bright-blue)⌊ "
+version_format = "${major}.${minor}"
+style = "italic bright-yellow"
+
+[ruby]
+format = "rb [${symbol}${version}]($style) "
+symbol = "◆ "
+version_format = "${major}.${minor}"
+style = "italic red"
+
+[rust]
+format = "rs [$symbol$version]($style) "
+symbol = "⊃ "
+version_format = "${major}.${minor}"
+style = "italic red"
+
+[package]
+format = "pkg [$symbol$version]($style) "
+version_format = "${major}.${minor}"
+symbol = "◫ "
+style = "bright-yellow italic"
+
+[swift]
+format = "sw [${symbol}${version}]($style) "
+symbol = "◁ "
+style = "italic bright-red"
+version_format = "${major}.${minor}"
+
+[aws]
+disabled = true
+format = "aws [$symbol $profile $region]($style) "
+style = "italic blue"
+symbol = "▲ "
+
+[buf]
+symbol = "■ "
+format = "buf [$symbol $version $buf_version]($style) "
+
+[c]
+symbol = "∁ "
+format = "c [$symbol($version(-$name))]($style) "
+
+[conda]
+symbol = "◯ "
+format = "conda [$symbol$environment]($style) "
+
+[dart]
+symbol = "◁◅ "
+format = "dart [$symbol($version )]($style) "
+
+[docker_context]
+symbol = "◧ "
+format = "docker [$symbol$context]($style) "
+
+[elixir]
+symbol = "△ "
+format = "exs [$symbol $version OTP $otp_version ]($style) "
+
+[elm]
+symbol = "◩ "
+format = "elm [$symbol($version )]($style) "
+
+[golang]
+symbol = "∩ "
+format = "go [$symbol($version )]($style) "
+
+[haskell]
+symbol = "❯λ "
+format = "hs [$symbol($version )]($style) "
+
+[java]
+symbol = "∪ "
+format = "java [${symbol}(${version} )]($style) "
+
+[julia]
+symbol = "◎ "
+format = "jl [$symbol($version )]($style) "
+
+[memory_usage]
+symbol = "▪▫▪ "
+format = "mem [${ram}( ${swap})]($style) "
+
+[nim]
+symbol = "▴▲▴ "
+format = "nim [$symbol($version )]($style) "
+
+[nix_shell]
+symbol = "⊛ "
+format = "nix [$symbol$state $name]($style) "
+
+[spack]
+symbol = "◇ "
+format = "spack [$symbol$environment]($style) "
