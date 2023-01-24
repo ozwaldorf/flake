@@ -83,20 +83,20 @@ style = "dimmed white"
 
 [git_branch]
 format = "[$symbol $branch(:$remote_branch)]($style)"
-symbol = "[▽](italic cyan)"
+symbol = "[△](italic cyan)"
 style = "bold cyan"
 
 [git_status]
 style = "italic cyan"
 format = """ ([$ahead_behind$staged$modified$untracked$renamed$deleted$conflicted$stashed]($style))"""
-conflicted = "[◪◦](italic bright-magenta)"
+conflicted = "[◪ ](italic bright-magenta)"
 ahead = "[▲ [${count}](bold white) ](italic green)"
-behind = "[▽ [${count}](bold white) ](italic red)"
-diverged = "[◇ [${ahead_count}](bold green) [${behind_count}](bold red) ](italic bright-magenta)"
+behind = "[▼ [${count}](bold white) ](italic red)"
+diverged = "[◇ [${ahead_count}](bold green)/[${behind_count}](bold red) ](italic bright-magenta)"
 untracked = "[◌ ](italic bright-yellow)"
 stashed = "[◫ ](italic white)"
 modified = "[● ](italic yellow)"
-staged = "[■ ](italic bright-cyan)"
+staged = "[▧ ](italic bright-cyan)"
 renamed = "[◎ ](italic bright-blue)"
 deleted = "[✕ ](italic red)"
 

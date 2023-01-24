@@ -14,7 +14,7 @@ default_border pixel 1
 default_floating_border 1pixel
 
 # Hide borders
-hide_edge_borders none
+hide_edge_borders none+
 
 # change borders
 bindsym $mod+u border none
