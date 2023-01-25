@@ -38,7 +38,11 @@ pkgs= \
   i3status-rust \
   github-cli \
   rofi \
-  rustup
+  rustup \
+  slop \
+  imagemagick \
+  zsh-autocomplete-git \
+  zsh-autosuggestions
 
 cargo_pkgs= \
 	punfetch
