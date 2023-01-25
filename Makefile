@@ -12,18 +12,18 @@ endef
 export ASCII
 
 configs= \
-	.zshrc \
 	.Xresources \
 	.gitconfig \
+	.zshrc \
+	.config/term.png \
 	.config/starship.toml \
 	.config/picom.conf \
+	.config/kitty/kitty.conf \
 	.config/helix/config.toml \
 	.config/micro/settings.json \
-	.config/i3 \
-	.config/i3status-rust \
-	.config/kitty \
-	.config/rofi \
-	.config/term.png
+	.config/i3/config \
+	.config/polybar \
+	.config/scripts
 
 pkgs= \
   kitty \
@@ -64,7 +64,8 @@ deps: ascii
 
 install: ascii
 	# Installing dotfiles
-	GLOBIGNORE='.:..' cp -rv ./dots/$(.*) $$HOME
+	cd dots && cp -rv . $$HOME/
+	cp -rv wallpapers $$HOME/Pictures/
 
 save: ascii
 	# Saving dotfiles
@@ -75,3 +76,4 @@ save: ascii
 			\cp -rv $$to/* "./dots/$$path/"; \
 		fi \
 	done
+	cp -rv $$HOME/Pictures/wallpapers .

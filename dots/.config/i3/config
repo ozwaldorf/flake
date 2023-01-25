@@ -4,7 +4,7 @@
 # Set mod key (Mod1=<Alt>, Mod4=<Super>)
 set $mod Mod4
 
-set $script_path ~/.config/i3/scripts
+set $script_path ~/.config/scripts
 
 # set default desktop layout (default is tiling)
 # workspace_layout tabbed <stacking|tabbed>
@@ -14,7 +14,7 @@ default_border pixel 1
 default_floating_border 1pixel
 
 # Hide borders
-hide_edge_borders none+
+hide_edge_borders none
 
 # change borders
 bindsym $mod+u border none
@@ -35,19 +35,12 @@ bindsym $mod+Return exec terminal
 bindsym $mod+Shift+q kill
 
 # start program launcher
-bindsym $mod+d exec --no-startup-id rofi -show
+bindsym $mod+d exec --no-startup-id ~/.config/scripts/launcher.sh
 
 # launch categorized menu
 bindsym $mod+z exec --no-startup-id morc_menu
 
-################################################################################################
-## sound-section - DO NOT EDIT if you wish to automatically upgrade Alsa -> Pulseaudio later! ##
-################################################################################################
-
-exec --no-startup-id volumeicon
-# bindsym $mod+Ctrl+m exec terminal -e 'alsamixer'
-#exec --no-startup-id pulseaudio
-#exec --no-startup-id pa-applet
+# sound
 bindsym $mod+Ctrl+m exec pavucontrol
 
 ################################################################################################
@@ -56,17 +49,18 @@ bindsym $mod+Ctrl+m exec pavucontrol
 bindsym XF86MonBrightnessUp exec "light -A 10"
 bindsym XF86MonBrightnessDown exec "light -U 10"
 
+# Toggle transparency
+bindsym $mod+t exec --no-startup-id pkill picom || picom --transparent-clipping
+
+# Screenshot
+bindsym Print exec --no-startup-id ~/.config/scripts/screenshot.sh
+
 # Start apps shortcuts
 bindsym $mod+Ctrl+b exec terminal -e 'bmenu'
 bindsym $mod+F2 exec brave
 bindsym $mod+F3 exec pcmanfm
-# bindsym $mod+F3 exec ranger
 bindsym $mod+Shift+F3 exec pcmanfm_pkexec
-bindsym $mod+F5 exec terminal -e 'mocp'
-bindsym $mod+t exec --no-startup-id pkill picom
-bindsym $mod+Ctrl+t exec --no-startup-id picom -b --transparent-clipping
 bindsym $mod+Shift+d --release exec "killall dunst; exec notify-send 'restart dunst'"
-bindsym Print exec --no-startup-id $script_path/screenshot.sh
 bindsym $mod+Shift+h exec xdg-open /usr/share/doc/manjaro/i3_help.pdf
 bindsym $mod+Ctrl+x --release exec --no-startup-id xkill
 
@@ -300,57 +294,34 @@ client.background       #F8F8F2
 #############################
 
 # Set inner/outer gaps
-gaps inner 3
+gaps inner 8
 gaps outer 0
 
+# default border
+default_border none
+
 # Smart gaps (gaps used if only more than one container on the workspace)
-smart_gaps on
+smart_gaps off
 
 # Smart borders (draw borders around container only if it is not the only container on this workspace) 
 # on|no_gaps (on=always activate and no_gaps=only activate if the gap size to the edge of the screen is 0)
 # smart_borders no_gaps
 
-# Start i3bar + i3status-rust to display a workspace bar
-bar {
-    height 42
-	i3bar_command i3bar
-	status_command source ~/.env && i3status-rs
-	position top
-	strip_workspace_numbers yes
-
-	tray_output primary
-	tray_output eDP1
-
-	bindsym button4 nop
-	bindsym button5 nop
-
-    colors {
-        background #282A36
-        statusline #F8F8F2
-        separator  #44475A
-
-        focused_workspace  #44475A #44475A #F8F8F2
-        active_workspace   #282A36 #44475A #F8F8F2
-        inactive_workspace #282A36 #282A36 #BFBFBF
-        urgent_workspace   #FF5555 #FF5555 #F8F8F2
-        binding_mode       #FF5555 #FF5555 #F8F8F2
-      }
-}
+exec --no-startup-id ~/.config/polybar/launch.sh --cuts
 
 # hide/unhide i3status bar
-bindsym $mod+m bar mode toggle
+# bindsym $mod+m bar mode toggle
 
 # Autostart applications
 exec --no-startup-id /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
-exec --no-startup-id nitrogen --restore; 
+exec --no-startup-id nitrogen --restore;
 exec --no-startup-id sleep 1; picom -b --transparent-clipping
 exec --no-startup-id nm-applet
 exec --no-startup-id xfce4-power-manager
 exec --no-startup-id pamac-tray
 exec --no-startup-id clipit
 exec --no-startup-id blueman-applet
-exec --no-startup-id start_conky_maia
-# exec --no-startup-id start_conky_green
+# exec --no-startup-id start_conky_maia
 exec --no-startup-id xautolock -time 30 -locker blurlock
 exec_always --no-startup-id ff-theme-util
 exec_always --no-startup-id fix_xcursor

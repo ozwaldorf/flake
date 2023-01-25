@@ -251,4 +251,4 @@ eval $(thefuck --alias)
 eval $(starship init zsh)
 
 # Launch fetch on terminal startup
-onefetch_git_dir || punfetch -i ~/.config/term.png --show-logo auto
+onefetch_git_dir || punfetch -i ~/.config/computer.png --show-logo auto --color magenta
