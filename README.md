@@ -16,7 +16,8 @@
 OS: Manjaro 21.2.6 Qonos (community i3)
 Compositor: picom
 WM: i3
-GTK Theme: Matcha-dark-azul [GTK2/3]
+Bar: polybar
+GTK Theme: dracula [GTK2/3]
 Icon Theme: Papirus-Dark
 Font: FiraCode Nerd Font Mono
 ```
@@ -25,7 +26,7 @@ Font: FiraCode Nerd Font Mono
 ```
 Terminal: kitty
 Shell: vanilla zsh 5.9
-Fetch: nerdfetch + onefetch
+Fetch: punfetch + onefetch
 Prompt: starship
 Git Diff-Viewer: delta
 ```
@@ -68,6 +69,6 @@ make save
 ---
 
 ## ↛ 📷 screens
-![image](https://user-images.githubusercontent.com/8976745/211219369-3a192a96-7eac-448a-9b15-099159f83427.png)
-![image](https://user-images.githubusercontent.com/8976745/211219147-6feb50ee-5b67-4952-ae33-8411bcf7b3b4.png)
-![image](https://user-images.githubusercontent.com/8976745/211141026-f4bf4129-604f-4826-9469-799764e66df0.png)
+![image](https://user-images.githubusercontent.com/8976745/214473217-69fef5d8-21bf-494a-9fb2-3f9d30e99414.png)
+![image](https://user-images.githubusercontent.com/8976745/214473432-a6873964-a12a-44df-964a-783498e10928.png)
+![image](https://user-images.githubusercontent.com/8976745/214473585-225a6add-33e5-496a-81db-7998e4b59eb2.png)
