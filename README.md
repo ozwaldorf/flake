@@ -14,12 +14,11 @@
 
 ```
 OS: Manjaro 21.2.6 Qonos (community i3)
-Compositor: picom
-WM: i3
-Bar: polybar
+Compositor: hyprland
+Bar: waybar
 GTK Theme: dracula [GTK2/3]
-Icon Theme: Papirus-Dark
-Font: FiraCode Nerd Font Mono
+Icon Theme: dracula-icons
+Font: FiraCode Nerd Font
 ```
 
 ### terminal
@@ -69,6 +68,4 @@ make save
 ---
 
 ## ↛ 📷 screens
-![image](https://user-images.githubusercontent.com/8976745/214473217-69fef5d8-21bf-494a-9fb2-3f9d30e99414.png)
-![image](https://user-images.githubusercontent.com/8976745/214473432-a6873964-a12a-44df-964a-783498e10928.png)
-![image](https://user-images.githubusercontent.com/8976745/214473585-225a6add-33e5-496a-81db-7998e4b59eb2.png)
+![image](https://user-images.githubusercontent.com/8976745/215275108-832b0a5f-c93a-4224-8843-db0aa5c5586d.png)
