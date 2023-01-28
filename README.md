@@ -1,10 +1,21 @@
 # dotfiles
 
+
+
 ---
 
 🖹 [info](#--info)
 💻 [usage](#--usage) 
 📷 [screens](#--screens)
+
+---
+
+
+## ↛ 📷 screens
+
+![image](https://user-images.githubusercontent.com/8976745/215278149-ec3d08d1-3f22-48ae-91f0-ea6eb080c8c6.png)
+![image](https://user-images.githubusercontent.com/8976745/215278576-f34f6d19-97fd-44aa-99e8-6632cd7aa121.png)
+
 
 ---
 
@@ -64,8 +75,3 @@ backup/save configuration from system:
 ```sh
 make save
 ```
-
----
-
-## ↛ 📷 screens
-![image](https://user-images.githubusercontent.com/8976745/215275108-832b0a5f-c93a-4224-8843-db0aa5c5586d.png)
