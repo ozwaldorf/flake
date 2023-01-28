@@ -32,7 +32,7 @@ change_color() {
 if [[ $1 = "--mode0" ]]; then
 	BG="282A36"
 	FG="F8F8F2"
-	AC="#FF6E67"
+	AC="#FF79C6"
 	change_color
 elif  [[ $1 = "--mode1" ]]; then
 	BG="0a0a0a"

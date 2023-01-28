@@ -218,6 +218,7 @@ alias free='free -m' # Show sizes in MB
 alias gitu='git add . && git commit && git push'
 alias clip='xclip -selection clipboard'
 alias icat="kitty +kitten icat"
+alias curl="curl -s"
 
 smart_cat() {
 	if [[ $1 =~ \.(png|jpeg|jpg|ico)$ ]]; then
@@ -251,4 +252,4 @@ eval $(thefuck --alias)
 eval $(starship init zsh)
 
 # Launch fetch on terminal startup
-onefetch_git_dir || punfetch -i ~/.config/computer.png --show-logo auto --color magenta
+onefetch_git_dir || punfetch -i ~/.config/hitchhiker.png --show-logo auto --color green
