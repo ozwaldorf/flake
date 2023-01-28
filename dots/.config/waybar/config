@@ -1,0 +1,128 @@
+// clock, weather, systray
+// workspaces
+// temp, net, battery, audio, github
+
+{
+    "position": "left",
+    "layer": "top",
+    "output": ["eDP-1", "DP-1"],
+    "width": 44,
+    "margin": "20 0 20 20",
+    "modules-left": [
+    	"clock", 
+    	"tray", 
+    ],
+    "modules-center": ["wlr/workspaces", "custom/special"],
+    "modules-right": [
+        "custom/github",    	
+    	"custom/sep",
+    	"pulseaudio", 
+    	"custom/sep",
+    	"backlight",
+    	"custom/sep",  
+    	"temperature", 
+    	"network", 
+    	"custom/sep", 
+    	"battery"
+    ],
+    "custom/sep": {
+        "format": "──"
+    },
+    "clock": {
+        "format": "{:%H\n%M}",
+        "tooltip": "{calendar}"
+    },
+    "tray": {
+        "icon-size": 18,
+        "spacing": 10
+    },
+    "wlr/workspaces": {
+        "on-click": "activate",
+        "format": "{icon}",
+           "format-icons": {
+            "urgent": "🌕︎",
+            "active": "🌑︎",
+            "hidden": "a",
+            "1": "❶",
+            "2": "❷",
+            "3": "❸",
+            "4": "❹",
+            "5": "❺",
+            "6": "❻",
+            "7": "❼",
+            "8": "❽",
+            "9": "❾",
+            "10": "❿",
+            "-99":"a",
+            "default": "⏺"
+		},
+    },
+    "custom/special": {
+    	"exec": "~/.config/waybar/special.sh",
+    	"return-type": "json",
+    	"tooltip": true,
+    	"on-click": "hyprctl dispatch togglespecialworkspace ''"
+    },
+	"custom/github": {
+    	"rotate": 90,
+        "format": " {}",
+        "return-type": "json",
+        "interval": 60,
+        "exec": "$HOME/.config/waybar/github.sh",
+        "on-click": "xdg-open https://github.com/notifications"
+    },
+    "pulseaudio": {
+        "rotate": 90,
+        "format": "{icon} {volume}",
+        "format-bluetooth": "{icon} {volume} ",
+        "format-muted": " MUTE",
+        "format-icons": {
+            "headphone": "",
+            "hands-free": "",
+            "headset": "",
+            "phone": "",
+            "portable": "",
+            "car": "",
+            "default": ["", "", ""]
+        },
+    },
+    "backlight": {
+    	"rotate": 90,
+        "device": "intel_backlight",
+        "format": "{icon} {percent}",
+        "format-icons": [
+        	"🌕︎",
+        	"🌔︎",
+        	"🌓︎",
+        	"🌒︎",
+        	"🌑︎"
+        ],
+        "on-scroll-up": "light -A 1",
+        "on-scroll-down": "light -U 1",
+    },
+	"temperature": {
+        "rotate": 90,
+        "hwmon-path": "/sys/class/hwmon/hwmon1/temp1_input",
+        "critical-threshold": 80,
+        "format": "{icon} {temperatureC}°C",
+        "format-icons": ["", "", ""]
+    },
+    "network": {
+        "rotate": 90,
+        "format-wifi": " {signalStrength}",
+        "format-ethernet": " {ipaddr}",
+        "format-linked": " {ifname}",
+        "format-disconnected": "⚠ None",
+        "format-alt": "{ifname}: {ipaddr}/{cidr}"
+    },
+    "battery": {
+        "rotate": 90,
+        "states": {
+            "warning": 30,
+            "critical": 15
+        },
+        "format": "{icon} {capacity}",
+        "format-charging": " {capacity}",
+        "format-icons": ["", "", "", "", ""],
+    }
+}

@@ -17,13 +17,15 @@ configs= \
 	.zshrc \
 	.config/term.png \
 	.config/starship.toml \
-	.config/picom.conf \
 	.config/kitty/kitty.conf \
 	.config/helix/config.toml \
 	.config/micro/settings.json \
-	.config/i3/config \
-	.config/polybar \
-	.config/scripts
+	.config/hypr \
+	.config/waybar
+#	.config/i3/config \
+#	.config/polybar \
+#	.config/picom.conf \
+#	.config/scripts
 
 pkgs= \
   kitty \
@@ -42,7 +44,10 @@ pkgs= \
   slop \
   imagemagick \
   zsh-autocomplete-git \
-  zsh-autosuggestions
+  zsh-autosuggestions \
+  hyprland-nvidia-hidpi-git \
+  waybar-hyprland \
+  wofi
 
 cargo_pkgs= \
 	punfetch

@@ -16,7 +16,7 @@ Xft.lcdfilter: lcddefault
 *.cursorColor:   #5C6370
 *.highlightColor: #3A3F4B
 
-Xcursor.theme: xcursor-breeze
+Xcursor.theme: Dracula-cursors
 Xcursor.size:                     0
 
 ! Dracula Xresources palette
