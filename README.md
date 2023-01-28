@@ -13,7 +13,8 @@
 
 ## ↛ 📷 screens
 
-![image](https://user-images.githubusercontent.com/8976745/215278149-ec3d08d1-3f22-48ae-91f0-ea6eb080c8c6.png)
+![image](https://user-images.githubusercontent.com/8976745/215292389-7aa58403-60f4-4e0f-b04e-c050bcae195a.png)
+
 ![image](https://user-images.githubusercontent.com/8976745/215278576-f34f6d19-97fd-44aa-99e8-6632cd7aa121.png)
 
 
