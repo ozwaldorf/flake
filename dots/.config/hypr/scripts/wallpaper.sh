@@ -1,11 +1,11 @@
 #!/bin/bash
-# Writes some splash text onto images from ~/.config/wallpapers
+# Writes some splash text onto images from ~/.config/hypr/wallpapers
 # USAGE:
 # 	random: ./wallpaper.sh
 #   specific: ./wallpaper.sh file.png
 #
 
-cd ~/.config/wallpapers
+cd ~/.config/hypr/wallpapers
 
 if [[ -z "$1" ]]; then
 	# default use random

@@ -216,7 +216,7 @@ alias cp="cp -i" # Confirm before overwriting something
 alias df='df -h' # Human-readable sizes
 alias free='free -m' # Show sizes in MB
 alias gitu='git add . && git commit && git push'
-alias clip='xclip -selection clipboard'
+alias clip='wl-copy'
 alias icat="kitty +kitten icat"
 alias curl="curl -s"
 
