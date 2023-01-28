@@ -20,8 +20,10 @@ configs= \
 	.config/kitty/kitty.conf \
 	.config/helix/config.toml \
 	.config/micro/settings.json \
+	.config/dunst/dunstrc \
 	.config/hypr \
-	.config/waybar
+	.config/waybar \
+	.config/wallpapers
 #	.config/i3/config \
 #	.config/polybar \
 #	.config/picom.conf \
@@ -47,7 +49,8 @@ pkgs= \
   zsh-autosuggestions \
   hyprland-nvidia-hidpi-git \
   waybar-hyprland \
-  wofi
+  wofi \
+  ttf-firacode-nerd-font
 
 cargo_pkgs= \
 	punfetch
@@ -74,7 +77,6 @@ deps: ascii
 install: ascii
 	# Installing dotfiles
 	cd dots && cp -rv . $$HOME/
-	cp -rv wallpapers $$HOME/Pictures/
 
 save: ascii
 	# Saving dotfiles
@@ -85,4 +87,3 @@ save: ascii
 			\cp -rv $$to/* "./dots/$$path/"; \
 		fi \
 	done
-	cp -rv $$HOME/Pictures/wallpapers .
