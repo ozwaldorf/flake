@@ -20,14 +20,10 @@ configs= \
 	.config/kitty/kitty.conf \
 	.config/helix/config.toml \
 	.config/micro/settings.json \
-	.config/dunst/dunstrc \
 	.config/hypr \
 	.config/waybar \
-	.config/wallpapers
-#	.config/i3/config \
-#	.config/polybar \
-#	.config/picom.conf \
-#	.config/scripts
+	.config/wallpapers \
+	.config/deadd
 
 pkgs= \
   kitty \
@@ -50,7 +46,8 @@ pkgs= \
   hyprland-nvidia-hidpi-git \
   waybar-hyprland \
   wofi \
-  ttf-firacode-nerd-font
+  ttf-firacode-nerd-font \
+  deadd-notification-center-bin
 
 cargo_pkgs= \
 	punfetch
