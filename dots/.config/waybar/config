@@ -30,7 +30,8 @@
     },
     "clock": {
         "format": "{:%H\n%M}",
-        "tooltip": "{calendar}"
+        "format-alt": "HY\nPR",
+        "tooltip-format": "<tt><small>{calendar}</small></tt>",
     },
     "tray": {
         "icon-size": 18,
@@ -41,8 +42,8 @@
         "format": "{icon}",
            "format-icons": {
             "urgent": "🌕︎",
-            "active": "🌑︎",
-            "hidden": "a",
+            "active": "  ",
+            "hidden": "H",
             "1": "❶",
             "2": "❷",
             "3": "❸",
@@ -53,7 +54,7 @@
             "8": "❽",
             "9": "❾",
             "10": "❿",
-            "-99":"a",
+            "-99":".",
             "default": "⏺"
 		},
     },

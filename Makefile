@@ -35,8 +35,6 @@ pkgs= \
   exa \
   nodejs \
   yarn \
-  i3status-rust \
-  github-cli \
   rofi \
   rustup \
   slop \
@@ -59,13 +57,6 @@ deps: ascii
 	@which yay || { echo "yay is not installed"; exit 1; }
 	# Install packages
 	sudo -S yay -S --needed --noconfirm ${pkgs}
-	# Check if gh is logged in,
-	@if gh auth status &>/dev/null; then \
-		# check notifications is installed, or install it \
-		gh notifications -help &>/dev/null || gh extension install daniel-leinweber/gh-notifications; \
-	else \
-		echo "gh is not logged in, please set \"GH_TOKEN\" and \"I3RS_GITHUB_TOKEN\""; \
-	fi
 	# Verify rustup is setup
 	@cargo -V || rustup install stable && rustup default stable
 	# Install cargo packages
