@@ -14,15 +14,12 @@
     ],
     "modules-center": ["wlr/workspaces", "custom/special"],
     "modules-right": [
-        "custom/github",    	
+        "custom/github",
     	"custom/sep",
-    	"pulseaudio", 
+    	"pulseaudio",
     	"custom/sep",
     	"backlight",
-    	"custom/sep",  
-    	"temperature", 
-    	"network", 
-    	"custom/sep", 
+    	"custom/sep",
     	"battery"
     ],
     "custom/sep": {
@@ -103,14 +100,14 @@
     },
 	"temperature": {
         "rotate": 90,
-        "hwmon-path": "/sys/class/hwmon/hwmon1/temp1_input",
+        "hwmon-path": "/sys/class/hwmon/hwmon4/temp1_input",
         "critical-threshold": 80,
-        "format": "{icon} {temperatureC}°C",
+        "format": "{icon} {temperatureF}",
         "format-icons": ["", "", ""]
     },
     "network": {
         "rotate": 90,
-        "format-wifi": " {signalStrength}",
+        "format-wifi": " {essid}",
         "format-ethernet": " {ipaddr}",
         "format-linked": " {ifname}",
         "format-disconnected": "⚠ None",

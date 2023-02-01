@@ -15,7 +15,7 @@
 # } 2>&1 | tee ~/special.log
 
 while true; do
-    count="$(hyprctl workspaces -j | jq '.[] | select(.id == -99) | .windows')"
+    count=`hyprctl workspaces -j | jq '.[] | select(.name == "special:scratchpad") | .windows'`
     if [[ ! -z "$count" ]]; then
         echo '{"tooltip": "'$count'","text": "."}"'
     else
