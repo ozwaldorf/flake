@@ -12,6 +12,7 @@ endef
 export ASCII
 
 configs= \
+	.wallpapers \
 	.Xresources \
 	.gitconfig \
 	.zshrc \
@@ -22,7 +23,6 @@ configs= \
 	.config/micro/settings.json \
 	.config/hypr \
 	.config/waybar \
-	.config/wallpapers \
 	.config/deadd
 
 pkgs= \

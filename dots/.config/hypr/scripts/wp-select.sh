@@ -4,7 +4,7 @@ if [[ -z $DMENU ]]; then
 fi
 
 SCRIPT_NAME=$(basename $0)
-WALLPAPER_DIR="$HOME/.config/hypr/wallpapers"
+WALLPAPER_DIR="$HOME/.wallpapers"
 
 cd $WALLPAPER_DIR
 
