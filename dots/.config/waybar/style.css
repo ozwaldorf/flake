@@ -6,7 +6,6 @@ window#waybar {
 
 window > box {
     border-radius: 10px;
-    opacity: 0.8;
 }
 
 #workspaces {
@@ -50,19 +49,19 @@ window > box {
 	margin: 10px;
 	background-image: linear-gradient(
 	   	135deg, 
-	   	rgba(244, 143, 177, 1),
-	   	rgba(161, 239, 211, 1),
-	   	rgba(241, 250, 140, 1),
-	   	rgba(146, 182, 244, 1),
-	   	rgba(189, 153, 255, 1),
-	   	rgba(135, 223, 235, 1),
-	   	rgba(244, 143, 177, 1),
-	   	rgba(135, 223, 235, 1),
-	   	rgba(189, 153, 255, 1),
-	   	rgba(146, 182, 244, 1),
-	   	rgba(241, 250, 140, 1),
-	   	rgba(161, 239, 211, 1),
-	   	rgba(244, 143, 177, 1)
+	   	#F38BA8,
+	   	#A6E3A1,
+	   	#F9E2AF,
+	   	#89B4FA,
+	   	#F5C2E7,
+	   	#94E2D5,
+	   	#F38BA8,
+	   	#94E2D5,
+	   	#F5C2E7,
+	   	#89B4FA,
+	   	#F9E2AF,
+	   	#A6E3A1,
+	   	#F38BA8
 	);
 	background-size: 800% 800%;
 	animation: active 120s linear infinite;
@@ -81,35 +80,35 @@ window > box {
 #clock {
 	font-size: 16px;
 	margin: 0 5px 0 5px;
-	padding: 3px;
-	border-radius: 25%;
+	padding: 2px;
+	border-radius: 10px;
 	background-origin: border-box;
 	background-clip: content-box, border-box;
 	animation: hyprBorder 10s linear infinite;
-	opacity: 0.9;
+	opacity: 0.75;
 }
 
 @keyframes hyprBorder {
 	0% {
-    	background-image: linear-gradient(#1E2127, #1E2127), linear-gradient(
+    	background-image: linear-gradient(#1E1E2E, #1E1E2E), linear-gradient(
     		0deg, 
-    		rgba(244, 143, 177, 1),
-    		rgba(161, 239, 211, 1),
-    		rgba(241, 250, 140, 1),
-    		rgba(146, 182, 244, 1),
-    		rgba(189, 153, 255, 1),
-    		rgba(135, 223, 235, 1) 
+    		#F38BA8,
+    		#A6E3A1,
+    		#F9E2AF,
+    		#89B4FA,
+    		#F5C2E7,
+    		#94E2D5 
     	);
   	}
   	100% {
-		background-image: linear-gradient(#1E2127, #1E2127), linear-gradient(
-    	    360deg, 
-    	    rgba(244, 143, 177, 1),
-    	    rgba(161, 239, 211, 1),
-    	    rgba(241, 250, 140, 1),
-    	    rgba(146, 182, 244, 1),
-    	    rgba(189, 153, 255, 1),
-    	    rgba(135, 223, 235, 1) 
+		background-image: linear-gradient(#1E1E2E, #1E1E2E), linear-gradient(
+			360deg, 
+			#F38BA8,
+			#A6E3A1,
+			#F9E2AF,
+			#89B4FA,
+			#F5C2E7,
+			#94E2D5 
 		);
   	}
 }

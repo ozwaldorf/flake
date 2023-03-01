@@ -13,9 +13,9 @@ add_newline = true
 
 [character]
 format = "$symbol "
-success_symbol = "[●](italic bright-green)"
-error_symbol = "[●](italic red)"
-vicmd_symbol = "[◆](italic blue)"
+success_symbol = "[●](bright-green)"
+error_symbol = "[●](red)"
+vicmd_symbol = "[◆](blue)"
 
 [env_var.VIMSHELL] # vim subshell
 format = "[$env_value]($style)"
@@ -23,7 +23,7 @@ style = 'green italic'
 
 [sudo]
 format = "[$symbol]($style)"
-style = "italic bright-purple"
+style = "bright-purple"
 symbol = ":"
 disabled = false
 
@@ -40,7 +40,7 @@ truncation_length = 2
 truncation_symbol = "□ "
 read_only = " △"
 use_os_path_sep = true
-style = "italic bright-blue"
+style = "bright-blue"
 
 [cmd_duration]
 min_time = 1000
@@ -49,7 +49,7 @@ format = "[ ◕ $duration](244)"
 [jobs]
 format = "[$symbol$number]($style) "
 style = "white"
-symbol = "[▶ ](blue italic)"
+symbol = "[▶ ](blue)"
 
 [localip]
 ssh_only = true
@@ -58,7 +58,7 @@ disabled = false
 
 [time]
 disabled = false
-format = "[ $time [◔](italic white)]($style)"
+format = "[ $time [◔](white)]($style)"
 time_format = "%R"
 utc_time_offset = "local"
 style = "dimmed white"

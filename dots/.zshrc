@@ -219,6 +219,7 @@ alias gitu='git add . && git commit && git push'
 alias clip='wl-copy'
 alias icat="kitty +kitten icat"
 alias curl="curl -s"
+alias micro="echo stop using micro"
 
 smart_cat() {
 	if [[ $1 =~ \.(png|jpeg|jpg|ico)$ ]]; then
@@ -245,6 +246,8 @@ ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=244'
 source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 source /usr/share/zsh/plugins/zsh-autocomplete/zsh-autocomplete.plugin.zsh
 zstyle ':completion::complete:*' gain-privileges 1
+
+source ~/.zshrc.wezterm
 
 eval $(thefuck --alias)
 

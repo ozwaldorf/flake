@@ -5,7 +5,7 @@
 {
     "position": "left",
     "layer": "top",
-    "output": ["eDP-1", "DP-1"],
+    "output": ["eDP-1", "DP-1", "DP-2"],
     "width": 44,
     "margin": "20 0 20 20",
     "modules-left": [
@@ -14,7 +14,7 @@
     ],
     "modules-center": ["wlr/workspaces", "custom/special"],
     "modules-right": [
-        "custom/github",
+      "custom/github",
     	"custom/sep",
     	"pulseaudio",
     	"custom/sep",
@@ -27,8 +27,8 @@
     },
     "clock": {
         "format": "{:%H\n%M}",
-        "format-alt": "HY\nPR",
         "tooltip-format": "<tt><small>{calendar}</small></tt>",
+        "on-click": "~/.config/hypr/scripts/wp-select.sh dmenu"
     },
     "tray": {
         "icon-size": 18,
