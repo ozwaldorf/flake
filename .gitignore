@@ -1,4 +1,5 @@
 .idea/
+**/nvim/plugin/
 **/.splashed.jpg
-
+**/.wallpapers/ctp-unsplash.png
 **/hyprlandd.conf

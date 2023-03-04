@@ -23,7 +23,8 @@ configs= \
 	.config/micro/settings.json \
 	.config/hypr \
 	.config/waybar \
-	.config/deadd
+	.config/deadd \
+	.config/nvim
 
 pkgs= \
   kitty \
