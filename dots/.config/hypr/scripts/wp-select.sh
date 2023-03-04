@@ -13,8 +13,9 @@ wp_unsplash () {
     QUERY="wallpaper"
   else QUERY="$1"; fi
 
-  RES=`hyprctl monitors -j | jq -r 'first | "\(.width)x\(.height)"'`
-
+  #RES=`hyprctl monitors -j | jq -r 'first | "\(.width)x\(.height)"'`
+  RES='3840x2160'
+  
   curl -Ls "https://source.unsplash.com/random/$RES/?$QUERY" -o /tmp/wallpaper.jpg
   wp_ctpify /tmp/wallpaper.jpg ctp-unsplash.png 
 }
@@ -43,24 +44,29 @@ wp_save () {
 
 wp_dmenu () {
   # select subcommand
-  choice=`printf "Catppuccin Unsplash\nSelect File\nRandom File\nSave Current\nCatppuccinify" | $DMENU`
+  choices=("Catppuccin Unsplash" "Select File" "Random File" "Save Current" "Catppuccinify")
+  choice=`printf '%s\n' "${choices[@]}" | $DMENU`
 
   case $choice in
-    "Catppuccin Unsplash")
+    "${choices[0]}")
       wp_unsplash
       ;;
-    "Select File")
+    "${choices[1]}")
       wp_file `ls | $DMENU`
       ;;
-    "Random File")
+    "${choices[2]}")
       wp_random
       ;;
-    "Save Current")
+    "${choices[3]}")
       current=`cat .current`
       wp_save `ls | $DMENU --search $current`
       ;;
-    "Catppuccinify")
-      file=`ls | $DMENU`
+    "${choices[4]}")
+      file=`(echo "current"; ls) | $DMENU`
+      echo "$file"
+      if [[ "$file" -eq "current" ]]; then
+        file=`cat .current`
+      fi
       wp_ctpify $file ".catppuccinify"
       ;;
     *)
