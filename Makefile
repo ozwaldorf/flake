@@ -18,7 +18,7 @@ configs= \
 	.zshrc \
 	.config/term.png \
 	.config/starship.toml \
-	.config/kitty/kitty.conf \
+	.config/wezterm/wezterm.lua \
 	.config/helix/config.toml \
 	.config/micro/settings.json \
 	.config/hypr \
@@ -65,7 +65,7 @@ deps: ascii
 
 install: ascii
 	# Installing dotfiles
-	cd dots && cp -rv . $$HOME/
+	cd dots && \cp -rv . $$HOME/
 
 save: ascii
 	# Saving dotfiles
@@ -73,6 +73,7 @@ save: ascii
 		if [[ -f "$$to" ]]; then \
 			\cp -v "$$to" "./dots/$$path"; \
 		elif [[ -d "$$to" ]]; then \
+			mkdir -p "./dots/$$path"; \
 			\cp -rv $$to/* "./dots/$$path/"; \
 		fi \
 	done
