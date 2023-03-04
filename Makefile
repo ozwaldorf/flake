@@ -71,6 +71,7 @@ save: ascii
 	# Saving dotfiles
 	@for path in ${configs}; do to=$$HOME/$$path; \
 		if [[ -f "$$to" ]]; then \
+			mkdir -p "./dots/$$(dirname $$path)"; \
 			\cp -v "$$to" "./dots/$$path"; \
 		elif [[ -d "$$to" ]]; then \
 			mkdir -p "./dots/$$path"; \
