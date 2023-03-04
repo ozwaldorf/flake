@@ -1,5 +1,36 @@
 local wezterm = require 'wezterm'
 
+require("bar").setup({
+  dividers = false, -- or "slant_left", "arrows", "rounded", false
+  indicator = {
+    leader = {
+      enabled = true,
+      off = " ",
+      on = " ",
+    },
+    mode = {
+      enabled = true,
+      names = {
+        resize_mode = "RESIZE",
+        copy_mode = "VISUAL",
+        search_mode = "SEARCH",
+      },
+    },
+  },
+  tabs = {
+    numerals = "arabic", -- or "roman"
+    pane_count = "superscript", -- or "subscript", false
+    brackets = {
+      active = { "", "." },
+      inactive = { "", "." },
+    },
+  },
+  clock = { -- note that this overrides the whole set_right_status
+    enabled = true,
+    format = "%H:%M:%S", -- use https://wezfurlong.org/wezterm/config/lua/wezterm.time/Time/format.html
+  },
+})
+
 return {
   font = wezterm.font 'FiraCode Nerd Font',
   font_size = 10.5,
@@ -10,10 +41,10 @@ return {
   text_background_opacity = 0.8,
   window_decorations = "NONE",
   window_padding = {
-    left = 0,
-    right = 0,
-    top = 0,
-    bottom = 0,
+    left = 1,
+    right = 1,
+    top = 1,
+    bottom = 1,
   },
 	color_scheme = "Catppuccin Mocha"
 }

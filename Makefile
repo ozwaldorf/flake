@@ -18,12 +18,12 @@ configs= \
 	.zshrc \
 	.config/term.png \
 	.config/starship.toml \
-	.config/wezterm/wezterm.lua \
 	.config/helix/config.toml \
 	.config/micro/settings.json \
 	.config/hypr \
 	.config/waybar \
 	.config/deadd \
+	.config/wezterm \
 	.config/nvim
 
 pkgs= \
