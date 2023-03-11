@@ -22,31 +22,33 @@ configs= \
 	.config/micro/settings.json \
 	.config/hypr \
 	.config/waybar \
+	.config/wofi \
 	.config/deadd \
 	.config/wezterm \
 	.config/nvim
 
 pkgs= \
-  kitty \
+	hyprland-nvidia-hidpi-git \
+  waybar-hyprland \
+  wofi \
+  wezterm \
   git-delta \
   zsh \
   starship \
   helix \
+	neovim \
   bat \
   exa \
   nodejs \
   yarn \
-  rofi \
   rustup \
   slop \
   imagemagick \
   zsh-autocomplete-git \
-  zsh-autosuggestions \
-  hyprland-nvidia-hidpi-git \
-  waybar-hyprland \
-  wofi \
-  ttf-firacode-nerd-font \
-  deadd-notification-center-bin
+  zsh-autosuggestions \ 
+  ttf-firacode-nerd \
+  deadd-notification-center-bin \
+	swww \
 
 cargo_pkgs= \
 	punfetch

@@ -33,18 +33,18 @@ require("bar").setup({
 
 return {
   font = wezterm.font 'FiraCode Nerd Font',
-  font_size = 10.5,
+  font_size = 10,
 	use_fancy_tab_bar = false,
   tab_bar_at_bottom = true,
   hide_tab_bar_if_only_one_tab = true,
   window_background_opacity = 0.9,
-  text_background_opacity = 0.8,
+  text_background_opacity = 1.0,
   window_decorations = "NONE",
   window_padding = {
-    left = 1,
-    right = 1,
-    top = 1,
-    bottom = 1,
+    left = 5,
+    right = 5,
+    top = 5,
+    bottom = 5,
   },
 	color_scheme = "Catppuccin Mocha"
 }

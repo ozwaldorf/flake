@@ -6,7 +6,7 @@ Xft.autohint:  false
 Xft.hintstyle: hintslight
 Xft.lcdfilter: lcddefault
 
-Xcursor.theme: Dracula-cursors
+Xcursor.theme: Catppuccin-Mocha-Pink-Cursors 
 Xcursor.size: 0
 
 *background: #1E1E2E

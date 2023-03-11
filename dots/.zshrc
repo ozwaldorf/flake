@@ -233,10 +233,11 @@ alias cat="smart_cat"
 # Environment
 source ~/.env
 export BROWSER="brave"
-export EDITOR="micro"
-export VISUAL="micro"
+export SUDO_EDITOR="nvim"
+export EDITOR="nvim"
+export VISUAL="nvim"
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
-export PATH="/home/oz/go/bin:/home/oz/bin:/home/oz/.cargo/bin:$PATH"
+export PATH="$HOME/go/bin:$HOME/bin:$HOME/.cargo/bin:$HOME/.yarn/bin:$PATH"
 
 # Plugins 
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
@@ -255,4 +256,4 @@ eval $(thefuck --alias)
 eval $(starship init zsh)
 
 # Launch fetch on terminal startup
-onefetch_git_dir || punfetch -i ~/.config/hitchhiker.png --show-logo auto --color green
+onefetch_git_dir || punfetch --show-logo auto 

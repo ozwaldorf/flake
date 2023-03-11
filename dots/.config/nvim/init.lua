@@ -7,8 +7,8 @@ require("set-plugins")
 -- Setup Theme
 require("theme")
 
--- Setup Rust/LSP
-require("rust")
+-- Setup Dev tools
+require("dev")
 
 -- Setup Keybinds
 require("keybinds")

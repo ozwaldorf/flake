@@ -104,6 +104,8 @@ require("packer").startup(function(use)
   use {
     'github/copilot.vim'
   }
+
+  use 'NvChad/nvim-colorizer.lua'
 end)
 
 -- the first run will install packer and our plugins
