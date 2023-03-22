@@ -1,22 +1,16 @@
 # dotfiles
 
-
-
----
-
 🖹 [info](#--info)
 💻 [usage](#--usage) 
 📷 [screens](#--screens)
 
 ---
 
-
 ## ↛ 📷 screens
 
-![image](https://user-images.githubusercontent.com/8976745/215292389-7aa58403-60f4-4e0f-b04e-c050bcae195a.png)
+![image](https://user-images.githubusercontent.com/8976745/226779414-11b5d8be-1f89-40c7-b0e4-c1a022bd954f.png)
 
-![image](https://user-images.githubusercontent.com/8976745/215278576-f34f6d19-97fd-44aa-99e8-6632cd7aa121.png)
-
+![image](https://user-images.githubusercontent.com/8976745/226779910-bd397ce7-b396-44b5-a777-84a26fc66509.png)
 
 ---
 
@@ -25,27 +19,29 @@
 ### desktop
 
 ```
-OS: Manjaro 21.2.6 Qonos (community i3)
-Compositor: hyprland
+OS: Arch Linux 
+Compositor: Hyprland
 Bar: waybar
-GTK Theme: dracula [GTK2/3]
-Icon Theme: dracula-icons
+GTK Theme: catppuccin
+Icon Theme: Papyrus (catppuccin folders patch)
 Font: FiraCode Nerd Font
 ```
 
 ### terminal
+
 ```
-Terminal: kitty
-Shell: vanilla zsh 5.9
+Terminal: wezterm
+Shell: zsh 5.9
 Fetch: punfetch + onefetch
 Prompt: starship
-Git Diff-Viewer: delta
+Git Diff: delta
 ```
 
 ### apps
+
 ```
 Browser: brave
-Editor: clion / micro / helix
+Editor: nvim
 ```
 
 ---
