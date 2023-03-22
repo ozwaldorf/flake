@@ -1,87 +1,25 @@
-window#waybar {
-    background: none;
-    color: #fff;
-    font-family: "FiraCode Nerd Font, feather";
-    text-shadow: 0 0 2px black;
+#waybar {
+  background: rgba(17, 17, 27, 0.75);
+  color: #cdd6f4;
+  font-family: "FiraCode Nerd Font, feather";
+  text-shadow: 0 0 0px black;
+  border-radius: 13px;
+  box-shadow: 0 0 0px black;
 }
 
-window > box {
-    border-radius: 10px;
-}
-
-#workspaces {
-    margin: 0;
-    padding: 2px 2px 2px 2px;
- 	border-radius: 50px;
- 	font-size: 13px;
- 	text-shadow: 0 0 2px black;
-	/* background: rgba(0, 0, 0, .25); */
-}
-
-#workspaces button {
-	padding: 6px 0px 6px 0px;
-	text-shadow: 0 0 2px black;
-  color: #fff;
-}
-
-#workspaces button:hover {
-	box-shadow: inherit;
-	background: transparent;
-	border: transparent;
-	transition: none;
-}
-
-#workspaces button.urgent {
-	color: #ffb86c;
-}
-
-#workspaces button.active {
-	padding: 0;
-}
-
-#workspaces button.active label {
-	box-shadow: 0 0 3px black; 
-	font-size: 13px;
-	margin: 10px;
-	background-image: linear-gradient(
-	   	135deg, 
-	   	#F38BA8,
-	   	#A6E3A1,
-	   	#F9E2AF,
-	   	#89B4FA,
-	   	#F5C2E7,
-	   	#94E2D5,
-	   	#F38BA8,
-	   	#94E2D5,
-	   	#F5C2E7,
-	   	#89B4FA,
-	   	#F9E2AF,
-	   	#A6E3A1,
-	   	#F38BA8
-	);
-	background-size: 800% 800%;
-	animation: active 120s linear infinite;
-	border-radius: 50%;
-}
-
-@keyframes active {
-	0% {
-		background-position: 0% 0%;
-	}
-	100% {
-		background-position: 800% 800%;
-	}
+window > .box {
+  margin: 0;
 }
 
 #clock {
 	font-size: 16px;
-	margin: 0 5px 0 5px;
+	margin: 12px 5px 0 5px;
 	padding: 1px;
-	border-radius: 10px;
+	/* border-radius: 10px;
 	background-origin: border-box;
 	background-clip: content-box, border-box;
 	animation: hyprBorder 10s linear infinite;
-	opacity: 0.75;
+	opacity: 0.75; */
 }
 
 @keyframes hyprBorder {
@@ -110,7 +48,74 @@ window > box {
 }
 
 #tray {
-	margin-top: 10px;
+	margin-top: 0px;
+}
+
+#tray > .active {
+  opacity: 0.85;
+}
+
+#workspaces {
+  margin: 0;
+  padding: 2px 2px 2px 2px;
+ 	border-radius: 50px;
+ 	font-size: 13px;
+ 	text-shadow: 0 0 0px black;
+}
+
+#workspaces button {
+	padding: 6px 0px 6px 0px;
+	text-shadow: 0 0 2px black;
+  color: #cdd6f4;
+}
+
+#workspaces button:hover {
+	box-shadow: inherit;
+	background: transparent;
+	border: transparent;
+	transition: none;
+}
+
+#workspaces button.urgent {
+	color: #ffb86c;
+}
+
+#workspaces button.active {
+	padding: 0;
+}
+
+#workspaces button.active label {
+	box-shadow: 0 0 0px black; 
+	font-size: 13px;
+	margin: 10px;
+	background-image: linear-gradient(
+	  135deg, 
+	  #F38BA8,
+	 	#A6E3A1,
+   	#F9E2AF,
+	  #89B4FA,
+	 	#F5C2E7,
+   	#94E2D5,
+	  #F38BA8,
+	 	#94E2D5,
+   	#F5C2E7,
+	  #89B4FA,
+	 	#F9E2AF,
+   	#A6E3A1,
+	 	#F38BA8
+	);
+	background-size: 800% 800%;
+	animation: active 120s linear infinite;
+	border-radius: 50%;
+}
+
+@keyframes active {
+	0% {
+		background-position: 0% 0%;
+	}
+	100% {
+		background-position: 800% 800%;
+	}
 }
 
 #custom-sep {
@@ -126,8 +131,7 @@ window > box {
 	background: transparent;
 }
 
-
 #battery {
- margin-bottom: 8px;
+ margin-bottom: 20px;
 }
 

@@ -26,7 +26,7 @@ wp_ctpify () {
 }
 
 wp_restore () {
-  wp_file `cat .current`
+  swww img `cat .current`
 }
 
 wp_random () {
@@ -35,6 +35,7 @@ wp_random () {
 
 wp_file () {
   echo "$1" > .current
+  cp $1 /usr/share/sddm/themes/chili/assets/background.png
   swww img --transition-type any "./$1"
 }
 

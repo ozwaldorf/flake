@@ -7,12 +7,13 @@
 	background-clip: content-box, border-box;
   margin-right: 200px;
   animation: hyprBorder 10s linear infinite;
-  opacity: 0.95;
+  opacity: 0.85;
+  color: #cdd6f4;
 }
 
 @keyframes hyprBorder {
 	0% {
-    	background-image: linear-gradient(#282a36, #282a36), linear-gradient(
+    	background-image: linear-gradient(#1e1e2e, #1e1e2e), linear-gradient(
     		0deg, 
     		rgba(244, 143, 177, 1),
     		rgba(161, 239, 211, 1),
@@ -23,7 +24,7 @@
     	);
   	}
   	100% {
-		background-image: linear-gradient(#282a36, #282a36), linear-gradient(
+		background-image: linear-gradient(#1e1e2e, #1e1e2e), linear-gradient(
     	    360deg, 
     	    rgba(244, 143, 177, 1),
     	    rgba(161, 239, 211, 1),
@@ -36,10 +37,10 @@
 }
 
 #input {
-  color: #fff;
-  margin: 5px;
-	padding: 10px 10px 5px;
-  border-color: #fff;
+  color: #cdd6f4;
+  margin: 5px 5px 0;
+	padding: 10px 10px 0px;
+  border-color: #cdd6f4;
   border: none;
   border-bottom: 1px solid;
 	border-radius: 0;
@@ -71,6 +72,7 @@
 }
 
 #text {
+  color: #cdd6f4;
 	background: transparent;
 	margin: 5px;
 }

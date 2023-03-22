@@ -3,12 +3,12 @@ local wezterm = require("wezterm")
 local M = {}
 
 M.config = {
-  dividers = "slant_right",
+  dividers = "rounded", -- or "slant_left", "arrows", "rounded", false
   indicator = {
     leader = {
-      enabled = true,
-      off = " ",
-      on = " ",
+      enabled = false,
+      off = "",
+      on = "",
     },
     mode = {
       enabled = true,
@@ -20,16 +20,16 @@ M.config = {
     },
   },
   tabs = {
-    numerals = "arabic",
-    pane_count = "superscript",
+    numerals = "none", -- or "roman"
+    pane_count = "subscript", -- or "subscript", false
     brackets = {
-      active = { "", ":" },
-      inactive = { "", ":" },
+      active = { "", "." },
+      inactive = { "", "." },
     },
   },
-  clock = {
+  clock = { -- note that this overrides the whole set_right_status
     enabled = true,
-    format = "%H:%M",
+    format = "%H:%M:%S ", -- use https://wezfurlong.org/wezterm/config/lua/wezterm.time/Time/format.html
   },
 }
 
@@ -81,7 +81,7 @@ M.setup = function(config)
   end
 
   C.leader = {
-    enabled = M.config.indicator.leader.enabled or true,
+    enabled = M.config.indicator.leader.enabled,
     off = M.config.indicator.leader.off,
     on = M.config.indicator.leader.on,
   }
@@ -269,15 +269,18 @@ wezterm.on(
       tabtitle = wezterm.truncate_right(tabtitle, width) .. "…"
     end
 
-    local title = string.format(" %s%s%s%s", index, tabtitle, pane_count, C.p)
+    local title = string.format("%s%s%s%s", index, tabtitle, pane_count, C.p)
 
     return {
+      { Background = { Color = colours.background } },
+      { Foreground = { Color = s_bg } },
+      { Text = " " .. C.div.l },
       { Background = { Color = s_bg } },
       { Foreground = { Color = s_fg } },
       { Text = title },
-      { Background = { Color = e_bg } },
+      { Background = { Color = colours.background } },
       { Foreground = { Color = e_fg } },
-      { Text = C.div.r },
+      { Text = C.div.r .. " " },
     }
   end
 )
@@ -300,9 +303,12 @@ wezterm.on("update-status", function(window, pane)
       leader_text = C.leader.on
     end
     leader = wezterm.format({
+      { Foreground = { Color = palette.ansi[5]} },
+      { Background = { Color = palette.background } },
+      { Text = C.div.l },
       { Foreground = { Color = palette.background } },
       { Background = { Color = palette.ansi[5] } },
-      { Text = " " .. leader_text .. C.p },
+      { Text = leader_text .. C.p },
     })
   end
 
@@ -327,12 +333,12 @@ wezterm.on("update-status", function(window, pane)
     or palette.tab_bar.inactive_tab.bg_color
 
   local divider = wezterm.format({
-    { Background = { Color = divider_bg } },
+    { Background = { Color = palette.tab_bar.background } },
     { Foreground = { Color = palette.ansi[5] } },
     { Text = C.div.r },
   })
 
-  window:set_left_status(leader .. mode .. divider)
+  window:set_left_status(" " .. leader .. mode .. divider .. " ")
 
   if C.clock.enabled then
     local time = wezterm.time.now():format(C.clock.format)

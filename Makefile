@@ -45,10 +45,10 @@ pkgs= \
   slop \
   imagemagick \
   zsh-autocomplete-git \
-  zsh-autosuggestions \ 
+  zsh-autosuggestions \
   ttf-firacode-nerd \
   deadd-notification-center-bin \
-	swww \
+	swww 
 
 cargo_pkgs= \
 	punfetch
