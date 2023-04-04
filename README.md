@@ -1,8 +1,8 @@
 # dotfiles
 
+📷 [screens](#--screens)
 🖹 [info](#--info)
 💻 [usage](#--usage) 
-📷 [screens](#--screens)
 
 ---
 
