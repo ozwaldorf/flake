@@ -20,6 +20,7 @@ configs= \
 	.config/starship.toml \
 	.config/helix/config.toml \
 	.config/micro/settings.json \
+	.config/mako/config \
 	.config/hypr \
 	.config/waybar \
 	.config/wofi \
