@@ -156,15 +156,23 @@ require("aerial").setup({
 -- You probably also want to set a keymap to toggle aerial
 vim.keymap.set('n', '<leader>a', '<cmd>AerialToggle!<CR>')
 
+local empty = require('lualine.component'):extend()
+function empty:draw(default_highlight)
+  self.status = ''
+  self.applied_separator = ''
+  self:apply_highlights(default_highlight)
+  self:apply_section_separators()
+  return self.status
+end
+
 require("lualine").setup({
     options = {
       icons_enabled = true,
       theme = "catppuccin",
       globalstatus = true,
       modifiable = true,
-      component_separators = { left = "", right = "" },
+      component_separators = { left = "", right = ""},
 		  section_separators = { left = "", right = "" },
-      --section_separators = { left = "", right = "" },
       disabled_filetypes = {
 		  	statusline = {},
 			  winbar = {},
@@ -173,12 +181,15 @@ require("lualine").setup({
 		  always_divide_middle = true,
     },
     sections = {
-	   	lualine_a = { "mode" },
-	    lualine_b = { "branch", "diff", "diagnostics" },
-	    lualine_c = { "filename" },
-		  lualine_x = { "encoding", "fileformat", "progress" },
-		  lualine_y = { "location" },
-	    lualine_z = { "filetype" },
+	   	lualine_a = { 
+        { "mode", separator = { left = ' ', right = '' }, right_padding = 0 },
+        { empty, color = { fg = "#fff", bg = "#fff" } }
+      },
+	    lualine_c = { "branch", "diff", "diagnostics" },
+      lualine_b = { "filename" },
+		  lualine_x = { "encoding", "progress" },
+		  lualine_y = { "filetype" },
+	    lualine_z = { { "location", separator = { right = '' }, left_padding = 2 } },
     },
 	  inactive_sections = {
 	    lualine_a = {},
@@ -233,7 +244,7 @@ isNvimTree = function()
 end
 vim.api.nvim_create_autocmd("InsertEnter", {
   callback = function()
-    if isNvimTree() == true then
+    if isNvimTree() then
       vim.opt.relativenumber = false
     end
   end,

@@ -290,7 +290,7 @@ wezterm.on("update-status", function(window, pane)
   local active_kt = window:active_key_table() ~= nil
   local show = C.leader.enabled or (active_kt and C.mode.enabled)
   if not show then
-    window:set_left_status("")
+    window:set_left_status(" ")
     return
   end
 
