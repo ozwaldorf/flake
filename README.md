@@ -1,7 +1,7 @@
 # dotfiles
 
 📷 [screens](#--screens)
-🖹 [info](#--info)
+📝 [info](#--info)
 💻 [usage](#--usage) 
 
 ---
@@ -20,7 +20,7 @@
 
 ---
 
-## ↛ 🖹 info
+## ↛ 📝 info
 
 ### desktop
 
