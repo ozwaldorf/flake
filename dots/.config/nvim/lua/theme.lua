@@ -50,9 +50,9 @@ vim.cmd.colorscheme "catppuccin"
 
 vim.opt.guifont = { "FiraCode Mono Nerd Font", "h4" }
 
-require("notify").setup({
-  background_colour = "#000000",
-})
+--require("notify").setup({
+--  background_colour = "#000000",
+--})
 
 require("startup").setup({theme = "dashboard"})
 
@@ -90,7 +90,7 @@ require("nvim-tree").setup({
     group_empty = true,
   },
   filters = {
-    dotfiles = true,
+    dotfiles = false,
   },
   tab = {
     sync = {
@@ -244,14 +244,14 @@ isNvimTree = function()
 end
 vim.api.nvim_create_autocmd("InsertEnter", {
   callback = function()
-    if isNvimTree() then
+    if not isNvimTree() then
       vim.opt.relativenumber = false
     end
   end,
 })
 vim.api.nvim_create_autocmd("InsertLeave", {
   callback = function() 
-    if isNvimTree() then
+    if not isNvimTree() then
       vim.opt.relativenumber = true
     end
   end,

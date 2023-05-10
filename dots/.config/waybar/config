@@ -7,16 +7,14 @@
     "layer": "top",
     "output": ["eDP-1", "DP-1", "DP-2"],
     "width": 44,
-    "margin": "20 0 20 20",
+    "margin": "00 0 00 00",
     "modules-left": [
     	"clock", 
-    	"custom/sep",
+      "custom/sep",
       "tray", 
     ],
     "modules-center": ["wlr/workspaces", "custom/special"],
     "modules-right": [
-      "custom/github",
-    	"custom/sep",
     	"pulseaudio",
     	"custom/sep",
     	"backlight",
@@ -25,11 +23,16 @@
     ],
     "custom/sep": {
         "format": "──"
-    }, 
+    },
     "clock": {
         "format": "{:%H\n%M}",
         "tooltip-format": "<tt><small>{calendar}</small></tt>",
         "on-click": "~/.config/hypr/scripts/wp-select.sh dmenu"
+    },
+    "image/user": {
+        "path": "/home/oz/.face.icon",
+        "size": 32,
+        "on-click":"wezterm start --class gpto ~/.cargo/bin/gpto -c"
     },
     "tray": {
         "icon-size": 18,
@@ -54,15 +57,15 @@
             "10": "10",
             "-99":".",
             "default": "⏺"
-		},
+		    },
     },
     "custom/special": {
-    	"exec": "~/.config/waybar/special.sh",
+    	"exec": "~/.config/waybar/scratchpad.sh",
     	"return-type": "json",
     	"tooltip": true,
     	"on-click": "hyprctl dispatch togglespecialworkspace ''"
     },
-	"custom/github": {
+	  "custom/github": {
     	"rotate": 90,
         "format": "  {}",
         "return-type": "json",
@@ -71,40 +74,35 @@
         "on-click": "xdg-open https://github.com/notifications"
     },
     "pulseaudio": {
-        "rotate": 90,
-        "format": "{icon} {volume}",
-        "format-bluetooth": "{icon} {volume} ",
-        "format-muted": " MUTE",
+        "rotate": 0,
+        "format": "{icon}",
+        "format-bluetooth": "",
+        "format-muted": "{icon}",
         "format-icons": {
-            "headphone": "",
-            "hands-free": "",
-            "headset": "",
-            "phone": "",
-            "portable": "",
-            "car": "",
-            "default": ["", "", ""]
+            "headphone": "󰋋",
+            "default": ["󰖁", "󰕿", "󰖀", "󰕾"]
         },
     },
     "backlight": {
-    	"rotate": 90,
+    	  "rotate": 270,
         "device": "intel_backlight",
-        "format": "{icon} {percent}",
+        "format": "{icon} ",
         "format-icons": [
-        	" ",
-          " ",
-          " ",
-          " ",
-        	" ",
-          " ",
-          " ",
-        	" ",
-          " ",
-          " ",
-          " ",
-          " ",
-          " ",
-          " ",
-        	" "
+        	"",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+        	"",
+          "",
+          "",
+        	"",
+          "",
+          "",
+          "",
+        	"",
         ],
         "on-scroll-up": "light -A 1",
         "on-scroll-down": "light -U 1",
@@ -125,13 +123,14 @@
         "format-alt": "{ifname}: {ipaddr}/{cidr}"
     },
     "battery": {
-        "rotate": 90,
+        "rotate": 0,
         "states": {
-            "warning": 30,
-            "critical": 15
+            "warning": 90,
+            "critical": 50
         },
-        "format": "{icon} {capacity}",
-        "format-charging": " {capacity}",
-        "format-icons": ["", "", "", "", ""],
+        "format": "{icon}",
+        "format-charging": "{icon}",
+        "format-icons": ["󰂎", "󰁺", "󰁺", "󰁼", "󰁽", "󰁾", "󰁾", "󰂀", "󰂁", "󰂂", "󱈑"],
+        "tooltip-format": "{capacity}"
     }
 }

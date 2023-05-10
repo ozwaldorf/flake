@@ -1,20 +1,23 @@
 #waybar {
-  background: rgba(17, 17, 27, 0.75);
+  background: rgba(17, 17, 27, 0.8);
   color: #cdd6f4;
-  font-family: "FiraCode Nerd Font, feather";
+  font-family: "FiraCode Nerd Font";
   text-shadow: 0 0 0px black;
-  border-radius: 13px;
-  box-shadow: 0 0 0px black;
+  /*border-radius: 13px;*/
 }
 
 window > .box {
   margin: 0;
 }
 
+widget > image {
+  margin: 12px 0 0 0;
+  padding: 0;
+}
+
 #clock {
-	font-size: 16px;
-	margin: 12px 5px 0 5px;
-	padding: 1px;
+	font-size: 18px;
+	margin: 12px 5px 0px 5px;
 }
 
 #tray {
@@ -22,19 +25,24 @@ window > .box {
 }
 
 #tray > .active {
-  opacity: 0.85;
+  opacity: 0.99;
+  margin: 0;
+}
+
+#tray > widget > image {
+  margin: 0;
 }
 
 #workspaces {
   margin: 0;
   padding: 2px 2px 2px 2px;
  	border-radius: 50px;
- 	font-size: 13px;
+ 	font-size: 15px;
  	text-shadow: 0 0 0px black;
 }
 
 #workspaces button {
-	padding: 6px 0px 6px 0px;
+	padding: 12px 0px 12px 0px;
 	text-shadow: 0 0 2px black;
   color: #cdd6f4;
 }
@@ -51,7 +59,7 @@ window > .box {
 }
 
 #workspaces button.active {
-	padding: 0;
+	padding: 0px;
 }
 
 #workspaces button.active label {
@@ -92,16 +100,21 @@ window > .box {
 	margin: 8px 0px 8px 0px;
 }
 
-#pulseaudio, 
-#temperature, 
-#network, 
-#battery, 
-#backlight, 
-#custom-github {
-	background: transparent;
+#pulseaudio {
+  margin: 8px 0 5px 0;
+  font-size: 18px;
+}
+
+#backlight {
+  margin: 8px 0 0 0;
+  font-size: 18px;
 }
 
 #battery {
- margin-bottom: 20px;
+ margin: 0px 0px 18px 0; 
+ font-size: 18px;
 }
 
+#battery .warning {
+  color: #A6E3A1;
+}

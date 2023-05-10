@@ -6,8 +6,6 @@ fi
 SCRIPT_NAME=$(basename $0)
 WALLPAPER_DIR="$HOME/.wallpapers"
 
-cd $WALLPAPER_DIR
-
 wp_unsplash () {
   if [[ -z $1 ]]; then
     QUERY="wallpaper"
@@ -17,7 +15,7 @@ wp_unsplash () {
   RES='3840x2160'
   
   curl -Ls "https://source.unsplash.com/random/$RES/?$QUERY" -o /tmp/wallpaper.jpg
-  wp_ctpify /tmp/wallpaper.jpg ctp-unsplash.png 
+  wp_ctpify /tmp/wallpaper.jpg $WALLPAPER_DIR/ctp-unsplash.png 
 }
 
 wp_ctpify () {
@@ -26,7 +24,7 @@ wp_ctpify () {
 }
 
 wp_restore () {
-  swww img `cat .current`
+  swww img `cat $WALLPAPER_DIR/.current`
 }
 
 wp_random () {
@@ -34,16 +32,18 @@ wp_random () {
 }
 
 wp_file () {
-  echo "$1" > .current
-  cp $1 /usr/share/sddm/themes/chili/assets/background.png
-  swww img --transition-type any "./$1"
+  path=`realpath $1`
+  echo "$path" > $WALLPAPER_DIR/.current
+  cp $1 /usr/share/sddm/themes/chili-git/assets/background.png
+  swww img --transition-type any "$path"
 }
 
 wp_save () {
-  cp `cat .current` $1
+  cp `cat $WALLPAPER_DIR/.current` $1
 }
 
 wp_dmenu () {
+  cd $WALLPAPER_DIR
   # select subcommand
   choices=("Catppuccin Unsplash" "Select File" "Random File" "Save Current" "Catppuccinify")
   choice=`printf '%s\n' "${choices[@]}" | $DMENU`

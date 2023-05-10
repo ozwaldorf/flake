@@ -36,14 +36,9 @@ require("bar").setup({})
 return {
   font = wezterm.font 'FiraCode Nerd Font',
   font_size = 10,
-	use_fancy_tab_bar = false,
-  tab_bar_at_bottom = false,
-  tab_max_width = 32,
-  hide_tab_bar_if_only_one_tab = true,
   window_background_opacity = 0.9,
   text_background_opacity = 1.0,
-  tab_bar_style = disabled_new_tab,
-  window_decorations = "NONE",
+    window_decorations = "NONE",
   window_padding = {
     left = '1cell',
     right = '1cell',
@@ -53,7 +48,16 @@ return {
 	color_scheme = "Catppuccin Mocha",
   colors = {
     tab_bar = {
-      background = 'rgba(17,17,27,0.0)'
+      background = 'rgba(30,30,46,0.9)'
     }
-  }
+  },
+  inactive_pane_hsb = {
+    saturation = 1.0,
+    brightness = 1.0,
+  },
+  use_fancy_tab_bar = false,
+  tab_bar_at_bottom = false,
+  tab_bar_style = disabled_new_tab,
+  tab_max_width = 32,
+  hide_tab_bar_if_only_one_tab = true,
 }

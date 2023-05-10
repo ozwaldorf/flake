@@ -48,7 +48,7 @@ pkgs= \
   zsh-autocomplete-git \
   zsh-autosuggestions \
   ttf-firacode-nerd \
-  deadd-notification-center-bin \
+  mako \
 	swww 
 
 cargo_pkgs= \
@@ -81,3 +81,10 @@ save: ascii
 			\cp -rv $$to/* "./dots/$$path/"; \
 		fi \
 	done
+
+transparent-gtk:
+	@echo "Replacing catppuccin colors with transparent variants"
+	cd /usr/share/themes/$$GTK_THEME && \
+		sudo find -v . -type f -name "*.css" -exec sed -i 's/#1e1e2e/rgba(30, 30, 46, 0.7)/g' {} + &&
+		sudo find -v . -type f -name "*.css" -exec sed -i 's/#181825/rgba(24, 24, 37, 0.7)/g' {} + &&
+		sudo find -v . -type f -name "*.css" -exec sed -i 's/#11111b/rgba(17, 17, 27, 0.7)/g' {}

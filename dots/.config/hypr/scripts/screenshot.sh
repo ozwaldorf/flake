@@ -1,22 +1,22 @@
 #!/bin/bash
 CHOICE=`wofi --dmenu -p 'Screenshot' << EOF
-fullscreen
-region
-focused
+Fullscreen
+Region
+Focused
 EOF`
 
 case $CHOICE in
-    fullscreen)
-        hyprshot -m output --clipboard-only
-	;;
-    region)
-        hyprshot -m region "$EXPENDED_FILENAME"
-	;;
-    focused)
-        hyprshot -m focused "$EXPENDED_FILENAME"
-	;;
-    '')
-        notify-send "Screenshot" "Cancelled"
-        exit 0
-        ;;
+  Fullscreen)
+    hyprshot -m output --clipboard-only
+	  ;;
+  Region)
+    hyprshot -m region --clipboard-only
+	  ;;
+  Focused)
+    hyprshot -m focused --clipboard-only
+	  ;;
+  '')
+    notify-send "Screenshot" "Cancelled"
+    exit 0
+    ;;
 esac

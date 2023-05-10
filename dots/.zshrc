@@ -190,8 +190,8 @@ fetched_git_dirs=()
 onefetch_git_dir() {
     if [[ -r .git/HEAD && ! " ${fetched_git_dirs[*]} " =~ " $PWD " ]]; then
         fetched_git_dirs+=("$PWD")
-        if [[ "$TERM" =~ "kitty" ]] && [[ -r $PWD/../onefetch.png ]]; then
-            # if term is kitty, lets use an image if it's provided in the parent dir
+        if [[ "$TERM" = "WezTerm" ]] && [[ -r $PWD/../onefetch.png ]]; then
+            # if term is wezterm, lets use an image if it's provided in the parent dir
             onefetch --image $PWD/../onefetch.png
         else
             onefetch
@@ -210,17 +210,19 @@ alias ls="exa -lh $ls_args"
 alias la="exa -lah $ls_args"
 alias l="exa -lah $ls_args"
 alias lg="exa -lah $ls_args --git-ignore"
-alias commit="git commit"
-alias add="git add"
 alias cp="cp -i" # Confirm before overwriting something
 alias df='df -h' # Human-readable sizes
 alias free='free -m' # Show sizes in MB
-alias gitu='git add . && git commit && git push'
 alias clip='wl-copy'
-alias icat="kitty +kitten icat"
 alias curl="curl -s"
-alias micro="echo stop using micro"
+alias commit="git commit"
+alias add="git add"
 
+sshw() {
+  wezterm ssh $@ </dev/null &>/dev/null & disown
+}
+
+alias icat="wezterm imgcat"
 smart_cat() {
 	if [[ $1 =~ \.(png|jpeg|jpg|ico)$ ]]; then
 		icat $@
@@ -237,7 +239,7 @@ export SUDO_EDITOR="nvim"
 export EDITOR="nvim"
 export VISUAL="nvim"
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
-export PATH="$HOME/go/bin:$HOME/bin:$HOME/.cargo/bin:$HOME/.yarn/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/go/bin:$HOME/bin:$HOME/.cargo/bin:$HOME/.yarn/bin:$HOME/.config/hypr/scripts:$PATH"
 
 # Plugins 
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
@@ -256,4 +258,4 @@ eval $(thefuck --alias)
 eval $(starship init zsh)
 
 # Launch fetch on terminal startup
-onefetch_git_dir || punfetch --show-logo auto 
+onefetch_git_dir || punfetch -i .config/oz.png --color green --show-logo auto 

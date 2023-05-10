@@ -21,5 +21,5 @@ while true; do
     else
         echo '{}'
     fi
-    sleep 0.5
+    sleep 1
 done
