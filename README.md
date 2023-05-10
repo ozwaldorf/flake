@@ -16,6 +16,8 @@
 
 ![image](https://github.com/ozwaldorf/dotfiles/assets/8976745/4c85f4af-21fa-4682-b02b-6ed5fde01cbe)
 
+![image](https://github.com/ozwaldorf/dotfiles/assets/8976745/bc8c8840-3f4f-42ed-b5f3-025dfc8b6920)
+
 ---
 
 ## ↛ 🖹 info
