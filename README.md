@@ -25,29 +25,32 @@
 ### desktop
 
 ```
-OS: Arch Linux 
+OS: Arch Linux
 Compositor: Hyprland
-Bar: waybar
-GTK Theme: catppuccin (+ transparent mod)
-Icon Theme: Papyrus (catppuccin folders patch)
+Bar: Waybar
+GTK Theme: Catppuccin Mocha Pink (+ transparent mod)
+Icon Theme: Papyrus (Catppuccin folders patch)
 Font: FiraCode Nerd Font
 ```
 
 ### terminal
 
 ```
-Terminal: wezterm
-Shell: zsh 5.9
-Fetch: punfetch + onefetch
-Prompt: starship
-Git Diff: delta
+Terminal: Wezterm
+Shell: Zsh 5.9
+Fetch: Punfetch + Onefetch
+Prompt: Starship
+Editor: Nvim
+Git Diff: Delta
 ```
 
 ### apps
 
 ```
-Browser: brave
-Editor: nvim
+Browser: Firefox
+File Manager: Nautilus
+Volume Control: Pavucontrol
+Disk Manager: Gnome Disks
 ```
 
 ---
