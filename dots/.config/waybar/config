@@ -16,9 +16,11 @@
     "modules-center": ["wlr/workspaces", "custom/special"],
     "modules-right": [
     	"pulseaudio",
-    	"custom/sep",
     	"backlight",
-    	"custom/sep",
+
+      "network",
+      "bluetooth",
+
     	"battery"
     ],
     "custom/sep": {
@@ -76,17 +78,21 @@
     "pulseaudio": {
         "rotate": 0,
         "format": "{icon}",
-        "format-bluetooth": "",
-        "format-muted": "{icon}",
+        "format-bluetooth": "{icon}",
+        "format-muted": "󰖁",
         "format-icons": {
             "headphone": "󰋋",
-            "default": ["󰖁", "󰕿", "󰖀", "󰕾"]
+            "default": ["󰕿", "󰖀", "󰕾"]
         },
+        "tooltip-format": "{volume}",
+        "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle
+",
+        "on-click-right": "pavucontrol"
     },
     "backlight": {
     	  "rotate": 270,
         "device": "intel_backlight",
-        "format": "{icon} ",
+        "format": " {icon} ",
         "format-icons": [
         	"",
           "",
@@ -107,20 +113,21 @@
         "on-scroll-up": "light -A 1",
         "on-scroll-down": "light -U 1",
     },
-	"temperature": {
-        "rotate": 90,
-        "hwmon-path": "/sys/class/hwmon/hwmon4/temp1_input",
-        "critical-threshold": 80,
-        "format": "{icon} {temperatureF}",
-        "format-icons": ["", "", ""]
-    },
     "network": {
-        "rotate": 90,
-        "format-wifi": " {essid}",
-        "format-ethernet": " {ipaddr}",
-        "format-linked": " {ifname}",
-        "format-disconnected": "⚠ None",
-        "format-alt": "{ifname}: {ipaddr}/{cidr}"
+        "rotate": 0,
+        "format-wifi": "{icon} ",
+        "format-icons": ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"],
+        "format-ethernet": "  ",
+        "format-linked": "  ",
+        "format-disconnected": "󰖪",
+        "tooltip-format": "{essid}",
+        "on-click": "wezterm start --class=nmtui nmtui"
+    },
+    "bluetooth": {
+        "rotate": 0,
+        "format-on": "󰂯",
+        "format-off": "󰂲",
+        "format-connected": "󰂱"
     },
     "battery": {
         "rotate": 0,

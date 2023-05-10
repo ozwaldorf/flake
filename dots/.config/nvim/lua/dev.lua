@@ -43,6 +43,10 @@ require("rust-tools").setup({
 -- See https://github.com/hrsh7th/nvim-cmp#basic-configuration
 local cmp = require("cmp")
 cmp.setup({
+  window = {
+    completion = cmp.config.window.bordered(),
+    documentation = cmp.config.window.bordered(),
+  },
   preselect = cmp.PreselectMode.None,
   snippet = {
     expand = function(args)
@@ -97,6 +101,10 @@ vim.api.nvim_create_autocmd("BufWritePre", {
   end,
   group = format_sync_grp,
 })
+
+vim.diagnostic.config {     
+  float = { border = "rounded" }, 
+}
 
 -- Set completeopt to have a better completion experience
 -- :help completeopt

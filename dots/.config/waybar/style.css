@@ -3,21 +3,16 @@
   color: #cdd6f4;
   font-family: "FiraCode Nerd Font";
   text-shadow: 0 0 0px black;
-  /*border-radius: 13px;*/
-}
-
-window > .box {
-  margin: 0;
-}
-
-widget > image {
-  margin: 12px 0 0 0;
-  padding: 0;
+  border-radius: 0px;
 }
 
 #clock {
 	font-size: 18px;
-	margin: 12px 5px 0px 5px;
+	margin: 14px 5px 0px 5px;
+}
+
+#custom-sep {
+	margin: 8px 0px 8px 0px;
 }
 
 #tray {
@@ -30,7 +25,7 @@ widget > image {
 }
 
 #tray > widget > image {
-  margin: 0;
+  margin: 4px 0 2px 0;
 }
 
 #workspaces {
@@ -43,7 +38,7 @@ widget > image {
 
 #workspaces button {
 	padding: 12px 0px 12px 0px;
-	text-shadow: 0 0 2px black;
+	text-shadow: 0 0 0px black;
   color: #cdd6f4;
 }
 
@@ -64,8 +59,8 @@ widget > image {
 
 #workspaces button.active label {
 	box-shadow: 0 0 0px black; 
-	font-size: 13px;
-	margin: 10px;
+	font-size: 14px;
+	margin: 15px 0 15px 0;
 	background-image: linear-gradient(
 	  135deg, 
 	  #F38BA8,
@@ -96,25 +91,27 @@ widget > image {
 	}
 }
 
-#custom-sep {
-	margin: 8px 0px 8px 0px;
-}
-
 #pulseaudio {
-  margin: 8px 0 5px 0;
-  font-size: 18px;
+  margin: 8px 0px 3px 0;
+  font-size: 20px;
 }
 
 #backlight {
-  margin: 8px 0 0 0;
+  margin: 5px 0 5px 1px;
   font-size: 18px;
 }
 
-#battery {
- margin: 0px 0px 18px 0; 
- font-size: 18px;
+#bluetooth {
+  margin: 8px 0px 8px 0px;
+  font-size: 20px;
 }
 
-#battery .warning {
-  color: #A6E3A1;
+#network {
+  margin: 8px 0px 8px 7px;
+  font-size: 16px;
+}
+
+#battery {
+ margin: 8px 0px 18px 0; 
+ font-size: 20px;
 }
