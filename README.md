@@ -31,6 +31,8 @@ Bar: Waybar
 GTK Theme: Catppuccin Mocha Pink (+ transparent mod)
 Icon Theme: Papyrus (Catppuccin folders patch)
 Font: FiraCode Nerd Font
+Notification Daemon: Mako
+Application Launcher: Wofi
 ```
 
 ### terminal
