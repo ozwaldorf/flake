@@ -11,20 +11,21 @@
     "modules-left": [
     	"clock", 
       "custom/sep",
-      "tray", 
+      "wlr/workspaces",
+      "custom/special"
     ],
-    "modules-center": ["wlr/workspaces", "custom/special"],
+    "modules-center": [], 
     "modules-right": [
+      "tray",
     	"pulseaudio",
     	"backlight",
-
       "network",
       "bluetooth",
-
     	"battery"
     ],
     "custom/sep": {
-        "format": "──"
+        "format": "⌇",
+        "rotate": 90,
     },
     "clock": {
         "format": "{:%H\n%M}",

@@ -8,28 +8,18 @@
 
 #clock {
 	font-size: 18px;
-	margin: 14px 5px 0px 5px;
+	margin: 12px 0px 8px 2px;
 }
 
 #custom-sep {
-	margin: 8px 0px 8px 0px;
-}
-
-#tray {
-	margin-top: 0px;
-}
-
-#tray > .active {
-  opacity: 0.99;
-  margin: 0;
-}
-
-#tray > widget > image {
-  margin: 4px 0 2px 0;
+	margin: 8px 0px 8px 2px;
+  font-size: 26px;
+  font-weight: 100;
 }
 
 #workspaces {
   margin: 0;
+  margin-left: 2px;
   padding: 2px 2px 2px 2px;
  	border-radius: 50px;
  	font-size: 15px;
@@ -37,7 +27,7 @@
 }
 
 #workspaces button {
-	padding: 12px 0px 12px 0px;
+	padding: 9px 0px 9px 0px;
 	text-shadow: 0 0 0px black;
   color: #cdd6f4;
 }
@@ -60,7 +50,7 @@
 #workspaces button.active label {
 	box-shadow: 0 0 0px black; 
 	font-size: 14px;
-	margin: 15px 0 15px 0;
+	margin: 12px 0 12px 0;
 	background-image: linear-gradient(
 	  135deg, 
 	  #F38BA8,
@@ -91,6 +81,11 @@
 	}
 }
 
+#tray {
+  margin: 8px 0px 9px 2px;
+  opacity: 0.80;
+}
+
 #pulseaudio {
   margin: 8px 0px 3px 0;
   font-size: 20px;
@@ -101,17 +96,17 @@
   font-size: 20px;
 }
 
-#bluetooth {
-  margin: 8px 0px 8px 0px;
-  font-size: 22px;
-}
-
 #network {
   margin: 8px 0px 8px 7px;
   font-size: 18px;
 }
 
+#bluetooth {
+  margin: 8px 0px 8px 2px;
+  font-size: 22px;
+}
+
 #battery {
- margin: 8px 0px 18px 0; 
+ margin: 8px 0px 16px 2; 
  font-size: 20px;
 }
