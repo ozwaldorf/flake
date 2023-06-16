@@ -1,9 +1,9 @@
 #waybar {
-  background: rgba(17, 17, 27, 0.8);
+  background: rgba(17, 17, 27, 0.87);
   color: #cdd6f4;
   font-family: "FiraCode Nerd Font";
   text-shadow: 0 0 0px black;
-  border-radius: 0px;
+  border-radius: 12px;
 }
 
 #clock {
@@ -98,17 +98,17 @@
 
 #backlight {
   margin: 5px 0 5px 1px;
-  font-size: 18px;
+  font-size: 20px;
 }
 
 #bluetooth {
   margin: 8px 0px 8px 0px;
-  font-size: 20px;
+  font-size: 22px;
 }
 
 #network {
   margin: 8px 0px 8px 7px;
-  font-size: 16px;
+  font-size: 18px;
 }
 
 #battery {

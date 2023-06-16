@@ -106,6 +106,8 @@ require("packer").startup(function(use)
   }
 
   use 'NvChad/nvim-colorizer.lua'
+
+  use 'adelarsq/image_preview.nvim'
 end)
 
 -- the first run will install packer and our plugins

@@ -25,6 +25,9 @@ end
 
 vim.keymap.set('n', 't', open_tree)
 
+vim.keymap.set('n', 'H', '<Cmd>BufferLineCyclePrev<CR>')
+vim.keymap.set('n', 'L', '<Cmd>BufferLineCycleNext<CR>')
+
 -- RustCodeAction
 vim.keymap.set('n', '<C-.>', '<Cmd>RustCodeAction<CR>')
 vim.keymap.set('i', '<C-.>', '<Cmd>RustCodeAction<CR>')

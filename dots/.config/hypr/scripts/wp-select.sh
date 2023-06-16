@@ -5,6 +5,7 @@ fi
 
 SCRIPT_NAME=$(basename $0)
 WALLPAPER_DIR="$HOME/.wallpapers"
+LUTGEN_THEME="catppuccin-mocha"
 
 wp_unsplash () {
   if [[ -z $1 ]]; then
@@ -15,11 +16,11 @@ wp_unsplash () {
   RES='3840x2160'
   
   curl -Ls "https://source.unsplash.com/random/$RES/?$QUERY" -o /tmp/wallpaper.jpg
-  wp_ctpify /tmp/wallpaper.jpg $WALLPAPER_DIR/ctp-unsplash.png 
+  wp_lutgen /tmp/wallpaper.jpg $WALLPAPER_DIR/ctp-unsplash.png 
 }
 
-wp_ctpify () {
-  magick $1 .mocha-hald-clut.png -hald-clut $2
+wp_lutgen () {
+  lutgen apply -cl16 -p $LUTGEN_THEME $1 -o $2
   wp_file $2
 }
 
@@ -35,7 +36,7 @@ wp_file () {
   path=`realpath $1`
   echo "$path" > $WALLPAPER_DIR/.current
   cp $1 /usr/share/sddm/themes/chili-git/assets/background.png
-  swww img --transition-type any "$path"
+  swww img --transition-type any "$1"
 }
 
 wp_save () {
@@ -45,12 +46,12 @@ wp_save () {
 wp_dmenu () {
   cd $WALLPAPER_DIR
   # select subcommand
-  choices=("Catppuccin Unsplash" "Select File" "Random File" "Save Current" "Catppuccinify")
+  choices=("Unsplash" "Select File" "Random File" "Save Current" "Catppuccinify")
   choice=`printf '%s\n' "${choices[@]}" | $DMENU`
 
   case $choice in
     "${choices[0]}")
-      wp_unsplash
+      wp_unsplash > .log
       ;;
     "${choices[1]}")
       wp_file `ls | $DMENU`
@@ -68,7 +69,7 @@ wp_dmenu () {
       if [[ "$file" -eq "current" ]]; then
         file=`cat .current`
       fi
-      wp_ctpify $file ".catppuccinify"
+      wp_lutgen $file ".lutgen.png"
       ;;
     *)
       exit 1
@@ -81,15 +82,13 @@ cat << EOF
 Usage: $SCRIPT_NAME <SUBCOMMAND>
 
 Subcommands:
-  dmenu          Interactive mode with dmenu
-  restore        Restores previous wallpaper
-  unsplash [RES]   Generate a random catppuccin wallpaper from picsum, with an
-                  optional resolution like "1920/1080". Defaults to the first
-                  monitors resolution returned by hyprctl.
-  ctpify <PATH>  Generate a catppuccin wallpaper from a file
-  random         Picks a random wallpaper in $WALLPAPER_DIR
-  file <PATH>    Set the wallpaper to a file
-  save <NAME>    Save the current wallpaper to a new name. Must include extension
+  dmenu            Interactive mode with dmenu
+  restore          Restores previous wallpaper
+  unsplash [QUERY] Generate a random catppuccin wallpaper from Unsplash
+  lutgen <PATH>    Theme an existing wallpaper using lutgen
+  random           Picks a random wallpaper in $WALLPAPER_DIR
+  file <PATH>      Set the wallpaper to a file
+  save <NAME>      Save the current wallpaper to a new name. Must include extension
 EOF
 }
 

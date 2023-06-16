@@ -10,3 +10,4 @@ vim.opt.termguicolors = true
 
 -- wrap to prev/next line with arrow keys
 vim.o.whichwrap = 'b,s,<,>,[,]'
+
