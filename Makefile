@@ -29,8 +29,8 @@ configs= \
 	.config/nvim
 
 pkgs= \
-	hyprland-nvidia-hidpi-git \
-  waybar-hyprland \
+	hyprland-git \
+  waybar-hyprland-cava-git \
   wofi \
   wezterm \
   git-delta \
@@ -49,10 +49,9 @@ pkgs= \
   zsh-autosuggestions \
   ttf-firacode-nerd \
   mako \
-	swww 
-
-cargo_pkgs= \
-	punfetch
+	swww \
+	punfetch-bin \
+	lutgen-bin
 
 ascii:
 	@echo "$$ASCII"

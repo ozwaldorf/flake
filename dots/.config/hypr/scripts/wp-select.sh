@@ -1,6 +1,6 @@
 #!/bin/bash
 if [[ -z $DMENU ]]; then
-  DMENU="wofi -d --location center"
+  DMENU="wofi -d --location center --height 240 --width 100"
 fi
 
 SCRIPT_NAME=$(basename $0)
@@ -35,7 +35,7 @@ wp_random () {
 wp_file () {
   path=`realpath $1`
   echo "$path" > $WALLPAPER_DIR/.current
-  cp $1 /usr/share/sddm/themes/chili-git/assets/background.png
+  cp $1 /usr/share/sddm/themes/chili/assets/background.png
   swww img --transition-type any "$1"
 }
 
@@ -46,7 +46,7 @@ wp_save () {
 wp_dmenu () {
   cd $WALLPAPER_DIR
   # select subcommand
-  choices=("Unsplash" "Select File" "Random File" "Save Current" "Catppuccinify")
+  choices=("Unsplash" "Select File" "Random File" "Save Current")
   choice=`printf '%s\n' "${choices[@]}" | $DMENU`
 
   case $choice in
@@ -62,14 +62,6 @@ wp_dmenu () {
     "${choices[3]}")
       current=`cat .current`
       wp_save `ls | $DMENU --search $current`
-      ;;
-    "${choices[4]}")
-      file=`(echo "current"; ls) | $DMENU`
-      echo "$file"
-      if [[ "$file" -eq "current" ]]; then
-        file=`cat .current`
-      fi
-      wp_lutgen $file ".lutgen.png"
       ;;
     *)
       exit 1

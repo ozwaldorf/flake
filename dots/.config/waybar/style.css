@@ -6,20 +6,27 @@
   border-radius: 12px;
 }
 
+#cava {
+  font-size: 7px;
+  margin: 0px 0px 0px 0px;
+  padding-right: 31px;
+  border-radius: 12px;
+}
+
 #clock {
 	font-size: 18px;
-	margin: 12px 0px 8px 2px;
+	margin: 18px 0px 8px 0px;
 }
 
 #custom-sep {
-	margin: 8px 0px 8px 2px;
+	margin: 0px 0px 0px 0px;
   font-size: 26px;
-  font-weight: 100;
+  font-weight: 200;
 }
 
 #workspaces {
   margin: 0;
-  margin-left: 2px;
+  margin-left: 0px;
   padding: 2px 2px 2px 2px;
  	border-radius: 50px;
  	font-size: 15px;
@@ -82,31 +89,35 @@
 }
 
 #tray {
-  margin: 8px 0px 9px 2px;
+  margin: 8px 0px 6px 2px;
   opacity: 0.80;
 }
 
+#tray > widget > image {
+  margin: 8px 0 8px 0;
+}
+
 #pulseaudio {
-  margin: 8px 0px 3px 0;
+  margin: 8px 0px 3px 0px;
   font-size: 20px;
 }
 
 #backlight {
-  margin: 5px 0 5px 1px;
+  margin: 5px 0 5px 0px;
   font-size: 20px;
 }
 
 #network {
-  margin: 8px 0px 8px 7px;
+  margin: 8px 0px 8px 6px;
   font-size: 18px;
 }
 
 #bluetooth {
-  margin: 8px 0px 8px 2px;
+  margin: 8px 0px 8px 0px;
   font-size: 22px;
 }
 
 #battery {
- margin: 8px 0px 16px 2; 
+ margin: 8px 0px 18px 0px; 
  font-size: 20px;
 }

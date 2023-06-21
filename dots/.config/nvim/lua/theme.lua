@@ -48,7 +48,13 @@ require("catppuccin").setup({
 -- setup must be called before loading
 vim.cmd.colorscheme "catppuccin"
 
-vim.opt.guifont = { "FiraCode Mono Nerd Font", "h4" }
+if vim.g.neovide then
+    -- Put anything you want to happen only in Neovide here
+    vim.opt.guifont = { "FiraCode Mono Nerd Font", "h4" }
+    vim.g.neovide_transparency = 0.8
+    vim.g.neovide_floating_blur_amount_x = 32.0
+    vim.g.neovide_floating_blur_amount_y = 32.0
+end
 
 --require("notify").setup({
 --  background_colour = "#000000",

@@ -14,7 +14,7 @@
       "wlr/workspaces",
       "custom/special"
     ],
-    "modules-center": [], 
+    "modules-center": ["cava"], 
     "modules-right": [
       "tray",
     	"pulseaudio",
@@ -23,9 +23,35 @@
       "bluetooth",
     	"battery"
     ],
+    "cava": {
+      //"rotate": 180,
+      "framerate": 25,
+      "autosens": 1,
+      "bars": 16,
+      "lower_cutoff_freq": 50,
+      "higher_cutoff_freq": 10000,
+      "method": "pipewire",
+      "source": "auto",
+      "stereo": true,
+      "reverse": false,
+      "bar_delimiter": 13,
+      "monstercat": true,
+      "waves": true,
+      "noise_reduction": 0.77,
+      "input_delay": 0,
+      //"format-icons" : ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█" ],
+      "format-icons": [
+        "   ", "▏  ","▎  ","▍  ","▌  ","▋  ","▊  ","▉  ",
+        "█  ", "█▏ ","█▎ ","█▍ ","█▌ ","█▋ ","█▊ ","█▉ ",
+        "██ ", "██▏","██▎","██▍","██▌","██▋","██▊","██▉",
+        "███"
+      ],
+      "actions": {
+        "on-click-right": "mode"
+      }
+    },
     "custom/sep": {
-        "format": "⌇",
-        "rotate": 90,
+        "format": "~~",
     },
     "clock": {
         "format": "{:%H\n%M}",

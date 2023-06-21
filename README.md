@@ -74,6 +74,8 @@ make deps
 
 install dotfiles to system:
 
+> NOTE: My .gitconfig is included, so be sure to edit it with your info, or else you'll commit stuff as me!
+
 ```sh
 make install
 ```

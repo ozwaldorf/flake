@@ -26,6 +26,7 @@ require("rust-tools").setup({
   server = {
     -- on_attach is a callback called when the language server attachs to the buffer
     on_attach = on_attach,
+    standalone = true,
     -- use custom rust-analyzer
     cmd = {"ra-multiplex"},  
     settings = {

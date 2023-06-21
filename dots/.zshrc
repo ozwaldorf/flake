@@ -226,6 +226,7 @@ alias commit="git commit"
 alias add="git add"
 alias rebase="git stash && git pull --rebase && git stash apply"
 alias ytop="ytop -spfa"
+alias rs="rust-script"
 
 sshw() {
   wezterm ssh $@ </dev/null &>/dev/null & disown
