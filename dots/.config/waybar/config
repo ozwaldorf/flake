@@ -16,12 +16,15 @@
     ],
     "modules-center": ["cava"], 
     "modules-right": [
-      "tray",
+      //"tray",
     	"pulseaudio",
     	"backlight",
-      "network",
       "bluetooth",
-    	"battery"
+      "network",
+    	"battery",
+      "custom/ram",
+      "custom/cpu",
+
     ],
     "cava": {
       //"rotate": 180,
@@ -53,15 +56,19 @@
     "custom/sep": {
         "format": "~~",
     },
+    "custom/cpu": {
+      "exec": "~/.config/waybar/scripts/graph.rs CPU 100",
+      "return-type": "json"
+    },
+    "custom/ram": {
+      "exec": "~/.config/waybar/scripts/graph.rs RAM 500",
+      "tooltip": true,
+      "return-type": "json"
+    },
     "clock": {
         "format": "{:%H\n%M}",
         "tooltip-format": "<tt><small>{calendar}</small></tt>",
         "on-click": "~/.config/hypr/scripts/wp-select.sh dmenu"
-    },
-    "image/user": {
-        "path": "/home/oz/.face.icon",
-        "size": 32,
-        "on-click":"wezterm start --class gpto ~/.cargo/bin/gpto -c"
     },
     "tray": {
         "icon-size": 18,
@@ -89,7 +96,7 @@
 		    },
     },
     "custom/special": {
-    	"exec": "~/.config/waybar/scratchpad.sh",
+    	"exec": "~/.config/waybar/scripts/scratchpad.sh",
     	"return-type": "json",
     	"tooltip": true,
     	"on-click": "hyprctl dispatch togglespecialworkspace ''"
@@ -99,7 +106,7 @@
         "format": "  {}",
         "return-type": "json",
         "interval": 60,
-        "exec": "$HOME/.config/waybar/github.sh",
+        "exec": "$HOME/.config/waybar/scripts/github.sh",
         "on-click": "xdg-open https://github.com/notifications"
     },
     "pulseaudio": {
@@ -147,7 +154,7 @@
         "format-ethernet": " ",
         "format-linked": " ",
         "format-disconnected": "󰖪 ",
-        "tooltip-format": "{essid}",
+        "toolalt": "{essid}",
         "on-click": "wezterm start --class=nmtui nmtui"
     },
     "bluetooth": {
