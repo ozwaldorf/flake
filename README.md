@@ -8,15 +8,13 @@
 
 ## ↛ 📷 screens
 
-![image](https://github.com/ozwaldorf/dotfiles/assets/8976745/71a05127-5489-44f0-8314-4229465333f8)
+![image](https://github.com/ozwaldorf/dotfiles/assets/8976745/3d8f346c-781e-478b-b7cc-2aab2b7b856d)
 
-![image](https://github.com/ozwaldorf/dotfiles/assets/8976745/1bc53bf1-5a1b-40b3-8fd1-c77647fe2d38)
+![image](https://github.com/ozwaldorf/dotfiles/assets/8976745/ad07379b-e450-45be-9344-3f00ab124d13)
 
-![image](https://github.com/ozwaldorf/dotfiles/assets/8976745/795ed968-cb9f-48d3-be6a-0b3b76af8e4c)
+![image](https://github.com/ozwaldorf/dotfiles/assets/8976745/95cb3105-4dc2-442b-96ef-6761cc2bb791)
 
-![image](https://github.com/ozwaldorf/dotfiles/assets/8976745/3175d137-88a1-4992-9c37-c30f6c6d5a56)
-
-![image](https://github.com/ozwaldorf/dotfiles/assets/8976745/1bb1fbdb-c3ff-43f1-a2d2-09caaeffdf6f)
+![image](https://github.com/ozwaldorf/dotfiles/assets/8976745/87d8c0bd-5a6d-4c9b-a806-2a1168268d97)
 
 ---
 
