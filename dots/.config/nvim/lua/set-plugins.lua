@@ -108,6 +108,12 @@ require("packer").startup(function(use)
   use 'NvChad/nvim-colorizer.lua'
 
   use 'adelarsq/image_preview.nvim'
+
+  use {
+    'saecki/crates.nvim',
+    tag = 'v0.3.0',
+    requires = { 'nvim-lua/plenary.nvim' },
+  }
 end)
 
 -- the first run will install packer and our plugins

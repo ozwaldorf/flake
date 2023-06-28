@@ -8,14 +8,9 @@ WALLPAPER_DIR="$HOME/.wallpapers"
 LUTGEN_THEME="catppuccin-mocha"
 
 wp_unsplash () {
-  if [[ -z $1 ]]; then
-    QUERY="wallpaper"
-  else QUERY="$1"; fi
-
   #RES=`hyprctl monitors -j | jq -r 'first | "\(.width)x\(.height)"'`
-  RES='3840x2160'
-  
-  curl -Ls "https://source.unsplash.com/random/$RES/?$QUERY" -o /tmp/wallpaper.jpg
+
+  curl -Ls "https://picsum.photos/3840/2160.jpg" -o /tmp/wallpaper.jpg
   wp_lutgen /tmp/wallpaper.jpg $WALLPAPER_DIR/ctp-unsplash.png 
 }
 
@@ -54,7 +49,7 @@ wp_dmenu () {
       wp_unsplash > .log
       ;;
     "${choices[1]}")
-      wp_file `ls | $DMENU`
+      wp_file `zenity --file-selection --file-filter='Images | *.png *.jpg *.jpeg'`
       ;;
     "${choices[2]}")
       wp_random
