@@ -59,7 +59,7 @@ ascii:
 deps: ascii
 	@which yay || { echo "yay is not installed"; exit 1; }
 	# Install packages
-	sudo -S yay -S --needed --noconfirm ${pkgs}
+	yay -S --needed --noconfirm ${pkgs}
 	# Verify rustup is setup
 	@cargo -V || rustup install stable && rustup default stable
 	# Install cargo packages
