@@ -26,7 +26,7 @@ configs= \
 	.config/wofi \
 	.config/deadd \
 	.config/wezterm \
-	.config/nvim
+	.config/nvim/{init.lua,lua}
 
 pkgs= \
 	hyprland-git \
