@@ -1,29 +1,29 @@
 local wezterm = require 'wezterm'
 
 local rounded_new_tab = {
-    new_tab = wezterm.format({
-      { Foreground = { Color = "#181825" } },
-      { Background = { Color = "rgba(0,0,0,0)" } },
-      { Text = " " .. utf8.char(0xe0b6) },
-      { Foreground = { Color = "#cdd6f4" } },
-      { Background = { Color = "#181825" } }, 
-      { Text = "+" },
-      { Foreground = { Color = "#181825" } },
-      { Background = { Color = "rgba(0,0,0,0)" } }, 
-      { Text = utf8.char(0xe0b4) }
-    }),
-    new_tab_hover = wezterm.format({ 
-      { Foreground = { Color = "#181825" } },
-      { Background = { Color = "rgba(0,0,0,0)" } },
-      { Text = " " .. utf8.char(0xe0b6) },
-      { Foreground = { Color = "#cdd6f4" } },
-      { Background = { Color = "#181825" } }, 
-      { Attribute = { Italic = false } },
-      { Text = "+" },
-      { Foreground = { Color = "#181825" } },
-      { Background = { Color = "rgba(0,0,0,0)" } }, 
-      { Text = utf8.char(0xe0b4) }
-    }) 
+  new_tab = wezterm.format({
+    { Foreground = { Color = "#181825" } },
+    { Background = { Color = "rgba(0,0,0,0)" } },
+    { Text = " " .. utf8.char(0xe0b6) },
+    { Foreground = { Color = "#cdd6f4" } },
+    { Background = { Color = "#181825" } },
+    { Text = "+" },
+    { Foreground = { Color = "#181825" } },
+    { Background = { Color = "rgba(0,0,0,0)" } },
+    { Text = utf8.char(0xe0b4) }
+  }),
+  new_tab_hover = wezterm.format({
+    { Foreground = { Color = "#181825" } },
+    { Background = { Color = "rgba(0,0,0,0)" } },
+    { Text = " " .. utf8.char(0xe0b6) },
+    { Foreground = { Color = "#cdd6f4" } },
+    { Background = { Color = "#181825" } },
+    { Attribute = { Italic = false } },
+    { Text = "+" },
+    { Foreground = { Color = "#181825" } },
+    { Background = { Color = "rgba(0,0,0,0)" } },
+    { Text = utf8.char(0xe0b4) }
+  })
 }
 
 local disabled_new_tab = {
@@ -34,21 +34,28 @@ local disabled_new_tab = {
 require("bar").setup({})
 
 return {
-  font = wezterm.font 'FiraCode Nerd Font',
+  font = wezterm.font_with_fallback {
+    'Berkeley Mono',
+    --'Dank Mono',
+    --'Gintronic',
+    --'PragmataPro Mono Liga',
+    'Fira Code Nerd Font',
+    'Symbols Nerd Font',
+  },
   font_size = 10,
-  window_background_opacity = 0.9,
+  window_background_opacity = 0.6,
   text_background_opacity = 1.0,
-    window_decorations = "NONE",
+  window_decorations = "NONE",
   window_padding = {
     left = '1cell',
     right = '1cell',
     top = '0.5cell',
     bottom = '0.5cell',
   },
-	color_scheme = "Catppuccin Mocha",
+  color_scheme = "Catppuccin Mocha",
   colors = {
     tab_bar = {
-      background = 'rgba(30,30,46,0.9)'
+      background = 'rgba(30,30,46,0.6)'
     }
   },
   inactive_pane_hsb = {

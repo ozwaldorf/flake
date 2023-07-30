@@ -5,9 +5,10 @@
 {
     "position": "left",
     "layer": "top",
-    "output": ["eDP-1", "DP-1", "DP-2"],
+    "output": ["eDP-1", "DP-", "DP-2"],
     "width": 44,
-    "margin": "25 0 25 25",
+    //"margin": "25 0 25 25",
+    "margin": "0 0 0 0",
     "modules-left": [
     	"clock", 
       "custom/sep",
@@ -22,6 +23,7 @@
       "bluetooth",
       "network",
     	"battery",
+      "custom/sep",
       "custom/ram",
       "custom/cpu",
 
@@ -54,10 +56,10 @@
       }
     },
     "custom/sep": {
-        "format": "~~",
+        "format": "──",
     },
     "custom/cpu": {
-      "exec": "~/.config/waybar/scripts/graph.rs CPU 100",
+      "exec": "~/.config/waybar/scripts/graph.rs CPU 150",
       "return-type": "json"
     },
     "custom/ram": {

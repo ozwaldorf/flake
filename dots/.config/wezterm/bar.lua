@@ -20,14 +20,14 @@ M.config = {
     },
   },
   tabs = {
-    numerals = "none", -- or "roman"
+    numerals = "none",        -- or "roman"
     pane_count = "subscript", -- or "subscript", false
     brackets = {
       active = { "", "." },
       inactive = { "", "." },
     },
   },
-  clock = { -- note that this overrides the whole set_right_status
+  clock = {               -- note that this overrides the whole set_right_status
     enabled = true,
     format = "%H:%M:%S ", -- use https://wezfurlong.org/wezterm/config/lua/wezterm.time/Time/format.html
   },
@@ -280,7 +280,7 @@ wezterm.on(
       { Text = title },
       { Background = { Color = colours.background } },
       { Foreground = { Color = e_fg } },
-      { Text = C.div.r .. " " },
+      { Text = C.div.r .. "" },
     }
   end
 )
@@ -290,7 +290,7 @@ wezterm.on("update-status", function(window, pane)
   local active_kt = window:active_key_table() ~= nil
   local show = C.leader.enabled or (active_kt and C.mode.enabled)
   if not show then
-    window:set_left_status(" ")
+    window:set_left_status("")
     return
   end
 
@@ -303,7 +303,7 @@ wezterm.on("update-status", function(window, pane)
       leader_text = C.leader.on
     end
     leader = wezterm.format({
-      { Foreground = { Color = palette.ansi[5]} },
+      { Foreground = { Color = palette.ansi[5] } },
       { Background = { Color = palette.background } },
       { Text = C.div.l },
       { Foreground = { Color = palette.background } },
@@ -330,7 +330,7 @@ wezterm.on("update-status", function(window, pane)
 
   local first_tab_active = window:mux_window():tabs_with_info()[1].is_active
   local divider_bg = first_tab_active and palette.ansi[2]
-    or palette.tab_bar.inactive_tab.bg_color
+      or palette.tab_bar.inactive_tab.bg_color
 
   local divider = wezterm.format({
     { Background = { Color = palette.tab_bar.background } },
@@ -338,7 +338,7 @@ wezterm.on("update-status", function(window, pane)
     { Text = C.div.r },
   })
 
-  window:set_left_status(" " .. leader .. mode .. divider .. " ")
+  window:set_left_status("" .. leader .. mode .. divider .. " ")
 
   if C.clock.enabled then
     local time = wezterm.time.now():format(C.clock.format)

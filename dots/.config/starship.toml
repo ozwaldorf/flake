@@ -19,7 +19,7 @@ vicmd_symbol = "[◆](blue)"
 
 [env_var.VIMSHELL] # vim subshell
 format = "[$env_value]($style)"
-style = 'green '
+style = 'green'
 
 [sudo]
 format = "[$symbol]($style)"
@@ -53,11 +53,11 @@ symbol = "[▶ ](blue)"
 
 [localip]
 ssh_only = true
-format = "◯[$localipv4](bold magenta) "
+format = "○[$localipv4](bold magenta) "
 disabled = false
 
 [time]
-disabled = false
+disabled = true
 format = "[ $time [◔](white)]($style)"
 time_format = "%R"
 utc_time_offset = "local"
@@ -67,7 +67,7 @@ time_range = "00:00:00-07:00:00"
 [battery]
 format = "[$percentage $symbol]($style)"
 full_symbol = "[█]( green)"
-charging_symbol = "[▲]( green)"
+charging_symbol = "[▲](green)"
 discharging_symbol = "[▽]()"
 unknown_symbol = "[░]()"
 empty_symbol = "[▃]( red)"
@@ -83,22 +83,21 @@ style = "dimmed white"
 
 [git_branch]
 format = "[$symbol $branch(:$remote_branch)]($style)"
-symbol = "[△]( cyan)"
-style = "bold cyan"
+symbol = "[△](green)"
+style = "green"
 
 [git_status]
-style = " cyan"
-format = """ ([$ahead_behind$staged$modified$untracked$renamed$deleted$conflicted$stashed]($style))"""
+format = """ ($ahead_behind$staged$renamed$modified$untracked$deleted$conflicted$stashed)"""
 conflicted = "[◪ ]( bright-magenta)"
-ahead = "[▲ [${count}](bold white) ]( green)"
-behind = "[▼ [${count}](bold white) ]( red)"
-diverged = "[◇ [${ahead_count}](bold green)/[${behind_count}](bold red) ]( bright-magenta)"
-untracked = "[◌ ]( bright-yellow)"
-stashed = "[◫ ]( white)"
-modified = "[● ]( yellow)"
-staged = "[▧ ]( bright-cyan)"
-renamed = "[◎ ]( bright-blue)"
-deleted = "[✕ ]( red)"
+ahead = "[▲ [${count}](bold white) ](green)"
+behind = "[▼ [${count}](bold white) ](red)"
+diverged = "[◇ [${ahead_count}](bold green)/[${behind_count}](bold red) ](bright-magenta)"
+untracked = "[○ ](bright-yellow)"
+stashed = '[${count} ](bold white)'
+renamed = "[● ](bright-blue)"
+modified = "[● ](yellow)"
+staged = "[● ](bright-cyan)"
+deleted = "[✕ ](red)"
 
 [deno]
 format = "deno [∫ $version](blue ) "
@@ -121,13 +120,13 @@ style = " bright-yellow"
 format = "rb [${symbol}${version}]($style) "
 symbol = "◆ "
 version_format = "${major}.${minor}"
-style = " red"
+style = "red"
 
 [rust]
 format = "rs [$symbol$version]($style) "
 symbol = "⊃ "
 version_format = "${major}.${minor}"
-style = " red"
+style = "red"
 
 [package]
 format = "pkg [$symbol$version]($style) "

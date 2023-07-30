@@ -227,6 +227,7 @@ alias add="git add"
 alias rebase="git stash && git pull --rebase && git stash apply"
 alias ytop="ytop -spfa"
 alias rs="rust-script"
+alias :wq="exit"
 
 sshw() {
   wezterm ssh $@ </dev/null &>/dev/null & disown
@@ -244,6 +245,7 @@ alias cat="smart_cat"
 
 # Environment
 source ~/.env
+export TERM="wezterm"
 export BROWSER="brave"
 export SUDO_EDITOR="nvim"
 export EDITOR="nvim"
