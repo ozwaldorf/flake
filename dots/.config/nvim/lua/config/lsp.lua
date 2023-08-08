@@ -194,43 +194,41 @@ local lspconfig = require("lspconfig")
 
 require("mason-lspconfig").setup_handlers({
   function(server_name)
-    if server_name == "rust_analyzer" then
-      local rt = require("rust-tools")
-      local rust_opts = {
-        tools = {
-          runnables = {
-            use_telescope = false,
-          },
-          inlay_hints = {
-            auto = true,
-            show_parameter_hints = false,
-            parameter_hints_prefix = "",
-            other_hints_prefix = "",
-          },
+    local extended_opts = vim.tbl_deep_extend("force", server_opts, servers[server_name] or {})
+    lspconfig[server_name].setup(extended_opts)
+  end,
+  ['rust_analyzer'] = function()
+    local rt = require("rust-tools")
+    local rust_opts = {
+      tools = {
+        runnables = {
+          use_telescope = false,
         },
-        server = {
-          on_attach = function(client, bufnr)
-            on_attach(client, bufnr)
-            vim.keymap.set({ 'n', 'i' }, '<C-.>', '<Cmd>RustCodeAction<CR>')
-            vim.keymap.set({ 'n', 'i' }, "<C-space>", rt.hover_actions.hover_actions, { buffer = bufnr })
-            vim.keymap.set("n", "<Leader>a", rt.code_action_group.code_action_group, { buffer = bufnr })
-            --require 'illuminate'.on_attach(client)
-          end,
-          capabilities = capabilities,
-          settings = {
-            ['rust-analyzer'] = {
-              check = {
-                command = "clippy"
-              }
-            }
+        inlay_hints = {
+          auto = true,
+          show_parameter_hints = false,
+          parameter_hints_prefix = "",
+          other_hints_prefix = "",
+        },
+      },
+      server = {
+        on_attach = function(client, bufnr)
+          on_attach(client, bufnr)
+          vim.keymap.set({ 'n', 'i' }, '<C-.>', '<Cmd>RustCodeAction<CR>')
+          vim.keymap.set({ 'n', 'i' }, "<C-space>", rt.hover_actions.hover_actions, { buffer = bufnr })
+          vim.keymap.set("n", "<Leader>a", rt.code_action_group.code_action_group, { buffer = bufnr })
+          --require 'illuminate'.on_attach(client)
+        end,
+        capabilities = capabilities,
+        settings = {
+          ['rust-analyzer'] = {
+            cachePriming = { numThreads = 16 },
+            check = { command = "clippy" }
           }
         }
       }
-      rt.setup(rust_opts)
-    else
-      local extended_opts = vim.tbl_deep_extend("force", server_opts, servers[server_name] or {})
-      lspconfig[server_name].setup(extended_opts)
-    end
-  end,
+    }
+    rt.setup(rust_opts)
+  end
   -- You can set up other server specific config
 })

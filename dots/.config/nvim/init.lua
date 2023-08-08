@@ -19,7 +19,6 @@ local conf = {
     enable = true,
     threshold = 0, -- the amount in ms that a plugins load time must be over for it to be included in the profile
   },
-
   display = {
     open_fn = function()
       return require("packer.util").float({ border = "rounded" })
@@ -104,6 +103,7 @@ local function plugins(use)
     "hrsh7th/cmp-buffer",
     "hrsh7th/cmp-vsnip",
     "hrsh7th/vim-vsnip",
+    "onsails/lspkind.nvim",
     after = { "hrsh7th/nvim-cmp" },
     requires = { "hrsh7th/nvim-cmp" },
   })
@@ -128,6 +128,17 @@ local function plugins(use)
     'simrat39/symbols-outline.nvim',
     config = function()
       require("symbols-outline").setup()
+      vim.api.nvim_create_autocmd('FileType', {
+        pattern = { 'Outline' },
+        command = "setlocal nospell"
+      })
+    end
+  })
+  use({
+    "folke/todo-comments.nvim",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    config = function()
+      require("todo-comments").setup()
     end
   })
   use({
@@ -140,25 +151,82 @@ local function plugins(use)
     end,
   })
   use({
+    "lewis6991/gitsigns.nvim",
+    config = function()
+      require('gitsigns').setup()
+    end
+  })
+  use({
+    "petertriho/nvim-scrollbar",
+    config = function()
+      require("scrollbar").setup({
+        handlers = {
+          handle = false,
+          gitsigns = true,
+        },
+        excluded_filetypes = {
+          "Outline",
+          "NvimTree",
+          "Starter",
+          "NeogitStatus",
+        },
+      })
+    end
+  })
+  use({
+    'krivahtoo/silicon.nvim',
+    branch = 'nvim-0.9',
+    run = './install.sh build',
+    config = function()
+      require('silicon').setup({
+        font = 'Dank Mono; Symbols Nerd Font',
+        -- https://raw.githubusercontent.com/catppuccin/bat/main/Catppuccin-mocha.tmTheme
+        -- download and run: `silicon --build-cache`
+        theme = 'Catppuccin-mocha',
+        gobble = true,
+        line_number = true,
+        line_pad = 0,
+        pad_horiz = 18,
+        pad_vert = 20,
+        shadow = {
+          blur_radius = 3,
+          color = '#00000055'
+        },
+        background = "#00000000",
+        window_title = function()
+          local file, _ = string.gsub(vim.fn.expand('%'), vim.loop.cwd() .. '/', '')
+          return file
+        end,
+        watermark = {
+          text = '@ozwaldorf ',
+          color = '#cdd6f4',
+          style = 'italic'
+        }
+      })
+    end
+  })
+  use({
     "catppuccin/nvim",
     as = "catppuccin",
     config = function()
       require("catppuccin").setup({
         transparent_background = true,
         integrations = {
-          mini = true
+          mini = true,
+          mason = true,
+          cmp = true,
+          lsp_trouble = true,
+          nvimtree = true,
+          treesitter = true,
+          symbols_outline = true,
+          gitsigns = true,
+          neogit = true,
+          fidget = true,
         },
       })
       vim.cmd.colorscheme "catppuccin"
     end,
   })
-  use({
-    "lewis6991/gitsigns.nvim",
-    config = function()
-      require('gitsigns').setup()
-    end
-  })
-  --use({ "" })
 
   -- Bootstrap Neovim
   if packer_bootstrap then
@@ -175,3 +243,11 @@ packer.startup(plugins)
 
 -- keybindings
 require("config.keybinds");
+
+-- disable ~ for empty lines
+vim.opt.fillchars = { eob = " " }
+
+-- for spell checking
+vim.opt.spell = true
+vim.opt.spelllang = { "en_us" }
+vim.opt.spelloptions = 'camel'
