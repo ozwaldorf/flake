@@ -217,6 +217,7 @@ alias ls="exa -lh $ls_args"
 alias la="exa -lah $ls_args"
 alias l="exa -lah $ls_args"
 alias lg="exa -lah $ls_args --git-ignore"
+alias cat="bat"
 alias cp="cp -i" # Confirm before overwriting something
 alias df='df -h' # Human-readable sizes
 alias free='free -m' # Show sizes in MB
@@ -233,20 +234,10 @@ sshw() {
   wezterm ssh $@ </dev/null &>/dev/null & disown
 }
 
-alias icat="wezterm imgcat"
-smart_cat() {
-	if [[ $1 =~ \.(png|jpeg|jpg|ico)$ ]]; then
-		icat $@
-	else
-		bat $@ 
-	fi
-}
-alias cat="smart_cat"
-
 # Environment
 source ~/.env
 export TERM="wezterm"
-export BROWSER="brave"
+export BROWSER="firefox"
 export SUDO_EDITOR="nvim"
 export EDITOR="nvim"
 export VISUAL="nvim"

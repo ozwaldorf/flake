@@ -39,23 +39,23 @@ return {
     --'Dank Mono',
     --'Gintronic',
     --'PragmataPro Mono Liga',
-    'Fira Code Nerd Font',
+    --'Fira Code Nerd Font',
     'Symbols Nerd Font',
   },
   font_size = 10,
-  window_background_opacity = 0.6,
+  window_background_opacity = 0.7,
   text_background_opacity = 1.0,
   window_decorations = "NONE",
   window_padding = {
     left = '1cell',
     right = '1cell',
-    top = '0.5cell',
-    bottom = '0.5cell',
+    top = '1cell',
+    bottom = '1cell',
   },
   color_scheme = "Catppuccin Mocha",
   colors = {
     tab_bar = {
-      background = 'rgba(30,30,46,0.6)'
+      background = 'rgba(30,30,46,0.7)'
     }
   },
   inactive_pane_hsb = {

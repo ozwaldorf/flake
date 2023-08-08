@@ -26,10 +26,11 @@
 
 # git-delta diff viewer config
 [delta]
-	syntax-theme = 1337
+	syntax-theme = zenburn
 	side-by-side = true
 	navigate = true
-	features = unobtrusive-line-numbers decorations
+        features = unobtrusive-line-numbers decorations
+        true-color = never
 
 [delta "unobtrusive-line-numbers"]
 	line-numbers = true
