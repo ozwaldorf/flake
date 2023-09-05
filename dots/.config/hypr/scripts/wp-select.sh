@@ -5,17 +5,16 @@ fi
 
 SCRIPT_NAME=$(basename $0)
 WALLPAPER_DIR="$HOME/.wallpapers"
-LUTGEN_THEME="catppuccin-mocha"
 
 wp_unsplash () {
   #RES=`hyprctl monitors -j | jq -r 'first | "\(.width)x\(.height)"'`
 
-  curl -Ls "https://picsum.photos/3840/2160.jpg" -o /tmp/wallpaper.jpg
+  curl -L "https://picsum.photos/3840/2160.jpg" -o /tmp/wallpaper.jpg
   wp_lutgen /tmp/wallpaper.jpg $WALLPAPER_DIR/ctp-unsplash.png 
 }
 
 wp_lutgen () {
-  lutgen apply -cl16 -p $LUTGEN_THEME $1 -o $2
+  lutgen apply -cl16 $1 -o $2 -- $(cat ~/palettes/carburetor.txt)
   wp_file $2
 }
 

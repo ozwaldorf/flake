@@ -5,28 +5,27 @@
 {
     "position": "left",
     "layer": "top",
-    "output": ["eDP-1", "DP-", "DP-2"],
+    "output": ["eDP-1", "DP-1", "DP-2"],
     "width": 44,
     //"margin": "25 0 25 25",
     "margin": "0 0 0 0",
     "modules-left": [
-    	"clock", 
+      "clock", 
       "custom/sep",
       "wlr/workspaces",
       "custom/special"
     ],
-    "modules-center": ["cava"], 
+    "modules-center": [ "cava" ], 
     "modules-right": [
       //"tray",
-    	"pulseaudio",
-    	"backlight",
+      "pulseaudio",
+      "backlight",
       "bluetooth",
       "network",
-    	"battery",
-      "custom/sep",
-      "custom/ram",
+      "battery",
+      //"custom/sep",
+      //"custom/ram",
       "custom/cpu",
-
     ],
     "cava": {
       //"rotate": 180,

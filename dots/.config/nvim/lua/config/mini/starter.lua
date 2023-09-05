@@ -6,13 +6,13 @@ local function header()
   local day_part = ({ 'evening', 'morning', 'afternoon', 'evening' })[part_id]
   local username = vim.loop.os_get_passwd()['username'] or 'USERNAME'
   return ([[
-`7MM"""Yb.                     db  mm
-  MM    `Yb.                   '/  MM
-  MM     `Mb  ,pW"Wq.`7MMpMMMb.  mmMMmm
-  MM      MM 6W'   `Wb MM    MM    MM
-  MM     ,MP 8M     M8 MM    MM    MM
-  MM    ,dP' YA.   ,A9 MM    MM    MM
-.JMMmmmdP'    `Ybmd9'.JMML  JMML.  `Mbmo
+`7MM"""Yb.                    db  mm
+  MM    `Yb.                  '/  MM
+  MM     `Mb  ,pW"Wq.`7MMpMMMb. mmMMmm
+  MM      MM 6W'   `Wb MM    MM   MM
+  MM     ,MP 8M     M8 MM    MM   MM
+  MM    ,dP' YA.   ,A9 MM    MM   MM
+.JMMmmmdP'    `Ybmd9'.JMML  JMML. `Mbmo
 
 `7MM"""Mq.                     db          OO
   MM   `MM.                                88

@@ -68,6 +68,27 @@ local function plugins(use)
     end,
   })
   use({
+    "akinsho/bufferline.nvim",
+    config = function()
+      require("bufferline").setup {
+        options = {
+          theme = "catppuccin",
+          separator_style = { "│", "│" },
+          offsets = { {
+            filetype = "NvimTree",
+            --text = function()
+            --  return vim.fn.getcwd()
+            --end,
+            text = "File Explorer",
+            highlight = "Directory",
+            separator = "│"
+          }
+          }
+        }
+      }
+    end,
+  })
+  use({
     "neovim/nvim-lspconfig",
     --event = "BufReadPre",
     requires = {
@@ -124,6 +145,27 @@ local function plugins(use)
     end,
   })
   use({ "nvim-treesitter/playground" })
+  use {
+    "cshuaimin/ssr.nvim",
+    module = "ssr",
+    -- Calling setup is optional.
+    config = function()
+      require("ssr").setup {
+        border = "rounded",
+        min_width = 50,
+        min_height = 5,
+        max_width = 120,
+        max_height = 25,
+        keymaps = {
+          close = "q",
+          next_match = "n",
+          prev_match = "N",
+          replace_confirm = "<cr>",
+          replace_all = "<leader><cr>",
+        },
+      }
+    end
+  }
   use({
     'simrat39/symbols-outline.nvim',
     config = function()
@@ -167,7 +209,7 @@ local function plugins(use)
         excluded_filetypes = {
           "Outline",
           "NvimTree",
-          "Starter",
+          "starter",
           "NeogitStatus",
         },
       })
@@ -210,9 +252,10 @@ local function plugins(use)
     as = "catppuccin",
     config = function()
       require("catppuccin").setup({
-        transparent_background = true,
+        transparent_background = false,
         integrations = {
           mini = true,
+          bufferline = true,
           mason = true,
           cmp = true,
           lsp_trouble = true,
@@ -223,10 +266,48 @@ local function plugins(use)
           neogit = true,
           fidget = true,
         },
+        color_overrides = {
+          -- Carburetor
+          mocha = {
+            rosewater = "#ffd7d9",
+            flamingo = "#ffb3b8",
+            pink = "#ff7eb6",
+            mauve = "#d4bbff",
+            red = "#fa4d56",
+            maroon = "#ff8389",
+            peach = "#ff832b",
+            yellow = "#fddc69",
+            green = "#42be65",
+            teal = "#3ddbd9",
+            sky = "#82cfff",
+            sapphire = "#78a9ff",
+            blue = "#4589ff",
+            lavender = "#be95ff",
+            text = "#f4f4f4",
+            subtext1 = "#e0e0e0",
+            subtext0 = "#c6c6c6",
+            overlay2 = "#a8a8a8",
+            overlay1 = "#8d8d8d",
+            overlay0 = "#6f6f6f",
+            surface2 = "#525252",
+            surface1 = "#393939",
+            surface0 = "#262626",
+            base = "#161616",
+            mantle = "#0b0b0b",
+            crust = "#000000"
+          },
+        }
       })
       vim.cmd.colorscheme "catppuccin"
     end,
   })
+  use({
+    "brenoprata10/nvim-highlight-colors",
+    config = function()
+      require("nvim-highlight-colors").setup()
+    end
+  })
+  use({ 'wakatime/vim-wakatime' })
 
   -- Bootstrap Neovim
   if packer_bootstrap then
@@ -242,7 +323,8 @@ packer.init(conf)
 packer.startup(plugins)
 
 -- keybindings
-require("config.keybinds");
+require("config.keybinds")
+-- require("config.wakadash")
 
 -- disable ~ for empty lines
 vim.opt.fillchars = { eob = " " }

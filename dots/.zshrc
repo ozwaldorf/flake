@@ -1,10 +1,3 @@
-#if [[ $1 == eval ]]
-#then
-#    "$@"
-#set --
-#fi
-
-
 # Use powerline
 USE_POWERLINE="true"
 
@@ -197,12 +190,7 @@ fetched_git_dirs=()
 onefetch_git_dir() {
     if [[ -r .git/HEAD && ! " ${fetched_git_dirs[*]} " =~ " $PWD " ]]; then
         fetched_git_dirs+=("$PWD")
-        if [[ "$TERM" = "WezTerm" ]] && [[ -r $PWD/../onefetch.png ]]; then
-            # if term is wezterm, lets use an image if it's provided in the parent dir
-            onefetch --image $PWD/../onefetch.png
-        else
-            onefetch
-        fi
+        onefetch --true-color never
     else
         return 1
     fi
@@ -261,4 +249,4 @@ eval $(thefuck --alias)
 eval $(starship init zsh)
 
 # Launch fetch on terminal startup
-onefetch_git_dir || punfetch -i .config/oz.png --color green --show-logo auto 
+onefetch_git_dir || punfetch --color green --color-mode ansi --show-logo auto -i ~/.config/term.png 
