@@ -251,54 +251,7 @@ local function plugins(use)
     "catppuccin/nvim",
     as = "catppuccin",
     config = function()
-      require("catppuccin").setup({
-        transparent_background = false,
-        integrations = {
-          mini = true,
-          bufferline = true,
-          mason = true,
-          cmp = true,
-          lsp_trouble = true,
-          nvimtree = true,
-          treesitter = true,
-          symbols_outline = true,
-          gitsigns = true,
-          neogit = true,
-          fidget = true,
-        },
-        color_overrides = {
-          -- Carburetor
-          mocha = {
-            rosewater = "#ffd7d9",
-            flamingo = "#ffb3b8",
-            pink = "#ff7eb6",
-            mauve = "#d4bbff",
-            red = "#fa4d56",
-            maroon = "#ff8389",
-            peach = "#ff832b",
-            yellow = "#fddc69",
-            green = "#42be65",
-            teal = "#3ddbd9",
-            sky = "#82cfff",
-            sapphire = "#78a9ff",
-            blue = "#4589ff",
-            lavender = "#be95ff",
-            text = "#f4f4f4",
-            subtext1 = "#e0e0e0",
-            subtext0 = "#c6c6c6",
-            overlay2 = "#a8a8a8",
-            overlay1 = "#8d8d8d",
-            overlay0 = "#6f6f6f",
-            surface2 = "#525252",
-            surface1 = "#393939",
-            surface0 = "#262626",
-            base = "#161616",
-            mantle = "#0b0b0b",
-            crust = "#000000"
-          },
-        }
-      })
-      vim.cmd.colorscheme "catppuccin"
+      require('config.theme')
     end,
   })
   use({

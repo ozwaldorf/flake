@@ -9,37 +9,38 @@ vim.o.completeopt = "menuone,noinsert,noselect"
 vim.opt.shortmess = vim.opt.shortmess + "c"
 
 local cmp_kinds = {
-  Text = '  ',
-  Method = '  ',
-  Function = '  ',
-  Constructor = '  ',
-  Field = '  ',
-  Variable = '  ',
-  Class = '  ',
-  Interface = '  ',
-  Module = '  ',
-  Property = '  ',
-  Unit = '  ',
-  Value = '  ',
-  Enum = '  ',
-  Keyword = '  ',
-  Snippet = '  ',
-  Color = '  ',
-  File = '  ',
-  Reference = '  ',
-  Folder = '  ',
-  EnumMember = '  ',
-  Constant = '  ',
-  Struct = '  ',
-  Event = '  ',
-  Operator = '  ',
-  TypeParameter = '  ',
+  Text = '  ',
+  Method = '  ',
+  Function = '  ',
+  Constructor = '  ',
+  Field = '  ',
+  Variable = '  ',
+  Class = '  ',
+  Interface = '  ',
+  Module = '  ',
+  Property = '  ',
+  Unit = '  ',
+  Value = '  ',
+  Enum = '  ',
+  Keyword = '  ',
+  Snippet = '  ',
+  Color = '  ',
+  File = '  ',
+  Reference = '  ',
+  Folder = '  ',
+  EnumMember = '  ',
+  Constant = '  ',
+  Struct = '  ',
+  Event = '  ',
+  Operator = '  ',
+  TypeParameter = '  ',
 }
 
 -- See https://github.com/hrsh7th/nvim-cmp#basic-configuration
 local cmp = require("cmp")
 cmp.setup({
   window = {
+    winhighlight = "Normal:Pmenu,FloatBorder:Pmenu,Search:None",
     completion = cmp.config.window.bordered(),
     documentation = cmp.config.window.bordered(),
   },
@@ -67,7 +68,9 @@ cmp.setup({
   formatting = {
     fields = { "kind", "abbr", "menu" },
     format = function(_, vim_item)
-      vim_item.kind = (cmp_kinds[vim_item.kind] or '') .. vim_item.kind
+      local kind = vim_item.kind
+      vim_item.kind = (cmp_kinds[kind] or '')
+      vim_item.menu = "   " .. (kind or "")
       return vim_item
     end,
   },

@@ -55,7 +55,7 @@
       }
     },
     "custom/sep": {
-        "format": "──",
+        "format": "&lt;&gt;",
     },
     "custom/cpu": {
       "exec": "~/.config/waybar/scripts/graph.rs CPU 150",

@@ -5,70 +5,76 @@
   color: #ffffff;
 
   /*font-family: "FiraCode Nerd Font";*/
-  font-family: "Gintronic, Symbols Nerd Font";
+  font-family: "Iosevka, Symbols Nerd Font";
   text-shadow: 0 0 0px black;
   border-radius: 0px;
 }
 
 #clock {
+
+  font-family: "Iosevka";
 	font-size: 18px;
-	margin: 12px 0px 4px 0px;
+	margin: 12px 0px 8px 0px;
 }
 
 #custom-sep {
-	margin: 0;
-  padding: 0;
-  font-size: 20px;
+  font-family: "Iosevka";
+  margin: 0;
+  padding: 0px 0px 2 3px;
+  font-size: 15px;
   font-weight: 400;
 }
 
 #workspaces {
   margin: 0;
   padding: 0px;
- 	font-size: 16px;
- 	text-shadow: 0 0 0px black;
+  font-size: 16px;
+  text-shadow: 0 0 0px black;
 }
 
 #workspaces button {
-	margin: 0px 0px 0px 3px;
-	text-shadow: 0 0 0px black;
+  margin: 0px 0px 0px 3px;
+  text-shadow: 0 0 0px black;
   color: #cdd6f4;
 }
 
 #workspaces button:hover {
-	box-shadow: inherit;
-	background: transparent;
-	border: transparent;
+  box-shadow: inherit;
+  background: transparent;
+  border: transparent;
 }
 
 #workspaces button.urgent {
-	color: #ffb86c;
+  color: #ffb86c;
 }
 
 #workspaces button.active label {
-	box-shadow: 0 0 0px black; 
-	font-size: 14px; 
-	margin: 3px 0px 3px 0;
-	background-image: linear-gradient(
-	  135deg, 
-	  #F38BA8,
-	 	#A6E3A1,
-   	#F9E2AF,
-	  #89B4FA,
-	 	#F5C2E7,
-   	#94E2D5,
-	  #F38BA8,
-	 	#94E2D5,
-   	#F5C2E7,
-	  #89B4FA,
-	 	#F9E2AF,
-   	#A6E3A1,
-	 	#F38BA8
-	);
-	background-size: 800% 800%;
-	animation: active 120s linear infinite;
-	transition: ease-in-out;
-	border-radius: 50%;
+  box-shadow: 0 0 0px black; 
+  font-size: 14px; 
+  padding: 0px 2px;
+  margin: 3px 1px 3px 0;
+  background-image: linear-gradient(
+    135deg, 
+    #fa4d56,
+    #ff832b,
+    #fddc69,
+    #42be65,
+    #4589ff,
+    #be95ff,
+    #ff7eb6,
+    #fa4d56,
+    #ff7eb6,
+    #be95ff,
+    #4589ff,
+    #42be65,
+    #fddc69,
+    #ff832b,
+    #fa4d56
+  );
+  background-size: 800% 800%;
+  animation: active 120s linear infinite;
+  transition: ease-in-out;
+  border-radius: 50%;
 }
 
 @keyframes active {
