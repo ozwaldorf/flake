@@ -1,12 +1,15 @@
-# variable stuff
+# common stuff
 set $mod Mod4
-set $term wezterm
-set $launcher anyrun
-set $browser firefox
 
 # auto startup
 exec ~/.config/waybar/launch.sh
 exec swww init
+
+# shortcut stuff
+bindsym $mod+Return exec wezterm
+bindsym $mod+d exec anyrun
+bindsym $mod+e exec firefox
+bindsym Print exec grimshot copy anything
 
 # decoration stuff
 gaps outer 0
@@ -25,19 +28,14 @@ blur on
 blur_passes 3
 blur_radius 5
 shadows on
-shadows_on_csd on
 shadow_blur_radius 20
 shadow_color #0000007F
 layer_effects waybar blur enable
 layer_effects anyrun blur enable
 
-# shortcut stuff
-bindsym $mod+Return exec $term
-bindsym $mod+d exec $launcher
-bindsym $mod+e exec $browser
-
 # window stuff
 floating_modifier $mod normal
+bindsym $mod+Shift+space floating toggle
 bindsym $mod+Shift+q kill
 bindsym $mod+Left focus left
 bindsym $mod+Down focus down
@@ -47,7 +45,6 @@ bindsym $mod+Shift+Left move left
 bindsym $mod+Shift+Down move down
 bindsym $mod+Shift+Up move up
 bindsym $mod+Shift+Right move right
-bindsym $mod+Shift+space floating toggle
 
 # workspace stuff
 bindsym $mod+1 workspace number 1
