@@ -5,7 +5,7 @@
 {
     "position": "left",
     "layer": "top",
-    "output": ["eDP-1", "DP-1", "DP-2"],
+    "output": ["eDP-1"],
     "width": 44,
     //"margin": "25 0 25 25",
     "margin": "0 0 0 0",
@@ -18,12 +18,12 @@
     "modules-center": [ "cava" ], 
     "modules-right": [
       //"tray",
+      "custom/focus",
       "pulseaudio",
       "backlight",
       "bluetooth",
       "network",
       "battery",
-      //"custom/sep",
       //"custom/ram",
       "custom/cpu",
     ],
@@ -56,6 +56,10 @@
     },
     "custom/sep": {
         "format": "&lt;&gt;",
+    },
+    "custom/focus": {
+        "rotate": 90,
+        "format": "Stay Focused!",
     },
     "custom/cpu": {
       "exec": "~/.config/waybar/scripts/graph.rs CPU 150",

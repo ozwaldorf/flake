@@ -131,7 +131,7 @@ local function formatting(client, bufnr)
     local function format()
       local view = vim.fn.winsaveview()
       vim.lsp.buf.format({
-        async = true,
+        async = false,
         filter = function(attached_client)
           return attached_client.name ~= ""
         end,

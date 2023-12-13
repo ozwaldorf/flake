@@ -201,10 +201,10 @@ eval "$(dircolors -b)"
 
 # Alias
 ls_args="--git --icons"
-alias ls="exa -lh $ls_args"
-alias la="exa -lah $ls_args"
-alias l="exa -lah $ls_args"
-alias lg="exa -lah $ls_args --git-ignore"
+alias ls="eza -lh $ls_args"
+alias la="eza -lah $ls_args"
+alias l="eza -lah $ls_args"
+alias lg="eza -lah $ls_args --git-ignore"
 alias cat="bat"
 alias cp="cp -i" # Confirm before overwriting something
 alias df='df -h' # Human-readable sizes
@@ -213,10 +213,14 @@ alias clip='wl-copy'
 alias curl="curl -s"
 alias commit="git commit"
 alias add="git add"
-alias rebase="git stash && git pull --rebase && git stash apply"
+alias rebase="git stash && git pull --rebase && git stash pop"
 alias ytop="ytop -spfa"
+alias n="nvim"
+alias c="cargo"
 alias rs="rust-script"
 alias :wq="exit"
+alias icat="wezterm imgcat"
+alias fuck="thefuck"
 
 sshw() {
   wezterm ssh $@ </dev/null &>/dev/null & disown
@@ -231,22 +235,17 @@ export EDITOR="nvim"
 export VISUAL="nvim"
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
 export PATH="$HOME/.local/bin:$HOME/go/bin:$HOME/bin:$HOME/.cargo/bin:$HOME/.yarn/bin:$HOME/.config/hypr/scripts:$PATH"
+export INNER_RUSTC_WRAPPER="/usr/bin/sccache"
 
 # Plugins 
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-
-## Completions
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=244'
 source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 source /usr/share/zsh/plugins/zsh-autocomplete/zsh-autocomplete.plugin.zsh
 zstyle ':completion::complete:*' gain-privileges 1
-
-source ~/.zshrc.wezterm
-
-eval $(thefuck --alias)
-
-# Prompt
 eval $(starship init zsh)
+source ~/.zshrc.wezterm
+source ~/.profile
 
 # Launch fetch on terminal startup
 onefetch_git_dir || punfetch --color green --color-mode ansi --show-logo auto -i ~/.config/term.png 

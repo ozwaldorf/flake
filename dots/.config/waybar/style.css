@@ -11,10 +11,9 @@
 }
 
 #clock {
-
-  font-family: "Iosevka";
-	font-size: 18px;
-	margin: 12px 0px 8px 0px;
+  font-family: "Gintronic";
+  font-size: 18px;
+  margin: 12px 0px 8px 0px;
 }
 
 #custom-sep {
@@ -100,6 +99,10 @@
 
 #tray > widget > image {
   margin: 8px 0 8px 0;
+}
+
+#custom-focus {
+  margin: 0px 0px 8px 0px;
 }
 
 #pulseaudio {

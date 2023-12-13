@@ -82,15 +82,14 @@ local function plugins(use)
             text = "File Explorer",
             highlight = "Directory",
             separator = "│"
-          }
-          }
+          } }
         }
       }
     end,
   })
   use({
     "neovim/nvim-lspconfig",
-    --event = "BufReadPre",
+    -- event = "BufReadPre",
     requires = {
       "williamboman/mason.nvim",
       "williamboman/mason-lspconfig.nvim",
@@ -103,11 +102,25 @@ local function plugins(use)
     "j-hui/fidget.nvim",
     config = function()
       require("fidget").setup({
-        window = { blend = 0 },
-        text = {
-          spinner = "flip",
-          done = "",
+        integration = {
+          ["nvim-tree"] = {
+            enable = true,
+          },
         },
+        progress = {
+          display = {
+            progress_icon = { pattern = "flip", period = 1 },
+            overrides = {
+              rust_analyzer = { name = "rust analyzer" },
+            },
+          },
+        },
+        notification = {
+          window = {
+            winblend = 0,
+            x_padding = 2,
+          }
+        }
       })
     end
   })
@@ -125,6 +138,7 @@ local function plugins(use)
     "hrsh7th/cmp-vsnip",
     "hrsh7th/vim-vsnip",
     "onsails/lspkind.nvim",
+    "hrsh7th/cmp-cmdline",
     after = { "hrsh7th/nvim-cmp" },
     requires = { "hrsh7th/nvim-cmp" },
   })
@@ -261,6 +275,18 @@ local function plugins(use)
     end
   })
   use({ 'wakatime/vim-wakatime' })
+  -- use({
+  --   "folke/twilight.nvim",
+  --   config = function()
+  --     require("twilight").setup({
+  --       treesitter = true,
+  --       dimming = {
+  --         alpha = 0.75,     -- amount of dimming
+  --         inactive = false, -- when true, other windows will be fully dimmed (unless they contain the same buffer)
+  --       },
+  --     })
+  --   end
+  -- })
 
   -- Bootstrap Neovim
   if packer_bootstrap then

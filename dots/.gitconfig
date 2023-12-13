@@ -9,7 +9,7 @@
 [user]
 	email = self@ossian.dev
 	name = ozwaldorf
-	signingkey = ~/.ssh/id_rsa.pub
+	signingkey = ~/.ssh/id_ecdsa.pub
 [gpg]
 	format = ssh
 [commit]

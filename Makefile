@@ -12,46 +12,39 @@ endef
 export ASCII
 
 configs= \
-	.wallpapers \
-	.Xresources \
-	.gitconfig \
-	.zshrc \
-	.config/term.png \
-	.config/starship.toml \
-	.config/helix/config.toml \
-	.config/micro/settings.json \
-	.config/mako/config \
-	.config/hypr \
-	.config/waybar \
-	.config/wofi \
-	.config/deadd \
-	.config/wezterm \
-	.config/nvim/{init.lua,lua}
+  .Xresources \
+  .gitconfig \
+  .zshrc \
+  .scripts \
+  .config/term.png \
+  .config/starship.toml \
+  .config/micro/settings.json \
+  .config/mako/config \
+  .config/waybar \
+  .config/wofi \
+  .config/wezterm \
+  .config/nvim/{init.lua,lua} \
+  .config/sway
 
 pkgs= \
-	hyprland-git \
-  waybar-hyprland-cava-git \
+  swayfx \
+  waybar \
   wofi \
   wezterm \
   git-delta \
   zsh \
   starship \
-  helix \
-	neovim \
+  neovim \
   bat \
-  exa \
-  nodejs \
-  yarn \
+  eza \
   rustup \
-  slop \
-  imagemagick \
   zsh-autocomplete-git \
   zsh-autosuggestions \
   ttf-firacode-nerd \
   mako \
-	swww \
-	punfetch-bin \
-	lutgen-bin
+  swww \
+  punfetch-bin \
+  lutgen-bin
 
 ascii:
 	@echo "$$ASCII"
@@ -80,10 +73,3 @@ save: ascii
 			\cp -rv $$to/* "./dots/$$path/"; \
 		fi \
 	done
-
-transparent-gtk:
-	@echo "Replacing catppuccin colors with transparent variants"
-	cd /usr/share/themes/$$GTK_THEME && \
-		sudo find . -type f -name "*.css" -exec sed -i 's/#1e1e2e/rgba(30, 30, 46, 0.7)/g' {} + && \
-		sudo find . -type f -name "*.css" -exec sed -i 's/#181825/rgba(24, 24, 37, 0.7)/g' {} + && \
-		sudo find . -type f -name "*.css" -exec sed -i 's/#11111b/rgba(17, 17, 27, 0.7)/g' {} +

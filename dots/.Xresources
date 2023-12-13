@@ -9,37 +9,37 @@ Xft.lcdfilter: lcddefault
 Xcursor.theme: Catppuccin-Mocha-Pink-Cursors 
 Xcursor.size: 0
 
-*background: #1E1E2E
-*foreground: #CDD6F4
+*background: #161616
+*foreground: #f4f4f4
 
 ! black
-*color0: #45475A
-*color8: #585B70
+*color0: #393939
+*color8: #525252
 
 ! red
-*color1: #F38BA8
-*color9: #F38BA8
+*color1: #fa4d56
+*color9: #fa4d56
 
 ! green
-*color2: #A6E3A1
-*color10: #A6E3A1
+*color2: #42be65
+*color10: #42be65
 
 ! yellow
-*color3: #F9E2AF
-*color11: #F9E2AF
+*color3: #fddc69
+*color11: #fddc69
 
 ! blue
-*color4: #89B4FA
-*color12: #89B4FA
+*color4: #4589ff
+*color12: #4589ff
 
 ! magenta
-*color5: #F5C2E7
-*color13: #F5C2E7
+*color5: #ff7eb6
+*color13: #ff7eb6
 
 ! cyan
-*color6: #94E2D5
-*color14: #94E2D5
+*color6: #3ddbd9
+*color14: #3ddbd9
 
 ! white
-*color7: #BAC2DE
-*color15: #A6ADC8
+*color7: #e0e0e0
+*color15: #c6c6c6
