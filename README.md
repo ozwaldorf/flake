@@ -8,13 +8,15 @@
 
 ## ↛ 📷 screens
 
-![image](https://github.com/ozwaldorf/dotfiles/assets/8976745/3d8f346c-781e-478b-b7cc-2aab2b7b856d)
+![image](https://github.com/ozwaldorf/dotfiles/assets/8976745/566e71f5-5d54-4506-81af-4482efa2e014)
 
-![image](https://github.com/ozwaldorf/dotfiles/assets/8976745/ad07379b-e450-45be-9344-3f00ab124d13)
+![image](https://github.com/ozwaldorf/dotfiles/assets/8976745/6c2f0440-c902-449d-b5a9-65d135c4b8b4)
 
-![image](https://github.com/ozwaldorf/dotfiles/assets/8976745/95cb3105-4dc2-442b-96ef-6761cc2bb791)
+![image](https://github.com/ozwaldorf/dotfiles/assets/8976745/0bfdddc4-8297-470c-b396-5bb47660244e)
 
-![image](https://github.com/ozwaldorf/dotfiles/assets/8976745/87d8c0bd-5a6d-4c9b-a806-2a1168268d97)
+![image](https://github.com/ozwaldorf/dotfiles/assets/8976745/fec1794b-5d9c-4ae0-8e9b-b336e34e00b2)
+
+![image](https://github.com/ozwaldorf/dotfiles/assets/8976745/6fda9169-1864-479b-a3ba-e7c90c41087d)
 
 ---
 
@@ -24,11 +26,11 @@
 
 ```
 OS: Arch Linux
-Compositor: Hyprland
+Compositor: SwayFx
 Bar: Waybar
-GTK Theme: Catppuccin Mocha Pink (+ transparent mod)
-Icon Theme: Papyrus (Catppuccin folders patch)
-Font: FiraCode Nerd Font
+GTK Theme: Carburetor (Catppuccin Mocha Blue, patched)
+Icon Theme: Papyrus
+Font: Berkeley Mono
 Notification Daemon: Mako
 Application Launcher: Wofi
 ```
