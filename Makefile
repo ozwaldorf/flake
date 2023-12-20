@@ -19,30 +19,28 @@ configs= \
   .config/term.png \
   .config/starship.toml \
   .config/micro/settings.json \
-  .config/mako/config \
-  .config/waybar \
-  .config/wofi \
   .config/wezterm \
   .config/nvim/{init.lua,lua} \
-  .config/sway
+  .config/hypr \
+	.config/sway \
+	.config/ags
 
 pkgs= \
-  swayfx \
-  waybar \
-  wofi \
+  hyprland \
+	swayfx \
+  aylars-gtk-shell \
+  swww \
   wezterm \
-  git-delta \
   zsh \
+	zsh-autosuggestions \
+  zsh-autocomplete-git \
+	manydots-magic \
   starship \
+  git-delta \
   neovim \
   bat \
   eza \
   rustup \
-  zsh-autocomplete-git \
-  zsh-autosuggestions \
-  ttf-firacode-nerd \
-  mako \
-  swww \
   punfetch-bin \
   lutgen-bin
 
@@ -53,10 +51,6 @@ deps: ascii
 	@which yay || { echo "yay is not installed"; exit 1; }
 	# Install packages
 	yay -S --needed --noconfirm ${pkgs}
-	# Verify rustup is setup
-	@cargo -V || rustup install stable && rustup default stable
-	# Install cargo packages
-	cargo install ${cargo_pkgs}
 
 install: ascii
 	# Installing dotfiles
