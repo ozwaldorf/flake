@@ -8,7 +8,7 @@
 
 ## ↛ 📷 screens
 
-> todo
+![image](https://github.com/ozwaldorf/dotfiles/assets/8976745/22588535-8a2c-45c1-aa31-fe8657bca242)
 
 ---
 
