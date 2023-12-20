@@ -234,7 +234,7 @@ export SUDO_EDITOR="nvim"
 export EDITOR="nvim"
 export VISUAL="nvim"
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
-export PATH="$HOME/.local/bin:$HOME/go/bin:$HOME/bin:$HOME/.cargo/bin:$HOME/.yarn/bin:$HOME/.config/hypr/scripts:$PATH"
+export PATH="$HOME/.local/bin:$HOME/go/bin:$HOME/bin:$HOME/.cargo/bin:$HOME/.yarn/bin:$HOME/.scripts:$PATH"
 export INNER_RUSTC_WRAPPER="/usr/bin/sccache"
 
 # Plugins 
@@ -242,6 +242,8 @@ source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zs
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=244'
 source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 source /usr/share/zsh/plugins/zsh-autocomplete/zsh-autocomplete.plugin.zsh
+autoload -Uz manydots-magic
+manydots-magic
 zstyle ':completion::complete:*' gain-privileges 1
 eval $(starship init zsh)
 source ~/.zshrc.wezterm

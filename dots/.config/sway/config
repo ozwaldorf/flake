@@ -2,12 +2,14 @@
 set $mod Mod4
 
 # auto startup
-exec ~/.config/waybar/launch.sh
+# exec ~/.scripts/xdg.sh
+exec ags 
 exec swww init
 
 # shortcut stuff
 bindsym $mod+Return exec wezterm
-bindsym $mod+d exec anyrun
+bindsym $mod+d exec ags -t applauncher
+bindsym --release Super_L exec ags -t quicksettings
 bindsym $mod+e exec firefox
 bindsym Print exec grimshot copy anything
 
@@ -29,13 +31,15 @@ blur_passes 3
 blur_radius 5
 shadows on
 shadow_blur_radius 20
-shadow_color #0000007F
-layer_effects waybar blur enable
-layer_effects anyrun blur enable
+shadow_color #000000F7
+# layer_effects bar0 blur enable
+# layer_effects quicksettings blur enable
+# layer_effects dashboard blur enable
 
 # window stuff
 floating_modifier $mod normal
 bindsym $mod+Shift+space floating toggle
+bindsym $mod+Shift+Return fullscreen toggle
 bindsym $mod+Shift+q kill
 bindsym $mod+Left focus left
 bindsym $mod+Down focus down
@@ -69,5 +73,7 @@ bindsym $mod+Shift+9 move container to workspace number 9
 bindsym $mod+Shift+0 move container to workspace number 10
 
 # sway stuff
-bindsym $mod+Shift+r reload
+bindsym $mod+Shift+r exec "swaymsg reload; killall ags && ags"
 bindsym $mod+Shift+e exit
+
+include /etc/sway/config.d/*

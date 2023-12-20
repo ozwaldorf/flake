@@ -51,6 +51,7 @@ cmp.setup({
     end,
   },
   mapping = {
+    ["C-n"] = cmp.mapping.complete({ reason = cmp.ContextReason.Auto }),
     ["<C-p>"] = cmp.mapping.select_prev_item(),
     ["<C-n>"] = cmp.mapping.select_next_item(),
     -- Add tab support
