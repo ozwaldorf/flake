@@ -44,7 +44,7 @@ $button-radius: if(
 
     > * {
       border-radius: $button-radius;
-      margin: 2px;
+      margin: 4px;
     }
   }
 
@@ -96,6 +96,10 @@ $button-radius: if(
   .tray-item,
   .color-picker {
     @include panel-button($flat: true);
+  }
+
+  .sub-menu {
+    color: transparentize($fg-color, 0.5)
   }
 
   separator {

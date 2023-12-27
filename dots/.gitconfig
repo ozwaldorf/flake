@@ -20,17 +20,17 @@
 [interactive]
 	diffFilter = delta --color-only
 [merge]
-    conflictstyle = diff3
+  conflictstyle = diff3
 [diff]
-    colorMoved = default
+  colorMoved = default
 
 # git-delta diff viewer config
 [delta]
 	syntax-theme = zenburn
 	side-by-side = true
 	navigate = true
-        features = unobtrusive-line-numbers decorations
-        true-color = never
+  features = unobtrusive-line-numbers decorations
+  true-color = never
 
 [delta "unobtrusive-line-numbers"]
 	line-numbers = true

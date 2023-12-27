@@ -13,7 +13,7 @@ const Arrow = (revealer, direction, items) => {
   let deg = 0;
 
   const icon = Widget.Icon({
-    icon: icons.ui.arrow[direction],
+    icon: icons.ui.trayarrow[direction],
   });
 
   const animate = () => {

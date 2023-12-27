@@ -3,23 +3,17 @@ import Widget from "resource:///com/github/Aylur/ags/widget.js";
 import Variable from "resource:///com/github/Aylur/ags/variable.js";
 import Notifications from "resource:///com/github/Aylur/ags/service/notifications.js";
 import Mpris from "resource:///com/github/Aylur/ags/service/mpris.js";
-import Battery from "resource:///com/github/Aylur/ags/service/battery.js";
 import OverviewButton from "./buttons/OverviewButton.js";
-import Workspaces from './buttons/Workspaces.js';
-// import FocusedClient from './buttons/FocusedClient.js';
+// import Workspaces from './buttons/Workspaces.js';
 import MediaIndicator from "./buttons/MediaIndicator.js";
 import DateButton from "./buttons/DateButton.js";
 import NotificationIndicator from "./buttons/NotificationIndicator.js";
 import SysTray from "./buttons/SysTray.js";
 import ColorPicker from "./buttons/ColorPicker.js";
 import SystemIndicators from "./buttons/SystemIndicators.js";
-import PowerMenu from "./buttons/PowerMenu.js";
 import ScreenRecord from "./buttons/ScreenRecord.js";
-import BatteryBar from "./buttons/BatteryBar.js";
 import SubMenu from "./buttons/SubMenu.js";
 import Recorder from "../services/screenrecord.js";
-// import * as System from './buttons/System.js';
-// import Taskbar from './buttons/Taskbar.js';
 import options from "../options.js";
 
 const submenuItems = Variable(1);
@@ -49,19 +43,26 @@ const SeparatorDot = (service, condition) => {
   });
 };
 
+const OptionalWorkspaces = async () => {
+  try {
+    return (await import('./buttons/Workspaces.js')).default();
+  } catch {
+    return OverviewButton();
+  }
+};
+
 const Start = () =>
   Widget.Box({
     class_name: "start",
-    children: [
-      // OverviewButton(),
-      // SeparatorDot(),
-      Workspaces(),
-      SeparatorDot(),
-      // FocusedClient(),
-      Widget.Box({ hexpand: true }),
-      NotificationIndicator(),
-      SeparatorDot(Notifications, (n) => n.notifications.length > 0 || n.dnd),
-    ],
+    setup: async box => {
+      box.children = [
+        await OptionalWorkspaces(),
+        SeparatorDot(),
+        Widget.Box({ hexpand: true }),
+        NotificationIndicator(),
+        SeparatorDot(Notifications, (n) => n.notifications.length > 0 || n.dnd),
+      ];
+    },
   });
 
 const Center = () =>
@@ -87,10 +88,6 @@ const End = () =>
       ScreenRecord(),
       SeparatorDot(Recorder, (r) => r.recording),
       SystemIndicators(),
-      // SeparatorDot(Battery, (b) => b.available),
-      // BatteryBar(),
-      // SeparatorDot(),
-      // PowerMenu(),
     ],
   });
 

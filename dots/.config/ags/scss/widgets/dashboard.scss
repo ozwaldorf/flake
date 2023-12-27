@@ -1,17 +1,20 @@
 @mixin calendar {
   @include widget;
-  padding: $padding * 2 $padding * 2 0;
+  padding: $padding * 2 $padding * 2;
 
   calendar {
     all: unset;
 
     &.button {
-      @include button($flat: true);
+      // @include button($flat: true);
+    }
+    &.day {
+      color: red;
     }
 
     &:selected {
       box-shadow:
-        inset 0 -8px 0 0 transparentize($accent, 0.5),
+        // inset 0 -8px 0 0 transparentize($accent, 0.5),
         inset 0 0 0 1px $accent;
       border-radius: $radii * 0.6;
     }
@@ -30,8 +33,9 @@
     &:indeterminate {
       color: transparentize($fg-color, 0.9);
     }
+
     font-size: 1.1em;
-    padding: 0.2em;
+    padding: 2px;
   }
 }
 
@@ -113,13 +117,13 @@ window#dashboard .window-content {
 
   .circular-progress-box {
     @include widget;
-    padding: $padding;
+    padding: 2 * $padding / 3;
 
     .circular-progress {
       min-height: $sys-info-size;
       min-width: $sys-info-size;
       margin: $padding/2;
-      font-size: $padding;
+      font-size: 0.7em;
       background-color: $bg-color;
       color: $accent;
 

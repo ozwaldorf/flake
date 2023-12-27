@@ -99,6 +99,10 @@ export default {
       down: "draw-arrow-down",
       up: "draw-arrow-up",
     },
+    trayarrow: {
+      right: 'pan-end-symbolic',
+      left: 'pan-start-symbolic',
+    },
   },
   system: {
     cpu: "org.gnome.SystemMonitor-symbolic",

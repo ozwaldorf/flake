@@ -28,13 +28,23 @@ client.unfocused        #1616167E #1616167E #f4f4f4 #1616167E
 corner_radius 10
 blur on
 blur_passes 3
-blur_radius 5
+blur_radius 8
 shadows on
 shadow_blur_radius 20
 shadow_color #000000F7
-# layer_effects bar0 blur enable
-# layer_effects quicksettings blur enable
-# layer_effects dashboard blur enable
+
+layer_effects bar0 blur enable
+layer_effects bar1 blur enable
+layer_effects notifications0 blur enable
+layer_effects notifications0 blur_ignore_transparent enable
+layer_effects notifications1 blur enable
+layer_effects notifications1 blur_ignore_transparent enable
+layer_effects quicksettings blur enable
+layer_effects quicksettings blur_ignore_transparent enable
+layer_effects dashboard blur enable
+layer_effects dashboard blur_ignore_transparent enable
+layer_effects applauncher blur enable
+layer_effects applauncher blur_ignore_transparent enable
 
 # window stuff
 floating_modifier $mod normal

@@ -37,7 +37,7 @@ return {
     'Symbols Nerd Font',
   },
   font_size = 10,
-  window_background_opacity = 0.89,
+  window_background_opacity = 0.8,
   text_background_opacity = 1.0,
   -- window_decorations = "NONE",
   window_padding = {
@@ -53,6 +53,11 @@ return {
   },
   use_fancy_tab_bar = false,
   tab_bar_at_bottom = false,
+  colors = {
+    tab_bar = {
+
+    }
+  },
   tab_bar_style = {
     new_tab = "",
     new_tab_hover = ""
