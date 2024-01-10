@@ -4,7 +4,6 @@ import Variable from "resource:///com/github/Aylur/ags/variable.js";
 import Notifications from "resource:///com/github/Aylur/ags/service/notifications.js";
 import Mpris from "resource:///com/github/Aylur/ags/service/mpris.js";
 import OverviewButton from "./buttons/OverviewButton.js";
-// import Workspaces from './buttons/Workspaces.js';
 import MediaIndicator from "./buttons/MediaIndicator.js";
 import DateButton from "./buttons/DateButton.js";
 import NotificationIndicator from "./buttons/NotificationIndicator.js";
@@ -47,7 +46,7 @@ const OptionalWorkspaces = async () => {
   try {
     return (await import('./buttons/Workspaces.js')).default();
   } catch {
-    return OverviewButton();
+    return (await import('./buttons/SwayWorkspaces.js')).default();
   }
 };
 

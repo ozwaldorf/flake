@@ -5,6 +5,7 @@ set $mod Mod4
 # exec ~/.scripts/xdg.sh
 exec ags 
 exec swww init
+exec /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
 
 # shortcut stuff
 bindsym $mod+Return exec wezterm
@@ -12,11 +13,12 @@ bindsym $mod+d exec ags -t applauncher
 bindsym --release Super_L exec ags -t quicksettings
 bindsym $mod+e exec firefox
 bindsym Print exec grimshot copy anything
+bindsym Shift+Print exec grimshot copy output
 
 # decoration stuff
 gaps outer 0
 gaps inner 20
-default_border pixel 1
+default_border none
 
 # Carburetor palette    Border    BG        Text    Indicator
 client.focused          #4589ffFF #4589ffFF #161616 #4589ffFF
@@ -30,21 +32,18 @@ blur on
 blur_passes 3
 blur_radius 8
 shadows on
-shadow_blur_radius 20
-shadow_color #000000F7
+shadow_offset 0 0
+shadow_blur_radius 50
+shadow_color #000000FF
+shadow_inactive_color #000000B0
 
 layer_effects bar0 blur enable
 layer_effects bar1 blur enable
-layer_effects notifications0 blur enable
-layer_effects notifications0 blur_ignore_transparent enable
-layer_effects notifications1 blur enable
-layer_effects notifications1 blur_ignore_transparent enable
-layer_effects quicksettings blur enable
-layer_effects quicksettings blur_ignore_transparent enable
-layer_effects dashboard blur enable
-layer_effects dashboard blur_ignore_transparent enable
-layer_effects applauncher blur enable
-layer_effects applauncher blur_ignore_transparent enable
+layer_effects notifications0 blur enable; blur_ignore_transparent enable
+layer_effects notifications1 blur enable; blur_ignore_transparent enable
+layer_effects quicksettings blur enable; blur_ignore_transparent enable
+layer_effects dashboard blur enable; blur_ignore_transparent enable
+layer_effects applauncher blur enable; blur_ignore_transparent enable
 
 # window stuff
 floating_modifier $mod normal
