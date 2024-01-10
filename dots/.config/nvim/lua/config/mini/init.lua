@@ -17,4 +17,4 @@ require("mini.ai").setup({})
 
 -- custom settings
 require("config.mini.starter")
-require("config.mini.statusline")
+-- require("config.mini.statusline")

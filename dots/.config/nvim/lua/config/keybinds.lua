@@ -11,3 +11,4 @@ local function open_tree()
 end
 vim.keymap.set('n', 't', open_tree)
 vim.keymap.set('n', 'T', "<Esc>:SymbolsOutline<CR>")
+vim.keymap.set('n', 'B', "<Esc>:ToggleBlame window<CR>")

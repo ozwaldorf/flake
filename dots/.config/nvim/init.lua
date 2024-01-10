@@ -81,7 +81,7 @@ local function plugins(use)
             --text = function()
             --  return vim.fn.getcwd()
             --end,
-            text = "File Explorer",
+            -- text = "File Explorer",
             highlight = "Directory",
             separator = "│"
           } }
@@ -89,6 +89,13 @@ local function plugins(use)
       }
     end,
   })
+  use {
+    'nvim-lualine/lualine.nvim',
+    requires = { 'nvim-tree/nvim-web-devicons', opt = true },
+    config = function()
+      require("config.lualine");
+    end,
+  }
   use({
     "neovim/nvim-lspconfig",
     -- event = "BufReadPre",
@@ -277,18 +284,14 @@ local function plugins(use)
     end
   })
   use({ 'wakatime/vim-wakatime' })
-  -- use({
-  --   "folke/twilight.nvim",
-  --   config = function()
-  --     require("twilight").setup({
-  --       treesitter = true,
-  --       dimming = {
-  --         alpha = 0.75,     -- amount of dimming
-  --         inactive = false, -- when true, other windows will be fully dimmed (unless they contain the same buffer)
-  --       },
-  --     })
-  --   end
-  -- })
+  use({
+    'FabijanZulj/blame.nvim',
+    config = function()
+      require('blame').setup({
+        -- merge_consecutive = true
+      })
+    end
+  })
 
   -- Bootstrap Neovim
   if packer_bootstrap then

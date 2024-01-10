@@ -226,6 +226,8 @@ sshw() {
   wezterm ssh $@ </dev/null &>/dev/null & disown
 }
 
+source ~/.profile
+
 # Environment
 source ~/.env
 export TERM="wezterm"
@@ -247,7 +249,6 @@ manydots-magic
 zstyle ':completion::complete:*' gain-privileges 1
 eval $(starship init zsh)
 source ~/.zshrc.wezterm
-source ~/.profile
 
 # Launch fetch on terminal startup
 onefetch_git_dir || punfetch --color green --color-mode ansi --show-logo auto -i ~/.config/term.png 

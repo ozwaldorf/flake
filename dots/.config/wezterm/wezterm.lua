@@ -3,12 +3,12 @@ local wezterm = require 'wezterm'
 local tab_colors = {
   "Navy", "Red", "Green", "Olive", "Maroon", "Purple", "Teal", "Lime", "Yellow", "Blue", "Fuchsia", "Aqua"
 }
+local tab_bg = "rgba(22,22,22,0.8)"
 
 wezterm.on(
   'format-tab-title',
   function(tab)
     if tab.is_active then
-      local tab_bg = "#0b0b0b"
       local accent = tab_colors[(tab.tab_index % #tab_colors) + 1]
       return wezterm.format({
         { Background = { Color = tab_bg } },
@@ -41,10 +41,10 @@ return {
   text_background_opacity = 1.0,
   -- window_decorations = "NONE",
   window_padding = {
-    left = '0.4cell',
-    right = '0.4cell',
-    top = '0.1cell',
-    bottom = '0.1cell',
+    left = '4.5cell',
+    right = '4.0cell',
+    top = '2.2cell',
+    bottom = '2.0cell',
   },
   color_scheme = "Carburator",
   inactive_pane_hsb = {
@@ -55,7 +55,9 @@ return {
   tab_bar_at_bottom = false,
   colors = {
     tab_bar = {
-
+      active_tab = { bg_color = tab_bg, fg_color = "#f4f4f4" },
+      inactive_tab = { bg_color = tab_bg, fg_color = "#f4f4f4" },
+      inactive_tab_hover = { bg_color = tab_bg, fg_color = "#f4f4f4", italic = false }
     }
   },
   tab_bar_style = {
