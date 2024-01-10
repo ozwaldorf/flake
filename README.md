@@ -18,7 +18,7 @@
 
 ```
 OS: Arch Linux
-Compositor: Hyprland
+Compositor: Swayfx or Hyprland
 Wallpaper: swww
 Bar: AGS
 Notification Daemon: AGS
