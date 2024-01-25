@@ -1,0 +1,87 @@
+{
+  "nodes": {
+    "ags": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1706400171,
+        "narHash": "sha256-OAUP+KVUcajvIo+mCDhHixAy6mprdvDGlnxbcOq3r94=",
+        "owner": "ozwaldorf",
+        "repo": "ags",
+        "rev": "09f0fac065d0ff2fddc134772e191048bb458074",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ozwaldorf",
+        "repo": "ags",
+        "type": "github"
+      }
+    },
+    "flake-compat": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1673956053,
+        "narHash": "sha256-4gtG9iQuiKITOjNQQeQIpoIB6b16fm+504Ch3sNKLd8=",
+        "owner": "edolstra",
+        "repo": "flake-compat",
+        "rev": "35bb57c0c8d8b62bbfd284272c928ceb64ddbde9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "edolstra",
+        "repo": "flake-compat",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1706098335,
+        "narHash": "sha256-r3dWjT8P9/Ah5m5ul4WqIWD8muj5F+/gbCdjiNVBKmU=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "a77ab169a83a4175169d78684ddd2e54486ac651",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-23.11",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "ags": "ags",
+        "nixpkgs": "nixpkgs",
+        "swayfx": "swayfx"
+      }
+    },
+    "swayfx": {
+      "inputs": {
+        "flake-compat": "flake-compat",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1706307605,
+        "narHash": "sha256-Xx+7jckewzBO9TQ27RmaOCeG9dDB8zew7lFta1jj2ts=",
+        "owner": "WillPower3309",
+        "repo": "swayfx",
+        "rev": "5ace6bb7bd62ba3596e796edb859176d7db11a2e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "WillPower3309",
+        "ref": "workspace-movement",
+        "repo": "swayfx",
+        "type": "github"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
