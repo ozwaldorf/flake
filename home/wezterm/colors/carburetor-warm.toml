@@ -1,0 +1,57 @@
+[colors]
+background = '#171414'
+foreground = '#f7f3f2'
+cursor_bg = '#f7f3f2'
+cursor_border = '#f7f3f2'
+cursor_fg = '#171414'
+
+ansi = [
+    '#272525',
+    '#fa4d56',
+    '#42be65',
+    '#ff832b',
+    '#4589ff',
+    '#ff7eb6',
+    '#3ddbd9',
+    '#cac5c4',
+]
+brights = [
+    '#3c3838',
+    '#ff8389',
+    '#42be65',
+    '#fddc69',
+    '#78a9ff',
+    '#ffb3b8',
+    '#82cfff',
+    '#e5e0df',
+]
+
+[colors.tab_bar]
+background = "#0b0a0a"
+
+[colors.tab_bar.active_tab]
+bg_color = '#4589ff'
+fg_color = '#f7f3f2'
+intensity = 'Normal'
+italic = false
+strikethrough = false
+underline = 'None'
+
+[colors.tab_bar.inactive_tab]
+bg_color = "#0b0a0a"
+fg_color = '#f7f3f2'
+intensity = 'Normal'
+italic = false
+strikethrough = false
+underline = 'None'
+
+[colors.tab_bar.new_tab]
+bg_color = '#0b0a0a'
+fg_color = '#f7f3f2'
+intensity = 'Normal'
+italic = false
+strikethrough = false
+underline = 'None'
+
+[metadata]
+name = 'Carburator Warm'
