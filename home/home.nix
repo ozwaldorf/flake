@@ -1,7 +1,7 @@
 { pkgs, username, homeDirectory, ... }: {
   imports = [
     ./sway.nix # window manager
-		./gtk.nix # gtk theming
+    ./gtk.nix # gtk theming
     ./ags/mod.nix # bar, app launcher
     ./wezterm/mod.nix # terminal
     ./zsh.nix # Shell

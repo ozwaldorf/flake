@@ -18,14 +18,13 @@
     zlib
     zstd
     openssl
-    (openssl.dev.overrideAttrs
-    {
+    (openssl.dev.overrideAttrs {
       withCryptodev = true;
       withZlib = true;
       enableSSL2 = true;
       enableSSL3 = true;
       enableKTLS = true;
-			static = true;
+      static = true;
     })
     llvmPackages.libclang
     #llvmPackages.libcxxStdenv
