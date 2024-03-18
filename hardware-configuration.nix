@@ -29,11 +29,11 @@
     fsType = "vfat";
   };
 
-	# external drive
-	fileSystems."/home/oz/External" = {
-		device = "/dev/disk/by-uuid/fe448505-2eb8-4ec2-9512-bf20629d2f41";
-		fsType = "ext4";
-	};
+  # external drive
+  fileSystems."/home/oz/External" = {
+    device = "/dev/disk/by-uuid/fe448505-2eb8-4ec2-9512-bf20629d2f41";
+    fsType = "ext4";
+  };
 
   swapDevices =
     [{ device = "/dev/disk/by-uuid/13decd70-61dd-4903-af74-0a6869449465"; }];
