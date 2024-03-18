@@ -84,6 +84,14 @@
   };
 
   services.printing.enable = true;
+  services.printing.drivers = [ (pkgs.callPackage ./pkgs/pantum.nix { }) ];
+
+  services.avahi = {
+    enable = true;
+    nssmdns = true;
+    openFirewall = true;
+  };
+
   sound.enable = true;
   security.rtkit.enable = true;
   hardware.pulseaudio.enable = false;
