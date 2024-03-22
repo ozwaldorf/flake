@@ -1,9 +1,5 @@
-{ inputs, pkgs, ... }: {
-  imports = [ inputs.nixvim.homeManagerModules.nixvim ];
-
-  programs.nixvim = {
-    enable = true;
-
+{ pkgs, ... }: {
+  config = {
     clipboard.providers.wl-copy.enable = true;
 
     options = {
@@ -26,11 +22,7 @@
       }
     ];
 
-    extraPlugins = with pkgs.vimPlugins; [
-      lsp-inlayhints-nvim
-      # fork of rust-tools
-      rustaceanvim
-    ];
+    extraPlugins = [ pkgs.vimPlugins.lsp-inlayhints-nvim ];
 
     extraConfigLua = ''
       local inlayhints = require("lsp-inlayhints")
@@ -58,50 +50,73 @@
       lsp = {
         enable = true;
         servers = {
-          # nix
           nil_ls = {
             enable = true;
             settings.formatting.command = [ "${pkgs.nixfmt}/bin/nixfmt" ];
           };
         };
         onAttach = ''
-          local inlayhints = require("lsp-inlayhints")
-          inlayhints.on_attach(client, bufnr)
-          inlayhints.show()
+          if client.server_capabilities.inlayHintProvider then
+            local inlayhints = require("lsp-inlayhints")
+            inlayhints.on_attach(client, bufnr)
+            inlayhints.show()
+          end
         '';
+      };
+
+      rustaceanvim = {
+        enable = true;
+        tools.hoverActions.replaceBuiltinHover = true;
       };
 
       lsp-format.enable = true;
 
       fidget = {
         enable = true;
-        text.spinner = "flip";
-        window.blend = 0;
+        integration = { nvim-tree = { enable = true; }; };
+        progress = {
+          display = {
+            progressIcon = {
+              pattern = "flip";
+              period = 1;
+            };
+            overrides = { rust_analyzer = { name = "rust analyzer"; }; };
+          };
+        };
+        notification = {
+          window = {
+            winblend = 0;
+            xPadding = 2;
+          };
+        };
       };
 
       cmp_luasnip.enable = true;
       cmp-git.enable = true;
-      nvim-cmp = {
+      cmp = {
         enable = true;
         autoEnableSources = false;
-        sources = [
-          { name = "nvim_lsp"; }
-          { name = "path"; }
-          { name = "buffer"; }
-          { name = "luasnip"; }
-          { name = "crates-nvim"; }
-          { name = "cmp-git"; }
-        ];
-        mapping = {
-          "<C-Space>" = "cmp.mapping.complete()";
-          "<C-d>" = "cmp.mapping.scroll_docs(-4)";
-          "<C-e>" = "cmp.mapping.close()";
-          "<C-f>" = "cmp.mapping.scroll_docs(4)";
-          "<CR>" = "cmp.mapping.confirm({ select = true })";
-          "<S-Tab>" = "cmp.mapping(cmp.mapping.select_prev_item(), {'i', 's'})";
-          "<Tab>" = "cmp.mapping(cmp.mapping.select_next_item(), {'i', 's'})";
+        settings = {
+          sources = [
+            { name = "nvim_lsp"; }
+            { name = "path"; }
+            { name = "buffer"; }
+            { name = "luasnip"; }
+            { name = "crates-nvim"; }
+            { name = "cmp-git"; }
+          ];
+          mapping = {
+            "<C-Space>" = "cmp.mapping.complete()";
+            "<C-d>" = "cmp.mapping.scroll_docs(-4)";
+            "<C-e>" = "cmp.mapping.close()";
+            "<C-f>" = "cmp.mapping.scroll_docs(4)";
+            "<CR>" = "cmp.mapping.confirm({ select = true })";
+            "<S-Tab>" =
+              "cmp.mapping(cmp.mapping.select_prev_item(), {'i', 's'})";
+            "<Tab>" = "cmp.mapping(cmp.mapping.select_next_item(), {'i', 's'})";
+          };
+          snippet = { expand = "luasnip"; };
         };
-        snippet = { expand = "luasnip"; };
       };
 
       trouble.enable = true;

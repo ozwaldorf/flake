@@ -15,10 +15,7 @@
       url = "github:nix-community/home-manager/release-23.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixvim = {
-      url = "github:nix-community/nixvim/nixos-23.11";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    nvim.url = "git+file:.?dir=neovim";
   };
 
   outputs = { self, nixpkgs, home-manager, ... }@inputs:
@@ -37,6 +34,7 @@
           homeDirectory = "/home/${username}";
           args = {
             inherit inputs pkgs system username hostname homeDirectory;
+            nvim = inputs.nvim.packages.${system}.default;
           };
         in nixpkgs.lib.nixosSystem {
           inherit system;
@@ -51,7 +49,7 @@
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
               home-manager.extraSpecialArgs = args;
-              home-manager.users.${username} = import ./home/home.nix;
+              home-manager.users.${username} = import ./home;
             }
           ];
         };
