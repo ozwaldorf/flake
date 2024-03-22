@@ -7,7 +7,7 @@
     ./zsh.nix # Shell
     ./starship.nix # prompt
     ./git.nix # git
-    ./neovim/mod.nix # editor
+    ./neovim.nix # editor
     ./dev.nix # dev utils
   ];
 

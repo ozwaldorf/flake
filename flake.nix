@@ -15,6 +15,10 @@
       url = "github:nix-community/home-manager/release-23.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nixvim = {
+      url = "github:nix-community/nixvim/nixos-23.11";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = { self, nixpkgs, home-manager, ... }@inputs:
@@ -25,7 +29,7 @@
         config.allowUnfree = true;
       };
     in {
-      formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixfmt;
+      formatter.x86_64-linux = pkgs.nixfmt;
       nixosConfigurations = {
         "onix" = let
           username = "oz";
