@@ -55,6 +55,7 @@
             settings.formatting.command = [ "${pkgs.nixfmt}/bin/nixfmt" ];
           };
         };
+        # enable inline hints
         onAttach = ''
           if client.server_capabilities.inlayHintProvider then
             local inlayhints = require("lsp-inlayhints")
@@ -67,6 +68,16 @@
       rustaceanvim = {
         enable = true;
         tools.hoverActions.replaceBuiltinHover = true;
+        server = {
+          # enable inline hints
+          onAttach = ''
+            function()
+              local inlayhints = require("lsp-inlayhints")
+              inlayhints.on_attach(client, bufnr)
+              inlayhints.show()
+            end
+          '';
+        };
       };
 
       lsp-format.enable = true;
@@ -91,8 +102,12 @@
         };
       };
 
+      cmp-nvim-lsp.enable = true;
+      cmp-path.enable = true;
+      cmp-buffer.enable = true;
       cmp_luasnip.enable = true;
       cmp-git.enable = true;
+      crates-nvim.enable = true;
       cmp = {
         enable = true;
         autoEnableSources = false;
@@ -102,8 +117,8 @@
             { name = "path"; }
             { name = "buffer"; }
             { name = "luasnip"; }
-            { name = "crates-nvim"; }
             { name = "cmp-git"; }
+            { name = "crates-nvim"; }
           ];
           mapping = {
             "<C-Space>" = "cmp.mapping.complete()";
@@ -121,9 +136,8 @@
 
       trouble.enable = true;
       treesitter.enable = true;
-      nvim-autopairs.enable = true;
-      crates-nvim.enable = true;
       gitsigns.enable = true;
+      nvim-autopairs.enable = true;
 
       nvim-tree = {
         enable = true;
