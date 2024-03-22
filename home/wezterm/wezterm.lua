@@ -66,5 +66,6 @@ return {
   },
   tab_max_width = 32,
   hide_tab_bar_if_only_one_tab = true,
-  default_cursor_style = 'BlinkingBlock'
+  default_cursor_style = 'BlinkingBlock',
+  warn_about_missing_glyphs = false
 }

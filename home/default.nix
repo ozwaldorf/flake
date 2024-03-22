@@ -1,13 +1,12 @@
-{ pkgs, username, homeDirectory, ... }: {
+{ pkgs, username, homeDirectory, nvim, ... }: {
   imports = [
     ./sway.nix # window manager
     ./gtk.nix # gtk theming
-    ./ags/mod.nix # bar, app launcher
-    ./wezterm/mod.nix # terminal
+    ./ags # bar, app launcher
+    ./wezterm # terminal
     ./zsh.nix # Shell
     ./starship.nix # prompt
     ./git.nix # git
-    ./neovim.nix # editor
     ./dev.nix # dev utils
   ];
 
@@ -21,7 +20,7 @@
       EDITOR = "nvim";
     };
 
-    packages = with pkgs; [ home-manager webcord gnome.eog pavucontrol ];
+    packages = with pkgs; [ nvim home-manager webcord gnome.eog pavucontrol ];
 
     stateVersion = "23.11";
   };
