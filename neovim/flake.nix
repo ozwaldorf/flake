@@ -20,6 +20,9 @@
             module.config = {
               clipboard.providers.wl-copy.enable = true;
 
+              # Use experimental lua loader with jit cache
+              luaLoader.enable = true;
+
               options = {
                 tabstop = 2;
                 shiftwidth = 2;
@@ -384,6 +387,10 @@
                   };
                 };
               };
+
+              # Highlight and remove extra white spaces
+              highlight.ExtraWhitespace.bg = "#fa4d56";
+              match.ExtraWhitespace = "\\s\\+$";
 
               colorschemes.catppuccin = {
                 enable = true;
