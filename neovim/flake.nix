@@ -3,11 +3,12 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
     nixvim.url = "github:nix-community/nixvim";
     flake-parts.url = "github:hercules-ci/flake-parts";
   };
 
-  outputs = { nixvim, flake-parts, ... }@inputs:
+  outputs = { nixvim, flake-parts, nixpkgs, ... }@inputs:
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems =
         [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
@@ -39,30 +40,6 @@
                 }
               ];
 
-              extraPlugins = [ pkgs.vimPlugins.lsp-inlayhints-nvim ];
-
-              extraConfigLua = ''
-                local inlayhints = require("lsp-inlayhints")
-                inlayhints.setup({
-                  parameter_hints = { show = false },
-                });
-
-                vim.g.rustaceanvim = {
-                  tools = {
-                    hover_actions = {
-                      auto_focus = true,
-                    },
-                  }, 
-                  server = {
-                    on_attach = function(client, bufnr)
-                      require("lsp-format").on_attach(client, bufnr)
-                      inlayhints.on_attach(client, bufnr)
-                      inlayhints.show()
-                    end,
-                  }
-                }
-              '';
-
               plugins = {
                 lsp = {
                   enable = true;
@@ -73,12 +50,9 @@
                         [ "${pkgs.nixfmt}/bin/nixfmt" ];
                     };
                   };
-                  # enable inline hints
                   onAttach = ''
                     if client.server_capabilities.inlayHintProvider then
-                      local inlayhints = require("lsp-inlayhints")
-                      inlayhints.on_attach(client, bufnr)
-                      inlayhints.show()
+                      vim.lsp.inlay_hint.enable(bufnr, true)
                     end
                   '';
                 };
@@ -86,19 +60,9 @@
                 rustaceanvim = {
                   enable = true;
                   tools.hoverActions.replaceBuiltinHover = true;
-                  server = {
-                    # enable inline hints
-                    onAttach = ''
-                      function()
-                        local inlayhints = require("lsp-inlayhints")
-                        inlayhints.on_attach(client, bufnr)
-                        inlayhints.show()
-                      end
-                    '';
-                  };
+                  server.settings.check.command = "clippy";
+                  server.onAttach = "__lspOnAttach";
                 };
-
-                lsp-format.enable = true;
 
                 fidget = {
                   enable = true;
@@ -122,10 +86,16 @@
                   };
                 };
 
+                lsp-format.enable = true;
+                trouble.enable = true;
+                treesitter.enable = true;
+                gitsigns.enable = true;
+                nvim-autopairs.enable = true;
+
+                luasnip.enable = true;
                 cmp-nvim-lsp.enable = true;
                 cmp-path.enable = true;
                 cmp-buffer.enable = true;
-                cmp_luasnip.enable = true;
                 cmp-git.enable = true;
                 crates-nvim.enable = true;
                 cmp = {
@@ -136,10 +106,55 @@
                       { name = "nvim_lsp"; }
                       { name = "path"; }
                       { name = "buffer"; }
-                      { name = "luasnip"; }
-                      { name = "cmp-git"; }
-                      { name = "crates-nvim"; }
+                      { name = "git"; }
+                      { name = "crates"; }
                     ];
+                    view = {
+                      entries = {
+                        name = "custom";
+                        selection_order = "near_cursor";
+                      };
+                    };
+                    formatting = {
+                      __raw = ''
+                        {
+                          fields = { "kind", "abbr", "menu" },
+                          format = function(_, vim_item)
+                            local icons = {
+                              Text = '  ',
+                              Method = '  ',
+                              Function = '  ',
+                              Constructor = '  ',
+                              Field = '  ',
+                              Variable = '  ',
+                              Class = '  ',
+                              Interface = '  ',
+                              Module = '  ',
+                              Property = '  ',
+                              Unit = '  ',
+                              Value = '  ',
+                              Enum = '  ',
+                              Keyword = '  ',
+                              Snippet = '  ',
+                              Color = '  ',
+                              File = '  ',
+                              Reference = '  ',
+                              Folder = '  ',
+                              EnumMember = '  ',
+                              Constant = '  ',
+                              Struct = '  ',
+                              Event = '  ',
+                              Operator = '  ',
+                              TypeParameter = '  ',
+                            }
+                            local kind = vim_item.kind
+                            vim_item.kind = (icons[kind] or "")
+                            vim_item.menu = "   " .. (kind or "")
+                            return vim_item
+                          end,
+                        }
+                      '';
+                    };
                     mapping = {
                       "<C-Space>" = "cmp.mapping.complete()";
                       "<C-d>" = "cmp.mapping.scroll_docs(-4)";
@@ -151,14 +166,23 @@
                       "<Tab>" =
                         "cmp.mapping(cmp.mapping.select_next_item(), {'i', 's'})";
                     };
-                    snippet = { expand = "luasnip"; };
+                    snippet = {
+                      expand = ''
+                        function(args)
+                          vim.snippet.expand(args.body)
+                        end
+                      '';
+                    };
+                    window = {
+                      __raw = ''
+                        {
+                          completion = cmp.config.window.bordered(),
+                          documentation = cmp.config.window.bordered(),
+                        }
+                      '';
+                    };
                   };
                 };
-
-                trouble.enable = true;
-                treesitter.enable = true;
-                gitsigns.enable = true;
-                nvim-autopairs.enable = true;
 
                 nvim-tree = {
                   enable = true;
@@ -318,9 +342,15 @@
             };
           };
         in {
+          _module.args.pkgs = import inputs.nixpkgs {
+            inherit system;
+            overlays = [ inputs.neovim-nightly-overlay.overlay ];
+          };
+          # nix flake check ./neovim
           checks.default =
             nixvim.lib.${system}.check.mkTestDerivationFromNixvimModule
             nixvimModule;
+          # nix run ./neovim
           packages.default =
             nixvim.legacyPackages.${system}.makeNixvimWithModule nixvimModule;
         };
