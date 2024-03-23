@@ -26,19 +26,93 @@
                 expandtab = true;
                 mouse = "a";
                 number = true;
+                undofile = true;
               };
 
               keymaps = [
                 {
-                  action = "<cmd>NvimTreeToggle<CR>";
+                  # Toggle nvim tree
                   key = "t";
+                  action = "<cmd>NvimTreeToggle<CR>";
+                  mode = [ "n" ];
                 }
                 {
-                  action = "<Esc>:w!<CR>";
-                  key = "<C-s>";
+                  # Toggle trouble window with all current lsp errors
+                  key = "T";
+                  action = "<cmd>TroubleToggle<CR>";
+                  mode = [ "n" ];
+                }
+                {
+                  # Show hover actions
+                  key = "K";
+                  lua = true;
+                  action = "vim.lsp.buf.hover";
+                }
+                {
+                  # Show code actions
+                  key = "<C-.>";
+                  lua = true;
+                  action = ''require("actions-preview").code_actions'';
                   mode = [ "n" "v" "i" ];
                 }
+                {
+                  # Ctrl-S save and escape
+                  key = "<C-s>";
+                  action = "<Esc>:w!<CR>";
+                  mode = [ "n" "v" "i" ];
+                }
+                {
+                  # Jump forward if completing a snippet (ie, function parameter placeholders)
+                  key = "<Tab>";
+                  lua = true;
+                  action = ''
+                    function()
+                      if vim.snippet.jumpable(1) then
+                        return '<cmd>lua vim.snippet.jump(1)<cr>'
+                      else
+                        return '<Tab>'
+                      end
+                    end
+                  '';
+                  mode = [ "s" "i" ];
+                  options.expr = true;
+                }
+                {
+                  # Jump backwards if completing a snippet
+                  key = "<S-Tab>";
+                  lua = true;
+                  action = ''
+                    function()
+                      if vim.snippet.jumpable("-1") then
+                        return '<cmd>lua vim.snippet.jump(-1)<cr>'
+                      else
+                        return '<Tab>'
+                      end
+                    end
+                  '';
+                  mode = [ "s" "i" ];
+                  options.expr = true;
+                }
               ];
+
+              extraPlugins = with pkgs.vimPlugins; [
+                nvim-scrollbar
+                actions-preview-nvim
+              ];
+
+              extraConfigLua = ''
+                require("scrollbar").setup({
+                  handlers = {
+                    handle = false,
+                    gitsigns = true,
+                  },
+                  excluded_filetypes = {
+                    "NvimTree",
+                    "starter",
+                  },
+                })
+                require("actions-preview").setup()
+              '';
 
               plugins = {
                 lsp = {
@@ -87,10 +161,15 @@
                 };
 
                 lsp-format.enable = true;
-                trouble.enable = true;
+                trouble = {
+                  enable = true;
+                  settings.auto_close = true;
+                };
+                lsp-lines.enable = true;
                 treesitter.enable = true;
                 gitsigns.enable = true;
                 nvim-autopairs.enable = true;
+                nvim-colorizer.enable = true;
 
                 luasnip.enable = true;
                 cmp-nvim-lsp.enable = true;
@@ -183,6 +262,8 @@
                     };
                   };
                 };
+
+                telescope.enable = true;
 
                 nvim-tree = {
                   enable = true;
