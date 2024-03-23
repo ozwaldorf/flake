@@ -516,11 +516,10 @@
       },
       "locked": {
         "dir": "neovim",
-        "lastModified": 1711172127,
-        "narHash": "sha256-rQB9O8CCN/YsTY3t9X8dnnE1p3keHsr7DSG2GJ6rxVo=",
-        "ref": "refs/heads/nixos",
-        "rev": "a2db57e5576a4256d505e0c75114d3082c15cac8",
-        "revCount": 12,
+        "dirtyRev": "18b83580ad16fb54c6e6d60bc07ef9009027a51d-dirty",
+        "dirtyShortRev": "18b8358-dirty",
+        "lastModified": 1711172446,
+        "narHash": "sha256-+TaJp33cIqnYROOVMQVAPd0j64Gw3XuTAgnZa197cSc=",
         "type": "git",
         "url": "file:.?dir=neovim"
       },

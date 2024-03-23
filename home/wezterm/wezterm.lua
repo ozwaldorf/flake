@@ -28,6 +28,7 @@ wezterm.on(
 )
 
 return {
+  --default_prog = { "nvim", "+terminal", "+startinsert" },
   font = wezterm.font_with_fallback {
     'Berkeley Mono',
     --'Dank Mono',

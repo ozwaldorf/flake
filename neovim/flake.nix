@@ -95,10 +95,18 @@
                 }
               ];
 
+              autoCmd = [{
+                event = "TermOpen";
+                command = "setlocal nonumber norelativenumber";
+              }];
+
               extraPlugins = with pkgs.vimPlugins; [
+                flatten-nvim
                 nvim-scrollbar
                 actions-preview-nvim
               ];
+
+              extraConfigLuaPre = ''require("flatten").setup()'';
 
               extraConfigLua = ''
                 require("scrollbar").setup({
@@ -170,6 +178,7 @@
                 gitsigns.enable = true;
                 nvim-autopairs.enable = true;
                 nvim-colorizer.enable = true;
+                commentary.enable = true;
 
                 luasnip.enable = true;
                 cmp-nvim-lsp.enable = true;
