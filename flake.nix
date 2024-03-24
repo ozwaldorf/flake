@@ -15,7 +15,7 @@
       url = "github:nix-community/home-manager/release-23.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nvim.url = "git+file:.?dir=neovim";
+    nvim.url = "path:./neovim";
   };
 
   outputs = { self, nixpkgs, home-manager, ... }@inputs:
