@@ -138,8 +138,11 @@
   fonts.fontconfig.enable = true;
 
   programs.sway.enable = true;
-  programs.sway.package = null;
-  programs.hyprland.enable = true;
+  programs.sway.package = pkgs.sway.override {
+    sway-unwrapped = pkgs.swayfx-unwrapped;
+    extraOptions = [ "--unsupported-gpu" ];
+  };
+
   programs.mtr.enable = true;
   programs.gnupg.agent = {
     enable = true;

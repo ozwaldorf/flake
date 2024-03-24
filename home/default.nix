@@ -13,14 +13,12 @@
   home = {
     inherit username homeDirectory;
 
-    sessionPath = [ "$HOME/.local/bin" ];
-
     sessionVariables = {
       NIXOS_OZONE_WL = "1";
       EDITOR = "nvim";
     };
 
-    packages = with pkgs; [ nvim home-manager webcord gnome.eog pavucontrol ];
+    packages = with pkgs; [ nvim webcord gnome.eog pavucontrol ];
 
     stateVersion = "23.11";
   };
