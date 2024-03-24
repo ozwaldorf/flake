@@ -103,25 +103,43 @@
                 command = "setlocal nonumber norelativenumber";
               }];
 
+              extraConfigLuaPre = ''
+                require("flatten").setup()
+
+                local symbols = { Error = "󰅙", Info = "󰋼", Hint = "󰌵", Warn = "" }
+                for name, icon in pairs(symbols) do
+                	local hl = "DiagnosticSign" .. name
+                	vim.fn.sign_define(hl, { text = icon, numhl = hl, texthl = hl })
+                end
+              '';
+
               extraPlugins = with pkgs.vimPlugins; [
                 flatten-nvim
                 nvim-scrollbar
                 actions-preview-nvim
               ];
 
-              extraConfigLuaPre = ''require("flatten").setup()'';
-
               extraConfigLua = ''
                 require("scrollbar").setup({
                   handlers = {
+                    cursor = true,
                     handle = false,
+                    diagnostic = true,
                     gitsigns = true,
                   },
                   excluded_filetypes = {
                     "NvimTree",
                     "starter",
                   },
+                  marks = {
+                    Cursor = { text = "█" },
+                    Error = { text = { symbols.Error } },
+                    Warn = { text = { symbols.Warn } },
+                    Info = { text = { symbols.Info } },
+                    Hint = { text = { symbols.Hint } },
+                  },
                 })
+
                 require("actions-preview").setup()
               '';
 
@@ -281,6 +299,16 @@
                   enable = true;
                   renderer.addTrailing = true;
                   renderer.highlightOpenedFiles = "all";
+                  diagnostics = {
+                    enable = true;
+                    showOnDirs = true;
+                    icons = {
+                      hint = { __raw = "symbols.Hint"; };
+                      info = { __raw = "symbols.Info"; };
+                      warning = { __raw = "symbols.Warn"; };
+                      error = { __raw = "symbols.Error"; };
+                    };
+                  };
                 };
 
                 bufferline = {
