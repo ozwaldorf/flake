@@ -3,17 +3,25 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
-    nixvim.url = "github:nix-community/nixvim";
-    flake-parts.url = "github:hercules-ci/flake-parts";
+    neovim-nightly-overlay = {
+      url = "github:nix-community/neovim-nightly-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nixvim = {
+      url = "github:nix-community/nixvim";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    flake-parts = {
+      url = "github:hercules-ci/flake-parts";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = { nixvim, flake-parts, nixpkgs, ... }@inputs:
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems =
         [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
-
-      perSystem = { pkgs, system, ... }:
+      perSystem = { pkgs, system, config, ... }:
         let
           nixvimModule = {
             inherit pkgs;
@@ -190,18 +198,17 @@
                 };
 
                 lsp-format.enable = true;
+                treesitter.enable = true;
                 trouble = {
                   enable = true;
                   settings.auto_close = true;
                 };
                 lsp-lines.enable = true;
-                treesitter.enable = true;
                 gitsigns.enable = true;
-                nvim-autopairs.enable = true;
                 nvim-colorizer.enable = true;
+                nvim-autopairs.enable = true;
                 commentary.enable = true;
 
-                luasnip.enable = true;
                 cmp-nvim-lsp.enable = true;
                 cmp-path.enable = true;
                 cmp-buffer.enable = true;
@@ -467,14 +474,17 @@
             };
           };
         in {
+          # use nvim 0.10 overlay
           _module.args.pkgs = import inputs.nixpkgs {
             inherit system;
             overlays = [ inputs.neovim-nightly-overlay.overlay ];
           };
+
           # nix flake check ./neovim
           checks.default =
             nixvim.lib.${system}.check.mkTestDerivationFromNixvimModule
             nixvimModule;
+
           # nix run ./neovim
           packages.default =
             nixvim.legacyPackages.${system}.makeNixvimWithModule nixvimModule;
