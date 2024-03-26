@@ -1,4 +1,4 @@
-{ config, pkgs, username, hostname, ... }: {
+{ config, pkgs, username, hostname, fetchFromGitHub, lib, ... }: {
   imports = [ # Include the results of the hardware scan.
     ./hardware-configuration.nix
   ];
@@ -73,8 +73,8 @@
   services.xserver.desktopManager.gnome.enable = true;
   services.gnome.gnome-keyring.enable = true;
   services.xserver = {
-    layout = "us";
-    xkbVariant = "";
+    xkb.layout = "us";
+    xkb.variant = "";
   };
 
   xdg.portal = {
@@ -84,11 +84,11 @@
   };
 
   services.printing.enable = true;
-  services.printing.drivers = [ (pkgs.callPackage ./pkgs/pantum.nix { }) ];
+  services.printing.drivers = [ pkgs.pantum-driver ];
 
   services.avahi = {
     enable = true;
-    nssmdns = true;
+    nssmdns4 = true;
     openFirewall = true;
   };
 
@@ -119,16 +119,16 @@
     };
   };
 
-  environment.etc = {
-    "wireplumber/bluetooth.lua.d/51-bluez-config.lua".text = ''
-      bluez_monitor.properties = {
-        ["bluez5.enable-sbc-xq"] = true,
-        ["bluez5.enable-msbc"] = true,
-        ["bluez5.enable-hw-volume"] = true,
-        ["bluez5.headset-roles"] = "[ hsp_hs hsp_ag hfp_hf hfp_ag ]"
-      }
-    '';
-  };
+  # environment.etc = {
+  #   "wireplumber/bluetooth.lua.d/51-bluez-config.lua".text = ''
+  #     bluez_monitor.properties = {
+  #       ["bluez5.enable-sbc-xq"] = true,
+  #       ["bluez5.enable-msbc"] = true,
+  #       ["bluez5.enable-hw-volume"] = true,
+  #       ["bluez5.headset-roles"] = "[ hsp_hs hsp_ag hfp_hf hfp_ag ]"
+  #     }
+  #   '';
+  # };
 
   fonts.packages = with pkgs;
     [ (nerdfonts.override { fonts = [ "FiraCode" ]; }) ];
@@ -137,9 +137,9 @@
   environment.pathsToLink = [ "/share/zsh" ];
   fonts.fontconfig.enable = true;
 
-  programs.sway.enable = true;
-  programs.sway.package = pkgs.sway.override {
-    sway-unwrapped = pkgs.swayfx-unwrapped;
+  programs.sway = {
+    enable = true;
+    package = pkgs.swayfx;
     extraOptions = [ "--unsupported-gpu" ];
   };
 
@@ -171,5 +171,5 @@
   # settings for stateful data, like file locations and database versions
   # on your system were taken. It‘s perfectly fine and recommended to leave
   # this value at the release version of the first install of this system.
-  system.stateVersion = "23.11"; # Did you read the comment?
+  system.stateVersion = "24.05"; # Did you read the comment?
 }

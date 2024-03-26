@@ -296,16 +296,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1710888565,
-        "narHash": "sha256-s9Hi4RHhc6yut4EcYD50sZWRDKsugBJHSbON8KFwoTw=",
+        "lastModified": 1711133180,
+        "narHash": "sha256-WJOahf+6115+GMl3wUfURu8fszuNeJLv9qAWFQl3Vmo=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "f33900124c23c4eca5831b9b5eb32ea5894375ce",
+        "rev": "1c2c5e4cabba4c43504ef0f8cc3f3dfa284e2dbb",
         "type": "github"
       },
       "original": {
         "owner": "nix-community",
-        "ref": "release-23.11",
         "repo": "home-manager",
         "type": "github"
       }
@@ -406,16 +405,16 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1711124224,
-        "narHash": "sha256-l0zlN/3CiodvWDtfBOVxeTwYSRz93muVbXWSpaMjXxM=",
+        "lastModified": 1711163522,
+        "narHash": "sha256-YN/Ciidm+A0fmJPWlHBGvVkcarYWSC+s3NTPk/P+q3c=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "56528ee42526794d413d6f244648aaee4a7b56c0",
+        "rev": "44d0940ea560dee511026a53f0e2e2cde489b4d4",
         "type": "github"
       },
       "original": {
         "owner": "NixOS",
-        "ref": "nixos-23.11",
+        "ref": "nixos-unstable",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -490,7 +489,7 @@
       },
       "locked": {
         "lastModified": 1,
-        "narHash": "sha256-6XvGB8CH0cCH4C7KEEbUOAkHmVzf2UkESeYcPtRARPo=",
+        "narHash": "sha256-Qm4rute84yxZkm7Wqp4biX5F4xH3Y5/ULqkBVPZohR8=",
         "path": "./neovim",
         "type": "path"
       },
@@ -546,16 +545,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1706307605,
-        "narHash": "sha256-Xx+7jckewzBO9TQ27RmaOCeG9dDB8zew7lFta1jj2ts=",
+        "lastModified": 1707986911,
+        "narHash": "sha256-kRWXQnUkMm5HjlDX9rBq8lowygvbK9+ScAOhiySR3KY=",
         "owner": "WillPower3309",
         "repo": "swayfx",
-        "rev": "5ace6bb7bd62ba3596e796edb859176d7db11a2e",
+        "rev": "2bd366f3372d6f94f6633e62b7f7b06fcf316943",
         "type": "github"
       },
       "original": {
         "owner": "WillPower3309",
-        "ref": "workspace-movement",
         "repo": "swayfx",
         "type": "github"
       }
