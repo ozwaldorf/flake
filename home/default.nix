@@ -21,6 +21,7 @@
 
     packages = with pkgs; [
       nvim
+      lutgen
       webcord
       pavucontrol
       wdisplays
