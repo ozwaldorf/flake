@@ -7,6 +7,7 @@
       url = "github:ozwaldorf/ags";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    wezterm = { url = "github:ErrorNoInternet/configuration.nix"; };
     # TODO: fixme
     swayfx = {
       url = "github:WillPower3309/swayfx";
@@ -34,6 +35,7 @@
                 sha256 = "sha256-kRWXQnUkMm5HjlDX9rBq8lowygvbK9+ScAOhiySR3KY=";
               };
             };
+            wezterm = inputs.wezterm.packages.${system}.wezterm;
           })
         ];
         config.allowUnfree = true;

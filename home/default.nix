@@ -1,6 +1,7 @@
 { pkgs, username, homeDirectory, nvim, ... }: {
   imports = [
     ./sway.nix # window manager
+    ./hyprland.nix
     ./gtk.nix # gtk theming
     ./ags # bar, app launcher
     ./wezterm # terminal
@@ -14,13 +15,29 @@
     inherit username homeDirectory;
 
     sessionVariables = {
-      NIXOS_OZONE_WL = "1";
+
       EDITOR = "nvim";
     };
 
-    packages = with pkgs; [ nvim webcord gnome.eog pavucontrol ];
+    packages = with pkgs; [
+      nvim
+      webcord
+      pavucontrol
+      wdisplays
 
-    stateVersion = "23.11";
+      gnome.eog # photo viewer
+      gnome.totem # video player
+      gnome.evince # document viewer
+      gnome.file-roller # archive manager
+      gnome.nautilus # file explorer
+      gnome.simple-scan # document scanner
+      gnome.gnome-characters
+      gnome.gnome-font-viewer
+      gnome.gnome-system-monitor
+      gnome.gnome-disk-utility
+    ];
+
+    stateVersion = "24.05";
   };
 
   programs.home-manager.enable = true;

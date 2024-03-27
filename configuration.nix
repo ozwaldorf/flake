@@ -40,7 +40,8 @@
     kernelPackages = pkgs.linuxPackages_6_7;
     consoleLogLevel = 0;
     initrd.verbose = false;
-    kernelParams = [ "quiet" "splash" "udev.log_level=0" ];
+    kernelParams =
+      [ "quiet" "splash" "udev.log_level=0" "video=eDP-1:2650x1600@60" ];
   };
 
   hardware.opengl = {
@@ -70,8 +71,16 @@
     enable = true;
     wayland = true;
   };
-  services.xserver.desktopManager.gnome.enable = true;
+
+  # services.xserver.desktopManager.gnome.enable = true;
+  # Manually enable some services gnome used to
+  services.devmon.enable = true;
+  services.gvfs.enable = true;
+  services.udisks2.enable = true;
+  services.upower.enable = true;
+  services.power-profiles-daemon.enable = true;
   services.gnome.gnome-keyring.enable = true;
+
   services.xserver = {
     xkb.layout = "us";
     xkb.variant = "";
@@ -80,7 +89,7 @@
   xdg.portal = {
     enable = true;
     wlr.enable = true;
-    # extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
   };
 
   services.printing.enable = true;
@@ -93,7 +102,6 @@
   };
 
   sound.enable = true;
-  security.rtkit.enable = true;
   hardware.pulseaudio.enable = false;
   services.pipewire = {
     enable = true;
@@ -101,6 +109,9 @@
     alsa.support32Bit = true;
     pulse.enable = true;
   };
+  hardware.enableAllFirmware = true;
+
+  security.rtkit.enable = true;
   security.polkit.enable = true;
   systemd = {
     user.services.polkit-gnome-authentication-agent-1 = {
@@ -143,6 +154,8 @@
     extraOptions = [ "--unsupported-gpu" ];
   };
 
+  programs.hyprland.enable = true;
+
   programs.mtr.enable = true;
   programs.gnupg.agent = {
     enable = true;
@@ -165,6 +178,11 @@
       type = "path";
       path = pkgs.path;
     };
+  };
+
+  environment.sessionVariables = {
+    NIXOS_OZONE_WL = "1";
+    WLR_NO_HARDWARE_CURSORS = "1";
   };
 
   # This value determines the NixOS release from which the default
