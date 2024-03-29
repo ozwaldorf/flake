@@ -144,7 +144,11 @@
   fonts.packages = with pkgs;
     [ (nerdfonts.override { fonts = [ "FiraCode" ]; }) ];
 
-  programs.zsh.enable = true;
+  programs.zsh = {
+    enable = true;
+    enableCompletion = false;
+  };
+
   environment.pathsToLink = [ "/share/zsh" ];
   fonts.fontconfig.enable = true;
 

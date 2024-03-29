@@ -36,6 +36,7 @@
               };
             };
             wezterm = inputs.wezterm.packages.${system}.wezterm;
+            neovim = inputs.nvim.packages.${system}.default;
           })
         ];
         config.allowUnfree = true;
@@ -49,7 +50,6 @@
           homeDirectory = "/home/${username}";
           args = {
             inherit inputs pkgs system username hostname homeDirectory;
-            nvim = inputs.nvim.packages.${system}.default;
           };
         in nixpkgs.lib.nixosSystem {
           inherit system;

@@ -2,6 +2,11 @@
 
   home.packages = with pkgs; [ eza bat curl tree starship onefetch ];
 
+  programs.nix-index = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+
   programs.zsh = {
     enable = true;
 
