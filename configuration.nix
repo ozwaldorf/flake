@@ -1,4 +1,4 @@
-{ config, pkgs, username, hostname, fetchFromGitHub, lib, ... }: {
+{ inputs, config, pkgs, username, hostname, ... }: {
   imports = [ # Include the results of the hardware scan.
     ./hardware-configuration.nix
   ];
@@ -177,12 +177,7 @@
     dates = "weekly";
     options = "--delete-older-than 7d";
   };
-  nix.registry = {
-    nixpkgs.to = {
-      type = "path";
-      path = pkgs.path;
-    };
-  };
+  nix.registry = { nixpkgs.flake = inputs.nixpkgs; };
 
   environment.sessionVariables = {
     NIXOS_OZONE_WL = "1";

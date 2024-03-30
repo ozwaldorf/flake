@@ -4,7 +4,7 @@ in {
   gtk = {
     enable = true;
     theme = {
-      package = (pkgs.callPackage ../pkgs/gtk.nix { });
+      package = pkgs.carburetor-gtk;
       name = "Catppuccin-Mocha-Standard-Blue-Dark";
     };
     iconTheme = {

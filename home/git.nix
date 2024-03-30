@@ -14,7 +14,7 @@
       init.defaultBranch = "main";
       core.editor = "nvim";
     };
-
+    ignores = [ ".envrc" ".direnv" "result" ];
     delta = {
       enable = true;
       options = {
