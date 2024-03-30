@@ -6,7 +6,7 @@ pkgs.webcord.overrideAttrs (old: {
     (pkgs.writeText "arrpc_bridge.patch" ''
       --- a/sources/code/main/windows/main.ts
       +++ b/sources/code/main/windows/main.ts
-      @@ -402,6 +402,88 @@ export default function createMainWindow(...flags:MainWindowFlags): BrowserWindo
+      @@ -402,6 +402,87 @@ export default function createMainWindow(...flags:MainWindowFlags): BrowserWindo
                return media(constrains);
              }]);
              Object.defineProperty(navigator.mediaDevices.getUserMedia, "name", {value: "getUserMedia"});
@@ -91,7 +91,6 @@ pkgs.webcord.overrideAttrs (old: {
       +
       +        Dispatcher.dispatch({ type: 'LOCAL_ACTIVITY_UPDATE', ...msg }); // set RPC status
       +      };
-      +      })();
            }`;
            win.webContents.executeJavaScript(`''${functionString};0`)
              .then(() => internalWindowEvents.emit("api", api.replaceAll("'","\\'")))
