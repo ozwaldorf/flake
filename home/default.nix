@@ -1,4 +1,4 @@
-{ pkgs, lib, username, homeDirectory, installFullDesktop ? false, ... }: {
+{ pkgs, lib, username, homeDirectory, installFullDesktop ? true, ... }: {
   imports = [
     ./zsh.nix # Shell
     ./starship.nix # Prompt

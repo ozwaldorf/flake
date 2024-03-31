@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -29,46 +30,31 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # provides patched wezterm
-    error_no_internet_flake = {
-      url = "github:ErrorNoInternet/configuration.nix";
-    };
+    # Needed to make wezterm work with Hyprland 0.37
+    error_no_internet_flake.url = "github:ErrorNoInternet/configuration.nix";
   };
 
   outputs = { self, nixpkgs, home-manager, home-manager-shell, ... }@inputs:
     let
       system = "x86_64-linux";
-
-      overlay = final: prev: {
-        swayfx-unwrapped = prev.swayfx-unwrapped.overrideAttrs {
-          src = final.fetchFromGitHub {
-            owner = "WillPower3309";
-            repo = "swayfx";
-            rev = "2bd366f3372d6f94f6633e62b7f7b06fcf316943";
-            sha256 = "sha256-kRWXQnUkMm5HjlDX9rBq8lowygvbK9+ScAOhiySR3KY=";
-          };
-        };
-        ags = inputs.ags.packages.${system}.default;
-        wezterm = inputs.error_no_internet_flake.packages.${system}.wezterm;
-        carburetor-gtk = prev.callPackage ./pkgs/gtk.nix { };
-        webcord = (import ./pkgs/webcord.nix { pkgs = prev; });
-        neovim = inputs.nixvim.legacyPackages.${system}.makeNixvimWithModule {
-          pkgs = prev;
-          module = ./pkgs/neovim.nix;
-        };
-      };
-
+      overlays = import ./pkgs { inherit inputs system; };
       pkgs = import nixpkgs {
         inherit system;
-        overlays = [ inputs.neovim-nightly-overlay.overlay overlay ];
+        overlays = [ inputs.neovim-nightly-overlay.overlay overlays.default ];
         config.allowUnfree = true;
       };
+
       username = "oz";
       hostname = "onix";
       homeDirectory = "/home/${username}";
+
       args = { inherit inputs pkgs system username hostname homeDirectory; };
     in {
-      formatter.${system} = pkgs.nixfmt;
+      # Export the standalone custom packages and the default overlay for them;
+      inherit overlays;
+      packages.${system} = {
+        inherit (pkgs) neovim ags swayfx-unwrapped carburetor-gtk;
+      };
 
       # Full nixos system and home configuration
       nixosConfigurations = {
@@ -77,17 +63,18 @@
           specialArgs = args;
           modules = [
             # System level config
-            ./configuration.nix
+            ./system/configuration.nix
 
             # User level config
-            home-manager.nixosModules.home-manager
             {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.extraSpecialArgs =
-                (args // { installFullDesktop = true; });
-              home-manager.users.${username} = import ./home;
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                extraSpecialArgs = args;
+                users.${username} = import ./home;
+              };
             }
+            home-manager.nixosModules.home-manager
           ];
         };
       };
@@ -96,16 +83,10 @@
       homeConfigurations."oz" = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
         modules = [ ./home ];
-        extraSpecialArgs = args;
+        extraSpecialArgs = (args // { installFullDesktop = false; });
       };
 
-      overlays.default = overlay;
-
-      packages.${system} = with pkgs; {
-        inherit neovim carburetor-gtk webcord;
-      };
-
-      # Use `nix run`
+      # Default `nix run` for the headless home configuration
       apps.${system} = {
         default = {
           type = "app";
@@ -122,5 +103,8 @@
           in "${entry}/bin/home-manager-shell");
         };
       };
+
+      # `nix fmt`
+      formatter.${system} = pkgs.nixfmt;
     };
 }
