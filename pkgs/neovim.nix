@@ -402,18 +402,6 @@
     colorschemes.catppuccin = {
       enable = true;
       transparentBackground = true;
-      showBufferEnd = false;
-      integrations = {
-        NormalNvim = true;
-        mini.enabled = true;
-        nvimtree = true;
-        lsp_trouble = true;
-        symbols_outline = true;
-        treesitter = true;
-        gitsigns = true;
-        fidget = true;
-        cmp = true;
-      };
       colorOverrides.all = {
         rosewater = "#ffd7d9";
         flamingo = "#ffb3b8";
@@ -441,6 +429,18 @@
         base = "#161616";
         mantle = "#0b0b0b";
         crust = "#000000";
+      };
+      showBufferEnd = false;
+      integrations = {
+        NormalNvim = true;
+        mini.enabled = true;
+        nvimtree = true;
+        lsp_trouble = true;
+        symbols_outline = true;
+        treesitter = true;
+        gitsigns = true;
+        fidget = true;
+        cmp = true;
       };
     };
   };

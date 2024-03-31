@@ -82,8 +82,8 @@
       # Headless standalone home configuration
       homeConfigurations."oz" = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
-        modules = [ ./home ];
-        extraSpecialArgs = (args // { installFullDesktop = false; });
+        modules = [ ./home/headless.nix ];
+        extraSpecialArgs = args;
       };
 
       # Default `nix run` for the headless home configuration
