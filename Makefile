@@ -1,8 +1,4 @@
-PHONY: update ags
-
-update:
-	nix flake update ./neovim
-	nix flake update .
+PHONY: ags
 
 ags:
 	inotifywait -me modify home/ags | \
