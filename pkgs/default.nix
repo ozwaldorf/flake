@@ -1,5 +1,6 @@
-{ inputs, system }: {
-  default = (final: pkgs: {
+{ inputs }: {
+  overlays.default = (final: pkgs: {
+    # Updated to newer swayfx-git
     swayfx-unwrapped = pkgs.swayfx-unwrapped.overrideAttrs {
       src = pkgs.fetchFromGitHub {
         owner = "WillPower3309";
@@ -8,13 +9,26 @@
         sha256 = "sha256-kRWXQnUkMm5HjlDX9rBq8lowygvbK9+ScAOhiySR3KY=";
       };
     };
-    ags = inputs.ags.packages.${system}.default;
+
+    # Fork with sway ipc service
+    ags = inputs.ags.packages.${pkgs.system}.default;
+
+    # Carburetor gtk theme (patched catpuccin-gtk)
     carburetor-gtk = import ./carburetor-gtk.nix { inherit pkgs; };
+
+    # Webcord with arRPC bridge enabled on startup
     webcord = import ./webcord.nix { inherit pkgs; };
-    neovim = inputs.nixvim.legacyPackages.${system}.makeNixvimWithModule {
+
+    # Standalone neovim configuration
+    neovim = inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
       inherit pkgs;
+      extraSpecialArgs = {
+        neovim-unwrapped = inputs.neovim.packages.${pkgs.system}.default;
+      };
       module = ./neovim.nix;
     };
-    wezterm = inputs.error_no_internet_flake.packages.${system}.wezterm;
+
+    # Patched to work with hyprland 0.37
+    wezterm = inputs.error_no_internet_flake.packages.${pkgs.system}.wezterm;
   });
 }

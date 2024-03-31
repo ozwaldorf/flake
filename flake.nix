@@ -16,8 +16,8 @@
       };
     };
 
-    neovim-nightly-overlay = {
-      url = "github:nix-community/neovim-nightly-overlay";
+    neovim = {
+      url = "github:neovim/neovim?dir=contrib";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nixvim = {
@@ -37,10 +37,10 @@
   outputs = { self, nixpkgs, home-manager, home-manager-shell, ... }@inputs:
     let
       system = "x86_64-linux";
-      overlays = import ./pkgs { inherit inputs system; };
+      custom = import ./pkgs { inherit inputs; };
       pkgs = import nixpkgs {
         inherit system;
-        overlays = [ inputs.neovim-nightly-overlay.overlay overlays.default ];
+        overlays = [ custom.overlays.default ];
         config.allowUnfree = true;
       };
 
@@ -50,8 +50,8 @@
 
       args = { inherit inputs pkgs system username hostname homeDirectory; };
     in {
-      # Export the standalone custom packages and the default overlay for them;
-      inherit overlays;
+      # Export the standalone custom packages and the default overlay for applying them;
+      inherit (custom) overlays;
       packages.${system} = {
         inherit (pkgs) neovim ags swayfx-unwrapped carburetor-gtk;
       };

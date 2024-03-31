@@ -1,5 +1,8 @@
-{ pkgs, ... }: {
+{ pkgs, neovim-unwrapped, ... }: {
   config = {
+    # use nightly neovim 0.10
+    package = neovim-unwrapped;
+
     clipboard.providers.wl-copy.enable = true;
 
     # Use experimental lua loader with jit cache
