@@ -19,6 +19,9 @@
     # Webcord with arRPC bridge enabled on startup
     webcord = import ./webcord.nix { inherit pkgs; };
 
+    # Patched to work with hyprland 0.37
+    wezterm = import ./wezterm.nix { inherit pkgs; };
+
     # Standalone neovim configuration
     neovim = inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
       inherit pkgs;
@@ -27,8 +30,5 @@
       };
       module = ./neovim.nix;
     };
-
-    # Patched to work with hyprland 0.37
-    wezterm = inputs.error_no_internet_flake.packages.${pkgs.system}.wezterm;
   });
 }

@@ -29,9 +29,6 @@
       url = "github:ozwaldorf/ags";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    # Needed to make wezterm work with Hyprland 0.37
-    error_no_internet_flake.url = "github:ErrorNoInternet/configuration.nix";
   };
 
   outputs = { self, nixpkgs, home-manager, home-manager-shell, ... }@inputs:
