@@ -3,7 +3,12 @@
     ./hardware-configuration.nix
   ];
 
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings = {
+    experimental-features = [ "nix-command" "flakes" ];
+    substituters = pkgs.lib.mkBefore [ "https://cache.garnix.io" ];
+    trusted-public-keys = pkgs.lib.mkBefore
+      [ "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g=" ];
+  };
 
   users.users.${username} = {
     isNormalUser = true;
