@@ -102,6 +102,7 @@
       flatten-nvim
       nvim-scrollbar
       actions-preview-nvim
+      vimsence
     ];
 
     extraConfigLua = ''
@@ -129,8 +130,6 @@
     '';
 
     plugins = {
-      presence-nvim = { enable = true; };
-
       lsp = {
         enable = true;
         servers = {
