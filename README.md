@@ -20,6 +20,10 @@ Run standalone neovim:
 nix run github:ozwaldorf/flake#neovim
 ```
 
+## Cache
+
+Binary caches are provided via https://garnix.io
+
 ## Development
 
 ### AGS
