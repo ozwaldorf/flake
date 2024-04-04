@@ -4,7 +4,7 @@ in {
   wayland.windowManager.hyprland = {
     enable = true;
     settings = {
-      exec = [ "swww init" "ags" ];
+      exec = [ "swww-daemon -f xbgr" "ags" ];
       decoration = {
         blur = {
           size = 8;

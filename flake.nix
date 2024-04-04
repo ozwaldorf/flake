@@ -114,6 +114,6 @@
         });
 
       # `nix fmt`
-      formatter = forAllSystems (system: (makePkgs system).nixfmt);
+      formatter = forAllSystems (system: (makePkgs system).nixfmt-rfc-style);
     };
 }

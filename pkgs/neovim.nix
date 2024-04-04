@@ -135,7 +135,7 @@
         servers = {
           nil_ls = {
             enable = true;
-            settings.formatting.command = [ "${pkgs.nixfmt}/bin/nixfmt" ];
+            settings.formatting.command = [ "${pkgs.nixfmt-rfc-style}/bin/nixfmt" ];
           };
         };
         onAttach = ''
