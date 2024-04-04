@@ -360,16 +360,10 @@
               };
             }
           ];
-          lualine_b = [
-            "filename"
-            "branch"
-          ];
-          lualine_c = [ "fileformat" ];
-          lualine_x = [ ];
-          lualine_y = [
-            "filetype"
-            "progress"
-          ];
+          lualine_b = [ "branch" ];
+          lualine_c = [ "filename" ];
+          lualine_x = [ "progress" ];
+          lualine_y = [ "filetype" ];
           lualine_z = [
             {
               name = "location";
