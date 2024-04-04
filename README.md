@@ -1,19 +1,23 @@
 # ozwaldorf's flake
 
 ## Usage
-> Note: only `x86_64-linux` can be currently
 
-Install the system and reboot:
+Install the system and reboot (x86_64-linux):
 
 ```sh
-sudo nixos-rebuild boot --upgrade-all --flake "github:ozwaldorf/dotfiles#onix"
-reboot
+git clone https://github.com/ozwaldorf/flake && cd flake
+
+# copy your hardware config in
+cp /etc/nixos/hardware-configuration.nix system
+
+# build and reboot
+sudo nixos-rebuild boot --upgrade-all --flake . && reboot
 ```
 
-Run a headless environment:
+Run standalone neovim:
 
 ```sh
-nix run github:ozwaldorf/dotfiles
+nix run github:ozwaldorf/flake#neovim
 ```
 
 ## Development
