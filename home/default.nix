@@ -28,6 +28,7 @@
     packages = with pkgs; [
       neovim
       lutgen
+      prismlauncher
       pavucontrol # volume control
       wdisplays # display control
       gnome.eog # photo viewer

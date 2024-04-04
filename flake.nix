@@ -29,6 +29,8 @@
       url = "github:ozwaldorf/ags";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    prismlauncher.url = "github:PrismLauncher/PrismLauncher";
   };
 
   outputs =
@@ -55,7 +57,10 @@
         system:
         import nixpkgs {
           inherit system;
-          overlays = [ custom.overlays.default ];
+          overlays = [
+            inputs.prismlauncher.overlays.default
+            custom.overlays.default
+          ];
           config.allowUnfree = true;
         };
 
