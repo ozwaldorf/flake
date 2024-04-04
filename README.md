@@ -23,13 +23,3 @@ nix run github:ozwaldorf/flake#neovim
 ## Cache
 
 Binary caches are provided via https://garnix.io
-
-## Development
-
-### AGS
-
-Watch and run the local ags configuration, restarting on save:
-
-```bash
-make ags
-```
