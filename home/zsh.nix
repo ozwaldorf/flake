@@ -1,6 +1,14 @@
-{ pkgs, ... }: {
+{ pkgs, ... }:
+{
 
-  home.packages = with pkgs; [ eza bat curl tree starship onefetch ];
+  home.packages = with pkgs; [
+    eza
+    bat
+    curl
+    tree
+    starship
+    onefetch
+  ];
 
   programs.nix-index = {
     enable = true;
@@ -14,15 +22,17 @@
     enableAutosuggestions = true;
     syntaxHighlighting.enable = true;
 
-    plugins = [{
-      name = "zsh-autocomplete";
-      src = pkgs.fetchFromGitHub {
-        owner = "marlonrichert";
-        repo = "zsh-autocomplete";
-        rev = "23.07.13";
-        sha256 = "0NW0TI//qFpUA2Hdx6NaYdQIIUpRSd0Y4NhwBbdssCs=";
-      };
-    }];
+    plugins = [
+      {
+        name = "zsh-autocomplete";
+        src = pkgs.fetchFromGitHub {
+          owner = "marlonrichert";
+          repo = "zsh-autocomplete";
+          rev = "23.07.13";
+          sha256 = "0NW0TI//qFpUA2Hdx6NaYdQIIUpRSd0Y4NhwBbdssCs=";
+        };
+      }
+    ];
 
     shellAliases = with { ls_args = "--git --icons"; }; {
       ls = "eza -lh ${ls_args}";

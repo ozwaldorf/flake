@@ -1,18 +1,34 @@
-{ inputs, config, pkgs, username, hostname, ... }: {
-  imports = [ # Include the results of the hardware scan.
+{
+  inputs,
+  config,
+  pkgs,
+  username,
+  hostname,
+  ...
+}:
+{
+  imports = [
+    # Include the results of the hardware scan.
     ./hardware-configuration.nix
   ];
 
   nix.settings = {
-    experimental-features = [ "nix-command" "flakes" ];
+    experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
     substituters = pkgs.lib.mkBefore [ "https://cache.garnix.io" ];
-    trusted-public-keys = pkgs.lib.mkBefore
-      [ "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g=" ];
+    trusted-public-keys = pkgs.lib.mkBefore [
+      "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
+    ];
   };
 
   users.users.${username} = {
     isNormalUser = true;
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+    ];
     shell = pkgs.zsh;
     packages = with pkgs; [ firefox ];
   };
@@ -41,12 +57,18 @@
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
     };
-    plymouth = { enable = true; };
+    plymouth = {
+      enable = true;
+    };
     kernelPackages = pkgs.linuxPackages_6_7;
     consoleLogLevel = 0;
     initrd.verbose = false;
-    kernelParams =
-      [ "quiet" "splash" "udev.log_level=0" "video=eDP-1:2650x1600@60" ];
+    kernelParams = [
+      "quiet"
+      "splash"
+      "udev.log_level=0"
+      "video=eDP-1:2650x1600@60"
+    ];
   };
 
   hardware.opengl = {
@@ -126,8 +148,7 @@
       after = [ "graphical-session.target" ];
       serviceConfig = {
         Type = "simple";
-        ExecStart =
-          "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
+        ExecStart = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
         Restart = "on-failure";
         RestartSec = 1;
         TimeoutStopSec = 10;
@@ -146,8 +167,7 @@
   #   '';
   # };
 
-  fonts.packages = with pkgs;
-    [ (nerdfonts.override { fonts = [ "FiraCode" ]; }) ];
+  fonts.packages = with pkgs; [ (nerdfonts.override { fonts = [ "FiraCode" ]; }) ];
 
   programs.zsh = {
     enable = true;
@@ -182,7 +202,9 @@
     dates = "weekly";
     options = "--delete-older-than 7d";
   };
-  nix.registry = { nixpkgs.flake = inputs.nixpkgs; };
+  nix.registry = {
+    nixpkgs.flake = inputs.nixpkgs;
+  };
 
   environment.sessionVariables = {
     NIXOS_OZONE_WL = "1";

@@ -1,4 +1,5 @@
-{ pkgs, neovim-unwrapped, ... }: {
+{ pkgs, neovim-unwrapped, ... }:
+{
   config = {
     # use nightly neovim 0.10
     package = neovim-unwrapped;
@@ -41,13 +42,21 @@
         key = "<C-.>";
         lua = true;
         action = ''require("actions-preview").code_actions'';
-        mode = [ "n" "v" "i" ];
+        mode = [
+          "n"
+          "v"
+          "i"
+        ];
       }
       {
         # Ctrl-S save and escape
         key = "<C-s>";
         action = "<Esc>:w!<CR>";
-        mode = [ "n" "v" "i" ];
+        mode = [
+          "n"
+          "v"
+          "i"
+        ];
       }
       {
         # Jump forward if completing a snippet (ie, function parameter placeholders)
@@ -62,7 +71,10 @@
             end
           end
         '';
-        mode = [ "s" "i" ];
+        mode = [
+          "s"
+          "i"
+        ];
         options.expr = true;
       }
       {
@@ -78,15 +90,20 @@
             end
           end
         '';
-        mode = [ "s" "i" ];
+        mode = [
+          "s"
+          "i"
+        ];
         options.expr = true;
       }
     ];
 
-    autoCmd = [{
-      event = "TermOpen";
-      command = "setlocal nonumber norelativenumber";
-    }];
+    autoCmd = [
+      {
+        event = "TermOpen";
+        command = "setlocal nonumber norelativenumber";
+      }
+    ];
 
     extraConfigLuaPre = ''
       require("flatten").setup()
@@ -154,14 +171,22 @@
 
       fidget = {
         enable = true;
-        integration = { nvim-tree = { enable = true; }; };
+        integration = {
+          nvim-tree = {
+            enable = true;
+          };
+        };
         progress = {
           display = {
             progressIcon = {
               pattern = "flip";
               period = 1;
             };
-            overrides = { rust_analyzer = { name = "rust analyzer"; }; };
+            overrides = {
+              rust_analyzer = {
+                name = "rust analyzer";
+              };
+            };
           };
         };
         notification = {
@@ -252,8 +277,7 @@
             "<C-e>" = "cmp.mapping.close()";
             "<C-f>" = "cmp.mapping.scroll_docs(4)";
             "<CR>" = "cmp.mapping.confirm({ select = true })";
-            "<S-Tab>" =
-              "cmp.mapping(cmp.mapping.select_prev_item(), {'i', 's'})";
+            "<S-Tab>" = "cmp.mapping(cmp.mapping.select_prev_item(), {'i', 's'})";
             "<Tab>" = "cmp.mapping(cmp.mapping.select_next_item(), {'i', 's'})";
           };
           snippet = {
@@ -284,10 +308,18 @@
           enable = true;
           showOnDirs = true;
           icons = {
-            hint = { __raw = "symbols.Hint"; };
-            info = { __raw = "symbols.Info"; };
-            warning = { __raw = "symbols.Warn"; };
-            error = { __raw = "symbols.Error"; };
+            hint = {
+              __raw = "symbols.Hint";
+            };
+            info = {
+              __raw = "symbols.Info";
+            };
+            warning = {
+              __raw = "symbols.Warn";
+            };
+            error = {
+              __raw = "symbols.Error";
+            };
           };
         };
       };
@@ -295,11 +327,13 @@
       bufferline = {
         enable = true;
         separatorStyle = "thin";
-        offsets = [{
-          filetype = "NvimTree";
-          text = "__ Tree __";
-          separator = "│";
-        }];
+        offsets = [
+          {
+            filetype = "NvimTree";
+            text = "__ Tree __";
+            separator = "│";
+          }
+        ];
       };
 
       lualine = {
@@ -314,26 +348,40 @@
           right = "";
         };
         sections = {
-          lualine_a = [{
-            name = "mode";
-            separator = { left = ""; };
-            padding = {
-              left = 1;
-              right = 2;
-            };
-          }];
-          lualine_b = [ "filename" "branch" ];
+          lualine_a = [
+            {
+              name = "mode";
+              separator = {
+                left = "";
+              };
+              padding = {
+                left = 1;
+                right = 2;
+              };
+            }
+          ];
+          lualine_b = [
+            "filename"
+            "branch"
+          ];
           lualine_c = [ "fileformat" ];
           lualine_x = [ ];
-          lualine_y = [ "filetype" "progress" ];
-          lualine_z = [{
-            name = "location";
-            separator = { right = ""; };
-            padding = {
-              left = 2;
-              right = 1;
-            };
-          }];
+          lualine_y = [
+            "filetype"
+            "progress"
+          ];
+          lualine_z = [
+            {
+              name = "location";
+              separator = {
+                right = "";
+              };
+              padding = {
+                left = 2;
+                right = 1;
+              };
+            }
+          ];
         };
       };
 

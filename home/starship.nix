@@ -1,9 +1,9 @@
-{ ... }: {
+{ ... }:
+{
   programs.starship = {
     enable = true;
     settings = {
-      format =
-        "$directory$all$cmd_duration$jobs$status$shell$line_break$env_var$username$sudo$character";
+      format = "$directory$all$cmd_duration$jobs$status$shell$line_break$env_var$username$sudo$character";
       right_format = "$battery$time";
       add_newline = true;
       character = {
@@ -11,7 +11,6 @@
         success_symbol = "[●](bright-green)";
         error_symbol = "[●](red)";
         vicmd_symbol = "[◆](blue)";
-
       };
       sudo = {
         format = "[$symbol]($style)";
@@ -40,13 +39,11 @@
         style = "green";
       };
       git_status = {
-        format =
-          "($ahead_behind$staged$renamed$modified$untracked$deleted$conflicted$stashed)";
+        format = "($ahead_behind$staged$renamed$modified$untracked$deleted$conflicted$stashed)";
         conflicted = "[◪ ]( bright-magenta)";
         ahead = "[▲ [$count](bold white) ](green)";
         behind = "[▼ [$count](bold white) ](red)";
-        diverged =
-          "[◇ [$ahead_count](bold green)/[$behind_count](bold red) ](bright-magenta)";
+        diverged = "[◇ [$ahead_count](bold green)/[$behind_count](bold red) ](bright-magenta)";
         untracked = "[○ ](bright-yellow)";
         stashed = "[$count ](bold white)";
         renamed = "[● ](bright-blue)";

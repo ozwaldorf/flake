@@ -1,6 +1,8 @@
 { pkgs, username, ... }:
-let homeDirectory = "/home/${username}";
-in {
+let
+  homeDirectory = "/home/${username}";
+in
+{
   gtk = {
     enable = true;
     theme = {

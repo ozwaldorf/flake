@@ -31,17 +31,28 @@
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, home-manager-shell, ... }@inputs:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      home-manager,
+      home-manager-shell,
+      ...
+    }@inputs:
     let
       # Flake utilities
       nameValuePair = name: value: { inherit name value; };
-      genAttrs = names: f:
-        builtins.listToAttrs (map (n: nameValuePair n (f n)) names);
-      allSystems =
-        [ "x86_64-linux" "aarch64-linux" "i686-linux" "x86_64-darwin" ];
+      genAttrs = names: f: builtins.listToAttrs (map (n: nameValuePair n (f n)) names);
+      allSystems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "i686-linux"
+        "x86_64-darwin"
+      ];
       forAllSystems = f: genAttrs allSystems (system: f system);
 
-      makePkgs = system:
+      makePkgs =
+        system:
         import nixpkgs {
           inherit system;
           overlays = [ custom.overlays.default ];
@@ -55,8 +66,18 @@
       username = "oz";
       hostname = "onix";
       homeDirectory = "/home/${username}";
-      args = { inherit inputs pkgs system username hostname homeDirectory; };
-    in {
+      args = {
+        inherit
+          inputs
+          pkgs
+          system
+          username
+          hostname
+          homeDirectory
+          ;
+      };
+    in
+    {
       # Full nixos system and home configuration
       nixosConfigurations = {
         "onix" = nixpkgs.lib.nixosSystem {
@@ -89,29 +110,47 @@
 
       # Export the standalone custom packages and the default overlay for applying them;
       inherit (custom) overlays;
-      packages = forAllSystems (system:
-        let pkgs = makePkgs system;
-        in { inherit (pkgs) neovim ags swayfx-unwrapped carburetor-gtk; });
+      packages = forAllSystems (
+        system:
+        let
+          pkgs = makePkgs system;
+        in
+        {
+          inherit (pkgs)
+            neovim
+            ags
+            swayfx-unwrapped
+            carburetor-gtk
+            ;
+        }
+      );
 
       # Default `nix run` for the headless home configuration
-      apps = forAllSystems (system:
-        let pkgs = makePkgs system;
-        in {
+      apps = forAllSystems (
+        system:
+        let
+          pkgs = makePkgs system;
+        in
+        {
           default = {
             type = "app";
-            program = (let
-              shell = home-manager-shell.lib { inherit self system; };
-              entry = pkgs.symlinkJoin {
-                name = "entry";
-                paths = [ shell ];
-                nativeBuildInputs = with pkgs; [ makeWrapper ];
-                installPhase = ''
-                  wrapProgram $out/bin/home-manager-shell --add-flag "-U oz" --add-flag "-i ./home" --add-flag "-c"
-                '';
-              };
-            in "${entry}/bin/home-manager-shell");
+            program = (
+              let
+                shell = home-manager-shell.lib { inherit self system; };
+                entry = pkgs.symlinkJoin {
+                  name = "entry";
+                  paths = [ shell ];
+                  nativeBuildInputs = with pkgs; [ makeWrapper ];
+                  installPhase = ''
+                    wrapProgram $out/bin/home-manager-shell --add-flag "-U oz" --add-flag "-i ./home" --add-flag "-c"
+                  '';
+                };
+              in
+              "${entry}/bin/home-manager-shell"
+            );
           };
-        });
+        }
+      );
 
       # `nix fmt`
       formatter = forAllSystems (system: (makePkgs system).nixfmt-rfc-style);

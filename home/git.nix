@@ -1,4 +1,5 @@
-{ ... }: {
+{ ... }:
+{
   programs.git = {
     enable = true;
 
@@ -14,7 +15,11 @@
       init.defaultBranch = "main";
       core.editor = "nvim";
     };
-    ignores = [ ".envrc" ".direnv" "result" ];
+    ignores = [
+      ".envrc"
+      ".direnv"
+      "result"
+    ];
     delta = {
       enable = true;
       options = {

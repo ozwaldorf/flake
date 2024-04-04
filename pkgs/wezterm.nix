@@ -51,7 +51,7 @@ let
      
          fn refresh_frame(&mut self) {
   '';
-in pkgs.wezterm.overrideAttrs (prev: {
-  patches = prev.patches or [ ]
-    ++ [ (pkgs.writeText "remove_first_configure.patch" patch) ];
+in
+pkgs.wezterm.overrideAttrs (prev: {
+  patches = prev.patches or [ ] ++ [ (pkgs.writeText "remove_first_configure.patch" patch) ];
 })

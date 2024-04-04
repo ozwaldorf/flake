@@ -1,4 +1,5 @@
-{ pkgs, ... }: {
+{ pkgs, ... }:
+{
   # enable discord ipc server
   services.arrpc.enable = true;
 

@@ -1,6 +1,8 @@
 { pkgs, ... }:
-let src = (pkgs.catppuccin-gtk.override { variant = "mocha"; }).out;
-in pkgs.stdenv.mkDerivation {
+let
+  src = (pkgs.catppuccin-gtk.override { variant = "mocha"; }).out;
+in
+pkgs.stdenv.mkDerivation {
   inherit src;
   name = "carburetor-gtk";
   nativeBuildInputs = [ ];
