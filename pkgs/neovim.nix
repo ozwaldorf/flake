@@ -304,6 +304,10 @@
         enable = true;
         renderer.addTrailing = true;
         renderer.highlightOpenedFiles = "all";
+        updateFocusedFile = {
+          enable = true;
+          updateRoot = true;
+        };
         diagnostics = {
           enable = true;
           showOnDirs = true;
