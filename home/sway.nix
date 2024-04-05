@@ -4,15 +4,7 @@
     swww
     wl-clipboard
     wf-recorder
-
-    (sway-contrib.grimshot.overrideAttrs (_: {
-      src = fetchFromGitHub {
-        owner = "OctopusET";
-        repo = "sway-contrib";
-        rev = "b7825b218e677c65f6849be061b93bd5654991bf";
-        hash = "sha256-ZTfItJ77mrNSzXFVcj7OV/6zYBElBj+1LcLLHxBFypk=";
-      };
-    }))
+    sway-contrib.grimshot
   ];
 
   wayland.windowManager.sway =

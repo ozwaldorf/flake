@@ -1,19 +1,19 @@
 { inputs }:
 {
   overlays.default = (
-    final: pkgs: {
-      # Updated to newer swayfx-git
-      swayfx-unwrapped = pkgs.swayfx-unwrapped.overrideAttrs {
-        src = pkgs.fetchFromGitHub {
-          owner = "WillPower3309";
-          repo = "swayfx";
-          rev = "2bd366f3372d6f94f6633e62b7f7b06fcf316943";
-          sha256 = "sha256-kRWXQnUkMm5HjlDX9rBq8lowygvbK9+ScAOhiySR3KY=";
-        };
-      };
-
+    _: pkgs: {
       # Fork with sway ipc service
       ags = inputs.ags.packages.${pkgs.system}.default;
+
+      # Update upstream
+      sway-contrib.grimshot = pkgs.sway-contrib.grimshot.overrideAttrs (_: {
+        src = pkgs.fetchFromGitHub {
+          owner = "OctopusET";
+          repo = "sway-contrib";
+          rev = "b7825b218e677c65f6849be061b93bd5654991bf";
+          hash = "sha256-ZTfItJ77mrNSzXFVcj7OV/6zYBElBj+1LcLLHxBFypk=";
+        };
+      });
 
       # Carburetor gtk theme (patched catpuccin-gtk)
       carburetor-gtk = import ./carburetor-gtk.nix { inherit pkgs; };

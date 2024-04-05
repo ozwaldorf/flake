@@ -25,6 +25,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    swayfx.url = "github:ozwaldorf/swayfx";
+
     ags = {
       url = "github:ozwaldorf/ags";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -58,6 +60,7 @@
         import nixpkgs {
           inherit system;
           overlays = [
+            inputs.swayfx.overlays.default
             inputs.prismlauncher.overlays.default
             custom.overlays.default
           ];

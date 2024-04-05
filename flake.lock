@@ -421,6 +421,22 @@
         "type": "github"
       }
     },
+    "nixpkgs_3": {
+      "locked": {
+        "lastModified": 1712192574,
+        "narHash": "sha256-LbbVOliJKTF4Zl2b9salumvdMXuQBr2kuKP5+ZwbYq4=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "f480f9d09e4b4cf87ee6151eba068197125714de",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nixvim": {
       "inputs": {
         "devshell": "devshell",
@@ -536,7 +552,26 @@
         "neovim": "neovim",
         "nixpkgs": "nixpkgs",
         "nixvim": "nixvim",
-        "prismlauncher": "prismlauncher"
+        "prismlauncher": "prismlauncher",
+        "swayfx": "swayfx"
+      }
+    },
+    "swayfx": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_3"
+      },
+      "locked": {
+        "lastModified": 1712278387,
+        "narHash": "sha256-byk2Dog6HNaLuGuMCTPNWWpB/ZdyJWA4pKpfpQCJMRQ=",
+        "owner": "ozwaldorf",
+        "repo": "swayfx",
+        "rev": "fd7df4b6b13748a93f552a593adb42559c8f34f5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ozwaldorf",
+        "repo": "swayfx",
+        "type": "github"
       }
     },
     "systems": {
