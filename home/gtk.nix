@@ -3,6 +3,8 @@ let
   homeDirectory = "/home/${username}";
 in
 {
+  imports = [ ./modules/pointer.nix ];
+
   gtk = {
     enable = true;
     theme = {
@@ -22,11 +24,14 @@ in
     ];
   };
 
-  home.pointerCursor = {
+  home.pointerCursorPatch = {
     package = pkgs.bibata-cursors;
     name = "Bibata-Modern-Classic";
     size = 48;
-    gtk.enable = true;
     x11.enable = true;
+    gtk = {
+      enable = true;
+      size = 24;
+    };
   };
 }
