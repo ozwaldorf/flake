@@ -9,20 +9,12 @@ let
         home = {
           inherit username homeDirectory;
           stateVersion = "24.05";
+          packages = [ pkgs.neovim ];
         };
       }
-
       ../home/zsh.nix
       ../home/starship.nix
     ];
-    extraSpecialArgs = {
-      inherit
-        pkgs
-        inputs
-        username
-        homeDirectory
-        ;
-    };
   };
 in
 pkgs.symlinkJoin {

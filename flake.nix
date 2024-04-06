@@ -45,7 +45,8 @@
     }@inputs:
     let
       # Flake utilities
-      makePkgs =
+      custom = import ./pkgs { inherit inputs; };
+      pkgsFor =
         system:
         import nixpkgs {
           inherit system;
@@ -56,18 +57,18 @@
           ];
           config.allowUnfree = true;
         };
-      allSystems = [
-        "x86_64-linux"
-        "aarch64-linux"
-        "i686-linux"
-        "x86_64-darwin"
-      ];
-      perSystem = f: nixpkgs.lib.genAttrs allSystems (system: f (makePkgs system));
+      perSystem =
+        f:
+        nixpkgs.lib.genAttrs [
+          "x86_64-linux"
+          "aarch64-linux"
+          "i686-linux"
+          "x86_64-darwin"
+        ] (system: f (pkgsFor system));
 
       # System variables (nixos and home)
       system = "x86_64-linux";
-      custom = import ./pkgs { inherit inputs; };
-      pkgs = makePkgs system;
+      pkgs = pkgsFor system;
       username = "oz";
       hostname = "onix";
       homeDirectory = "/home/${username}";
@@ -106,7 +107,7 @@
         };
       };
 
-      # Export the standalone custom packages and the default overlay for applying them;
+      # Flake outputs
       inherit (custom) overlays;
       packages = perSystem (pkgs: {
         inherit (pkgs)
@@ -115,11 +116,9 @@
           swayfx-unwrapped
           carburetor-gtk
           ;
-
-        default = pkgs.standalone;
       });
 
-      # Default `nix run` for the headless home configuration
+      # `nix run` for a standalone headless environment starting with zsh
       apps = perSystem (pkgs: {
         default = {
           type = "app";
@@ -127,7 +126,6 @@
         };
       });
 
-      # `nix fmt`
       formatter = perSystem (pkgs: pkgs.nixfmt-rfc-style);
     };
 }
