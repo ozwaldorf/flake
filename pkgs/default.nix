@@ -26,6 +26,14 @@
 
       # Standalone neovim configuration
       neovim = import ./neovim.nix { inherit inputs pkgs; };
+
+      # Unified headless package with standalone versions of home packages
+      # Overrides pkgs with the final output of the overlay, so that the
+      # standalone neovim can be included in the outputs
+      standalone = import ./standalone.nix {
+        inherit inputs;
+        pkgs = final;
+      };
     }
   );
 }

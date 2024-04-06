@@ -45,16 +45,6 @@
     }@inputs:
     let
       # Flake utilities
-      nameValuePair = name: value: { inherit name value; };
-      genAttrs = names: f: builtins.listToAttrs (map (n: nameValuePair n (f n)) names);
-      allSystems = [
-        "x86_64-linux"
-        "aarch64-linux"
-        "i686-linux"
-        "x86_64-darwin"
-      ];
-      forAllSystems = f: genAttrs allSystems (system: f system);
-
       makePkgs =
         system:
         import nixpkgs {
@@ -66,6 +56,13 @@
           ];
           config.allowUnfree = true;
         };
+      allSystems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "i686-linux"
+        "x86_64-darwin"
+      ];
+      perSystem = f: nixpkgs.lib.genAttrs allSystems (system: f (makePkgs system));
 
       # System variables (nixos and home)
       system = "x86_64-linux";
@@ -109,58 +106,28 @@
         };
       };
 
-      # Headless standalone home configuration
-      homeConfigurations."oz" = home-manager.lib.homeManagerConfiguration {
-        inherit pkgs;
-        modules = [ ./home/headless.nix ];
-        extraSpecialArgs = args;
-      };
-
       # Export the standalone custom packages and the default overlay for applying them;
       inherit (custom) overlays;
-      packages = forAllSystems (
-        system:
-        let
-          pkgs = makePkgs system;
-        in
-        {
-          inherit (pkgs)
-            neovim
-            ags
-            swayfx-unwrapped
-            carburetor-gtk
-            ;
-        }
-      );
+      packages = perSystem (pkgs: {
+        inherit (pkgs)
+          neovim
+          ags
+          swayfx-unwrapped
+          carburetor-gtk
+          ;
+
+        default = pkgs.standalone;
+      });
 
       # Default `nix run` for the headless home configuration
-      apps = forAllSystems (
-        system:
-        let
-          pkgs = makePkgs system;
-        in
-        {
-          default = {
-            type = "app";
-            program = (
-              let
-                shell = home-manager-shell.lib { inherit self system; };
-                entry = pkgs.symlinkJoin {
-                  name = "entry";
-                  paths = [ shell ];
-                  nativeBuildInputs = with pkgs; [ makeWrapper ];
-                  installPhase = ''
-                    wrapProgram $out/bin/home-manager-shell --add-flag "-U oz" --add-flag "-i ./home" --add-flag "-c"
-                  '';
-                };
-              in
-              "${entry}/bin/home-manager-shell"
-            );
-          };
-        }
-      );
+      apps = perSystem (pkgs: {
+        default = {
+          type = "app";
+          program = "${pkgs.standalone}/bin/zsh";
+        };
+      });
 
       # `nix fmt`
-      formatter = forAllSystems (system: (makePkgs system).nixfmt-rfc-style);
+      formatter = perSystem (pkgs: pkgs.nixfmt-rfc-style);
     };
 }
