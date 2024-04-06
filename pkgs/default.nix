@@ -1,7 +1,7 @@
 { inputs }:
 {
   overlays.default = (
-    _: pkgs: {
+    final: pkgs: {
       # Fork with sway ipc service
       ags = inputs.ags.packages.${pkgs.system}.default;
 
@@ -25,13 +25,7 @@
       wezterm = import ./wezterm.nix { inherit pkgs; };
 
       # Standalone neovim configuration
-      neovim = inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
-        inherit pkgs;
-        extraSpecialArgs = {
-          neovim-unwrapped = inputs.neovim.packages.${pkgs.system}.default;
-        };
-        module = ./neovim.nix;
-      };
+      neovim = import ./neovim.nix { inherit inputs pkgs; };
     }
   );
 }

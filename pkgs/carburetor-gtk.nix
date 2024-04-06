@@ -1,10 +1,7 @@
 { pkgs, ... }:
-let
-  src = (pkgs.catppuccin-gtk.override { variant = "mocha"; }).out;
-in
 pkgs.stdenv.mkDerivation {
-  inherit src;
   name = "carburetor-gtk";
+  src = (pkgs.catppuccin-gtk.override { variant = "mocha"; }).out;
   nativeBuildInputs = [ ];
   installPhase = ''
     export MOCHA_COLORS=(
