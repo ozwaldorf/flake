@@ -12,15 +12,24 @@
     ./hardware-configuration.nix
   ];
 
-  nix.settings = {
-    experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
-    substituters = pkgs.lib.mkBefore [ "https://cache.garnix.io" ];
-    trusted-public-keys = pkgs.lib.mkBefore [
-      "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
-    ];
+  nix = {
+    registry = {
+      nixpkgs.flake = inputs.nixpkgs;
+    };
+    settings = {
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
+      auto-optimise-store = true;
+      extra-substituters = [ "https://cache.garnix.io" ];
+      extra-trusted-public-keys = [ "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g=" ];
+    };
+    gc = {
+      automatic = true;
+      dates = "weekly";
+      options = "--delete-older-than 7d";
+    };
   };
 
   users.users.${username} = {
@@ -194,16 +203,6 @@
   programs.direnv = {
     enable = true;
     direnvrcExtra = "export SHELL=$SHELL";
-  };
-
-  nix.settings.auto-optimise-store = true;
-  nix.gc = {
-    automatic = true;
-    dates = "weekly";
-    options = "--delete-older-than 7d";
-  };
-  nix.registry = {
-    nixpkgs.flake = inputs.nixpkgs;
   };
 
   environment.sessionVariables = {

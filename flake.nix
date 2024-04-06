@@ -35,6 +35,11 @@
     prismlauncher.url = "github:PrismLauncher/PrismLauncher";
   };
 
+  nixConfig = {
+    extra-substituters = [ "https://cache.garnix.io" ];
+    extra-trusted-public-keys = [ "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g=" ];
+  };
+
   outputs =
     {
       self,
@@ -115,6 +120,7 @@
           ags
           swayfx-unwrapped
           carburetor-gtk
+          standalone
           ;
       });
 

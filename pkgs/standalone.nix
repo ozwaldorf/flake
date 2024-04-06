@@ -42,6 +42,7 @@ pkgs.symlinkJoin {
         ln -s $out/lib ${homeDirectory}/.nix-profile
         ln -s $out/libexec ${homeDirectory}/.nix-profile
         ln -s $out/etc ${homeDirectory}/.nix-profile
+        export PATH="$out/bin:\$PATH"
       " --set ZDOTDIR "$out"
   '';
 }
