@@ -11,5 +11,6 @@
     fontconfig
     inotify-tools
     nix-tree
+    ripgrep-all
   ];
 }
