@@ -1,6 +1,5 @@
 { pkgs, ... }:
 {
-
   home.packages = with pkgs; [
     eza
     bat
@@ -16,11 +15,10 @@
 
   programs.zsh = {
     enable = true;
-
-    enableCompletion = true;
-
+    # inline history
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
+    enableCompletion = false; # autocomplete will compinit on its own
     plugins = [
       {
         name = "zsh-autocomplete";
