@@ -69,7 +69,7 @@
     plymouth = {
       enable = true;
     };
-    kernelPackages = pkgs.linuxPackages_6_7;
+    kernelPackages = pkgs.linuxPackages_6_8;
     consoleLogLevel = 0;
     initrd.verbose = false;
     kernelParams = [

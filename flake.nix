@@ -25,7 +25,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    swayfx.url = "github:ozwaldorf/swayfx";
+    swayfx = {
+      url = "github:ozwaldorf/swayfx";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     ags = {
       url = "github:ozwaldorf/ags";
@@ -46,6 +49,7 @@
       nixpkgs,
       home-manager,
       home-manager-shell,
+      swayfx,
       ...
     }@inputs:
     let
@@ -56,9 +60,9 @@
         import nixpkgs {
           inherit system;
           overlays = [
-            inputs.swayfx.overlays.default
-            inputs.prismlauncher.overlays.default
             custom.overlays.default
+            inputs.prismlauncher.overlays.default
+            inputs.swayfx.overlays.insert
           ];
           config.allowUnfree = true;
         };
@@ -118,9 +122,9 @@
         inherit (pkgs)
           neovim
           ags
+          wlroots
           swayfx-unwrapped
           carburetor-gtk
-          standalone
           ;
       });
 
