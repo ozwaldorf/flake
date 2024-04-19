@@ -25,7 +25,10 @@
     swayfx = {
       url = "github:ozwaldorf/swayfx";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.scenefx.url = "github:ozwaldorf/scenefx/fix/blur_effects_nix";
+      inputs.scenefx = {
+        url = "github:ozwaldorf/scenefx/fix/blur_effects_nix";
+        inputs.nixpkgs.follows = "nixpkgs";
+      };
     };
     hyprland = {
       url = "github:hyprwm/hyprland";

@@ -14,7 +14,7 @@ in
         blur = {
           size = 8;
           passes = 3;
-          noise = "0.01";
+          noise = "0.02";
           contrast = "0.9";
           brightness = "0.9";
           popups = true;
@@ -70,8 +70,8 @@ in
           )
         );
       bindm = [
-        "${mod},mouse:272,moveactive"
-        "${mod},mouse:273,resizeactive"
+        "${mod},mouse:272,movewindow"
+        "${mod},mouse:273,resizewindow"
       ];
     };
   };
