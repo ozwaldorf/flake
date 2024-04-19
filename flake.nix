@@ -3,7 +3,6 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -15,7 +14,6 @@
         home-manager.follows = "home-manager";
       };
     };
-
     neovim = {
       url = "github:neovim/neovim?dir=contrib";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -24,18 +22,23 @@
       url = "github:nix-community/nixvim";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
     swayfx = {
       url = "github:ozwaldorf/swayfx";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.scenefx.url = "github:ozwaldorf/scenefx/fix/blur_effects_nix";
     };
-
+    hyprland = {
+      url = "github:hyprwm/hyprland";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     ags = {
       url = "github:ozwaldorf/ags";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    prismlauncher.url = "github:PrismLauncher/PrismLauncher";
+    prismlauncher = {
+      url = "github:PrismLauncher/PrismLauncher";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   nixConfig = {
@@ -63,6 +66,7 @@
             custom.overlays.default
             inputs.prismlauncher.overlays.default
             inputs.swayfx.overlays.insert
+            inputs.hyprland.overlays.default
           ];
           config.allowUnfree = true;
         };
