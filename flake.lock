@@ -510,22 +510,6 @@
         "type": "github"
       }
     },
-    "nixpkgs_2": {
-      "locked": {
-        "lastModified": 1713128889,
-        "narHash": "sha256-aB90ZqzosyRDpBh+rILIcyP5lao8SKz8Sr2PSWvZrzk=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "2748d22b45a99fb2deafa5f11c7531c212b2cefa",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nixos",
-        "ref": "nixpkgs-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "nixvim": {
       "inputs": {
         "devshell": "devshell",
@@ -645,12 +629,15 @@
         "nixpkgs": "nixpkgs",
         "nixvim": "nixvim",
         "prismlauncher": "prismlauncher",
+        "scenefx": "scenefx",
         "swayfx": "swayfx"
       }
     },
     "scenefx": {
       "inputs": {
-        "nixpkgs": "nixpkgs_2"
+        "nixpkgs": [
+          "nixpkgs"
+        ]
       },
       "locked": {
         "lastModified": 1713487347,
@@ -662,6 +649,7 @@
       },
       "original": {
         "owner": "ozwaldorf",
+        "ref": "fix/blur_effects_nix",
         "repo": "scenefx",
         "type": "github"
       }
@@ -671,7 +659,9 @@
         "nixpkgs": [
           "nixpkgs"
         ],
-        "scenefx": "scenefx"
+        "scenefx": [
+          "scenefx"
+        ]
       },
       "locked": {
         "lastModified": 1713397312,

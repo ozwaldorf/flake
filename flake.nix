@@ -22,13 +22,14 @@
       url = "github:nix-community/nixvim";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    scenefx = {
+      url = "github:ozwaldorf/scenefx/fix/blur_effects_nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     swayfx = {
       url = "github:ozwaldorf/swayfx";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.scenefx = {
-        url = "github:ozwaldorf/scenefx/fix/blur_effects_nix";
-        inputs.nixpkgs.follows = "nixpkgs";
-      };
+      inputs.scenefx.follows = "scenefx";
     };
     hyprland = {
       url = "github:hyprwm/hyprland";

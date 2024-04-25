@@ -29,6 +29,7 @@
       neovim
       lutgen
       prismlauncher
+      gimp-devel
       pavucontrol # volume control
       wdisplays # display control
       gnome.eog # photo viewer

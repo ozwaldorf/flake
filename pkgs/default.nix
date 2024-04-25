@@ -28,5 +28,8 @@
       inherit inputs;
       pkgs = prev;
     };
+
+    # Gimp Development Version (GTK3)
+    gimp-devel = import ./gimp-devel { pkgs = prev; };
   };
 }

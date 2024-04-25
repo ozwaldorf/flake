@@ -160,6 +160,7 @@ makeNixvimWithModule {
               settings.formatting.command = [ "${pkgs.nixfmt-rfc-style}/bin/nixfmt" ];
             };
             tsserver.enable = true;
+            clangd.enable = true;
           };
           onAttach = ''
             if client.server_capabilities.inlayHintProvider then
