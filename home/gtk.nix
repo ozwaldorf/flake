@@ -12,7 +12,7 @@ in
       name = "Catppuccin-Mocha-Standard-Blue-Dark";
     };
     iconTheme = {
-      package = pkgs.papirus-icon-theme;
+      package = pkgs.carburetor-icons;
       name = "Papirus-Dark";
     };
     gtk3.bookmarks = [

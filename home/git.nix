@@ -14,6 +14,7 @@
       gpg.format = "ssh";
       init.defaultBranch = "main";
       core.editor = "nvim";
+      core.commentChar = "!";
     };
     ignores = [
       ".envrc"
