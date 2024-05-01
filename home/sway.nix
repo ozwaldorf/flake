@@ -13,6 +13,7 @@
     in
     {
       enable = true;
+      checkConfig = false;
       package = pkgs.swayfx;
       config = {
         startup = [

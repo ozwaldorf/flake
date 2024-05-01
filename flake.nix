@@ -22,17 +22,8 @@
       url = "github:nix-community/nixvim";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    scenefx = {
-      url = "github:ozwaldorf/scenefx/fix/blur_effects_nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     swayfx = {
-      url = "github:ozwaldorf/swayfx";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.scenefx.follows = "scenefx";
-    };
-    hyprland = {
-      url = "github:hyprwm/hyprland";
+      url = "github:WillPower3309/swayfx";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     ags = {
@@ -70,7 +61,6 @@
             custom.overlays.default
             inputs.prismlauncher.overlays.default
             inputs.swayfx.overlays.insert
-            inputs.hyprland.overlays.default
           ];
           config.allowUnfree = true;
         };
