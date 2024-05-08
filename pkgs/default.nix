@@ -34,5 +34,11 @@
 
     # Gimp Development Version (GTK3)
     gimp-devel = import ./gimp-devel { pkgs = prev; };
+
+    # Standalone shell environment
+    standalone = import ./standalone.nix {
+      inherit inputs;
+      pkgs = final;
+    };
   };
 }
