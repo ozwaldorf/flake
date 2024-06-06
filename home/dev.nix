@@ -13,11 +13,13 @@
       inotify-tools
       nix-tree
       ripgrep-all
+      xq
     ];
 
     sessionVariables = {
       CARGO_NET_GIT_FETCH_WITH_CLI = "true";
-      PATH = "$HOME/.cargo/bin:$PATH";
+      npm_config_prefix = "$HOME/.npm/";
+      PATH = "$HOME/.cargo/bin:$HOME/.npm/bin:$PATH";
     };
   };
 }

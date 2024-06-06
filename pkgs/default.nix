@@ -32,6 +32,20 @@
       pkgs = prev;
     };
 
+    # Update to my fork
+    xq = prev.xq.overrideAttrs (old: rec {
+      src = prev.fetchFromGitHub {
+        owner = "ozwaldorf";
+        repo = "xq";
+        rev = "bf3f07bf7d142a556604d56101f91b24681d782b";
+        hash = "sha256-sCm9Ru0VI/c/RuLmWtK/aht1rwWUfbaFevaIzZVOH5c=";
+      };
+      cargoDeps = old.cargoDeps.overrideAttrs (_: {
+        inherit src;
+        outputHash = "sha256-hfjiEXo1et0WQ6iUBFAOTFENjmtNQO/YiQWXcSbFn5E";
+      });
+    });
+
     # Gimp Development Version (GTK3)
     gimp-devel = import ./gimp-devel { pkgs = prev; };
 

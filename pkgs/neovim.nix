@@ -1,14 +1,11 @@
 { inputs, pkgs }:
 let
   inherit (inputs.nixvim.legacyPackages.${pkgs.system}) makeNixvimWithModule;
-  package = inputs.neovim.packages.${pkgs.system}.default;
 in
 makeNixvimWithModule {
   inherit pkgs;
   module = {
     config = {
-      inherit package;
-
       clipboard.providers.wl-copy.enable = true;
 
       # Use experimental lua loader with jit cache
@@ -69,7 +66,7 @@ makeNixvimWithModule {
           lua = true;
           action = ''
             function()
-              if vim.snippet.jumpable(1) then
+              if vim.snippet.active(1) then
                 return '<cmd>lua vim.snippet.jump(1)<cr>'
               else
                 return '<Tab>'
@@ -164,16 +161,18 @@ makeNixvimWithModule {
           };
           onAttach = ''
             if client.server_capabilities.inlayHintProvider then
-              vim.lsp.inlay_hint.enable(bufnr, true)
+              vim.lsp.inlay_hint.enable(true, { bufnr })
             end
           '';
         };
 
         rustaceanvim = {
           enable = true;
-          tools.hoverActions.replaceBuiltinHover = true;
-          server.settings.check.command = "clippy";
-          server.onAttach = "__lspOnAttach";
+          settings = {
+            tools.hover_actions.replace_builtin_hover = true;
+            server.settings.check.command = "clippy";
+            server.on_attach = "__lspOnAttach";
+          };
         };
 
         fidget = {

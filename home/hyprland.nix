@@ -6,6 +6,7 @@ in
   wayland.windowManager.hyprland = {
     enable = true;
     settings = {
+      monitor = [ "Unknown-1, disable" ];
       exec = [
         "swww-daemon -f xbgr"
         "ags"

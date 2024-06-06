@@ -14,8 +14,12 @@
         home-manager.follows = "home-manager";
       };
     };
-    neovim = {
-      url = "github:neovim/neovim?dir=contrib";
+    hyprland = {
+      url = "github:hyprwm/Hyprland";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    wezterm = {
+      url = "github:wez/wezterm?dir=nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nixvim = {
@@ -118,6 +122,7 @@
       inherit (custom) overlays;
       packages = perSystem (pkgs: {
         inherit (pkgs)
+          standalone
           neovim
           ags
           wlroots
