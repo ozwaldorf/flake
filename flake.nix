@@ -14,6 +14,10 @@
         home-manager.follows = "home-manager";
       };
     };
+    lutgen = {
+      url = "github:ozwaldorf/lutgen-rs/new-cli";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     hyprland = {
       url = "github:hyprwm/Hyprland";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -65,6 +69,7 @@
             custom.overlays.default
             inputs.prismlauncher.overlays.default
             inputs.swayfx.overlays.insert
+            inputs.lutgen.overlays.default
           ];
           config.allowUnfree = true;
         };

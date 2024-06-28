@@ -54,8 +54,9 @@
       fuck = "thefuck";
       switch = "sudo nixos-rebuild switch";
     };
+    initExtraFirst = ''
+      fpath=("$HOME/.zsh/completions" $fpath)
 
-    initExtra = ''
       ## Options section
       setopt correct                                                  # Auto correct mistakes
       setopt extendedglob                                             # Extended globbing. Allows using regular expressions with *
@@ -72,6 +73,7 @@
       zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'       # Case insensitive tab completion
       zstyle ':completion:*' list-colors "''${(s.:.)LS_COLORS}"         # Colored completion (different colors for dirs/files/etc)
       zstyle ':completion:*' rehash true                              # automatically find new executables in path
+      zstyle ':completion::complete:*' gain-privileges 1
       ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=244'  										  # make autosuggest a little brighter
 
       ## Keybindings section
