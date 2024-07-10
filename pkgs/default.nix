@@ -17,7 +17,7 @@
     webcord = import ./webcord.nix { pkgs = prev; };
 
     # Patched to work with hyprland 0.37
-    wezterm = import ./wezterm.nix { pkgs = prev; };
+    wezterm = inputs.wezterm.packages.${prev.system}.default;
 
     # Standalone neovim configuration
     neovim = import ./neovim.nix {
