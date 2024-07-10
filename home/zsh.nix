@@ -70,10 +70,14 @@
       setopt inc_append_history                                       # save commands are added to the history immediately, otherwise only when shell exits.
       setopt histignorespace                                          # Don't save commands that start with space
 
+      # completions config
       zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'       # Case insensitive tab completion
       zstyle ':completion:*' list-colors "''${(s.:.)LS_COLORS}"         # Colored completion (different colors for dirs/files/etc)
       zstyle ':completion:*' rehash true                              # automatically find new executables in path
       zstyle ':completion::complete:*' gain-privileges 1
+      zstyle -e ':autocomplete:*:*' list-lines 'reply=( $(( LINES / 3 )) )'
+      bindkey              '^I' menu-select
+      bindkey "$terminfo[kcbt]" menu-select
       ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=244'  										  # make autosuggest a little brighter
 
       ## Keybindings section

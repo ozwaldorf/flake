@@ -5,14 +5,7 @@
     ags = inputs.ags.packages.${prev.system}.default;
 
     # Update upstream
-    sway-contrib.grimshot = prev.sway-contrib.grimshot.overrideAttrs (_: {
-      src = prev.fetchFromGitHub {
-        owner = "OctopusET";
-        repo = "sway-contrib";
-        rev = "b7825b218e677c65f6849be061b93bd5654991bf";
-        hash = "sha256-ZTfItJ77mrNSzXFVcj7OV/6zYBElBj+1LcLLHxBFypk=";
-      };
-    });
+    sway-contrib.grimshot = prev.sway-contrib.grimshot;
 
     # Carburetor gtk theme (patched catpuccin-gtk)
     carburetor-gtk = import ./carburetor-gtk.nix { pkgs = prev; };
@@ -42,7 +35,7 @@
       };
       cargoDeps = old.cargoDeps.overrideAttrs (_: {
         inherit src;
-        outputHash = "sha256-hfjiEXo1et0WQ6iUBFAOTFENjmtNQO/YiQWXcSbFn5E";
+        outputHash = "sha256-kQ02XmdEtWFpXP0l4nJUHIB5cy9/Fqdcwz2IaMhnems=";
       });
     });
 

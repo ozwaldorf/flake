@@ -36,14 +36,61 @@ makeNixvimWithModule {
         {
           # Show hover actions
           key = "K";
-          lua = true;
-          action = "vim.lsp.buf.hover";
+          action.__raw = "vim.lsp.buf.hover";
+          mode = [ "n" ];
+        }
+        {
+          # Jump definition
+          key = "gd";
+          action.__raw = "vim.lsp.buf.definition";
+          mode = [ "n" ];
+        }
+        {
+          # Jump declaration
+          key = "gD";
+          action.__raw = "vim.lsp.buf.declaration";
+          mode = [ "n" ];
+        }
+        {
+          # Jump implementation
+          key = "gi";
+          action.__raw = "vim.lsp.buf.implementation";
+          mode = [ "n" ];
+        }
+        {
+          # References
+          key = "gr";
+          action.__raw = "vim.lsp.buf.references";
+          mode = [ "n" ];
+        }
+        {
+          # Rename
+          key = "gR";
+          action.__raw = "vim.lsp.buf.rename";
+          mode = [ "n" ];
+        }
+        {
+          # Format
+          key = "gf";
+          action.__raw = "vim.lsp.buf.format";
+          mode = [ "n" ];
+        }
+        {
+          # Next diagnostic
+          key = "gn";
+          action.__raw = "vim.diagnostic.goto_next";
+          mode = [ "n" ];
+        }
+        {
+          # Previous diagnostic
+          key = "gN";
+          action.__raw = "vim.diagnostic.goto_prev";
+          mode = [ "n" ];
         }
         {
           # Show code actions
           key = "<C-.>";
-          lua = true;
-          action = ''require("actions-preview").code_actions'';
+          action.__raw = ''require("actions-preview").code_actions'';
           mode = [
             "n"
             "v"
@@ -63,8 +110,7 @@ makeNixvimWithModule {
         {
           # Jump forward if completing a snippet (ie, function parameter placeholders)
           key = "<Tab>";
-          lua = true;
-          action = ''
+          action.__raw = ''
             function()
               if vim.snippet.active(1) then
                 return '<cmd>lua vim.snippet.jump(1)<cr>'
@@ -82,8 +128,7 @@ makeNixvimWithModule {
         {
           # Jump backwards if completing a snippet
           key = "<S-Tab>";
-          lua = true;
-          action = ''
+          action.__raw = ''
             function()
               if vim.snippet.jumpable("-1") then
                 return '<cmd>lua vim.snippet.jump(-1)<cr>'
@@ -115,6 +160,10 @@ makeNixvimWithModule {
         	local hl = "DiagnosticSign" .. name
         	vim.fn.sign_define(hl, { text = icon, numhl = hl, texthl = hl })
         end
+
+        vim.diagnostic.config {
+          float = { border = "rounded" },
+        }
       '';
 
       extraPlugins = with pkgs.vimPlugins; [
@@ -152,7 +201,7 @@ makeNixvimWithModule {
         lsp = {
           enable = true;
           servers = {
-            nil_ls = {
+            nil-ls = {
               enable = true;
               settings.formatting.command = [ "${pkgs.nixfmt-rfc-style}/bin/nixfmt" ];
             };
@@ -210,7 +259,13 @@ makeNixvimWithModule {
           settings.auto_close = true;
         };
         lsp-lines.enable = true;
-        gitsigns.enable = true;
+        gitsigns = {
+          enable = true;
+          settings = {
+            signcolumn = false;
+            current_line_blame = true;
+          };
+        };
         nvim-colorizer.enable = true;
         nvim-autopairs.enable = true;
         commentary.enable = true;
@@ -392,6 +447,7 @@ makeNixvimWithModule {
         mini = {
           enable = true;
           modules = {
+            diff = { };
             starter = {
               evaluate_single = true;
               header = {
@@ -449,8 +505,15 @@ makeNixvimWithModule {
         };
       };
 
-      # Highlight and remove extra white spaces
-      highlight.ExtraWhitespace.bg = "#fa4d56";
+      highlight = {
+        # Highlight and remove extra white spaces
+        ExtraWhitespace.bg = "#fa4d56";
+
+        # Mini.diff color fixes
+        MiniDiffSignAdd.fg = "#42be65";
+        MiniDiffSignChange.fg = "#fddc69";
+        MiniDiffSignDelete.fg = "#fa4d56";
+      };
       match.ExtraWhitespace = "\\s\\+$";
 
       colorschemes.catppuccin = {
