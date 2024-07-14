@@ -1,7 +1,11 @@
 { pkgs, ... }:
 pkgs.stdenv.mkDerivation {
   name = "carburetor-gtk";
-  src = (pkgs.catppuccin-gtk.override { variant = "mocha"; }).out;
+  src =
+    (pkgs.catppuccin-gtk.override {
+      variant = "mocha";
+      accents = [ "blue" ];
+    }).out;
   nativeBuildInputs = [ ];
   installPhase = ''
     export MOCHA_COLORS=(
@@ -24,20 +28,23 @@ pkgs.stdenv.mkDerivation {
       "#a6adc8/#c6c6c6"
       "#9399b2/#a8a8a8"
       "#7f849c/#8d8d8d"
-      "#6c7086/#6f6f6f"
-      "#585b70/#525252"
-      "#45475a/#393939"
-      "#313244/#262626"
-      "#1e1e2e/#161616"
-      "#181825/#0b0b0b"
-      "#11111b/#000000"
+      "#6c7086/rgba(111,111,111,0.8)"
+      "#585b70/rgba(82,82,82,0.8)"
+      "#45475a/rgba(57,57,57,0.8)"
+      "#313244/rgba(38,38,38,0.8)"
+      "#1e1e2e/rgba(22,22,22,0.8)"
+      "#181825/rgba(11,11,11,0.8)"
+      "#11111b/rgba(0,0,0,0.8)"
     )
     ARGS=()
     for r in "''${MOCHA_COLORS[@]}"; do
       ARGS+=("-e s/$r/Ig")
     done
+    ls share/themes
     find . -type f -exec sed -i ''${ARGS[@]} {} +
-    mkdir -p $out
-    cp -R share $out/
+    mkdir -p $out/share/themes
+    cp -R share/themes/catppuccin-mocha-*-standard $out/share/themes/carburetor
+    cp -R share/themes/catppuccin-mocha-*-standard-hdpi $out/share/themes/carburetor-hdpi
+    cp -R share/themes/catppuccin-mocha-*-standard-xhdpi $out/share/themes/carburetor-xhdpi
   '';
 }

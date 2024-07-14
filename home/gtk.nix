@@ -9,7 +9,7 @@ in
     enable = true;
     theme = {
       package = pkgs.carburetor-gtk;
-      name = "Catppuccin-Mocha-Standard-Blue-Dark";
+      name = "carburetor";
     };
     iconTheme = {
       package = pkgs.carburetor-icons;
