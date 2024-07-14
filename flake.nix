@@ -15,7 +15,7 @@
       };
     };
     lutgen = {
-      url = "github:ozwaldorf/lutgen-rs/new-cli";
+      url = "github:ozwaldorf/lutgen-rs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     hyprland = {
@@ -36,10 +36,6 @@
     };
     ags = {
       url = "github:ozwaldorf/ags";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    prismlauncher = {
-      url = "github:PrismLauncher/PrismLauncher";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -67,7 +63,6 @@
           inherit system;
           overlays = [
             custom.overlays.default
-            inputs.prismlauncher.overlays.default
             inputs.swayfx.overlays.insert
             inputs.lutgen.overlays.default
           ];
