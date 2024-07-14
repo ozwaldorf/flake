@@ -18,6 +18,7 @@ makeNixvimWithModule {
         mouse = "a";
         number = true;
         undofile = true;
+        foldenable = false;
       };
 
       keymaps = [
@@ -37,6 +38,12 @@ makeNixvimWithModule {
           # Show hover actions
           key = "K";
           action.__raw = "vim.lsp.buf.hover";
+          mode = [ "n" ];
+        }
+        {
+          # Toggle git diff overlay0
+          key = "go";
+          action.__raw = "MiniDiff.toggle_overlay";
           mode = [ "n" ];
         }
         {
@@ -200,6 +207,7 @@ makeNixvimWithModule {
       plugins = {
         lsp = {
           enable = true;
+          inlayHints = true;
           servers = {
             nil-ls = {
               enable = true;
@@ -208,11 +216,6 @@ makeNixvimWithModule {
             tsserver.enable = true;
             clangd.enable = true;
           };
-          onAttach = ''
-            if client.server_capabilities.inlayHintProvider then
-              vim.lsp.inlay_hint.enable(true, { bufnr })
-            end
-          '';
         };
 
         rustaceanvim = {
@@ -293,46 +296,44 @@ makeNixvimWithModule {
                 selection_order = "near_cursor";
               };
             };
-            formatting = {
-              __raw = ''
-                {
-                  fields = { "kind", "abbr", "menu" },
-                  format = function(_, vim_item)
-                    local icons = {
-                      Text = '  ',
-                      Method = '  ',
-                      Function = '  ',
-                      Constructor = '  ',
-                      Field = '  ',
-                      Variable = '  ',
-                      Class = '  ',
-                      Interface = '  ',
-                      Module = '  ',
-                      Property = '  ',
-                      Unit = '  ',
-                      Value = '  ',
-                      Enum = '  ',
-                      Keyword = '  ',
-                      Snippet = '  ',
-                      Color = '  ',
-                      File = '  ',
-                      Reference = '  ',
-                      Folder = '  ',
-                      EnumMember = '  ',
-                      Constant = '  ',
-                      Struct = '  ',
-                      Event = '  ',
-                      Operator = '  ',
-                      TypeParameter = '  ',
-                    }
-                    local kind = vim_item.kind
-                    vim_item.kind = (icons[kind] or "")
-                    vim_item.menu = "   " .. (kind or "")
-                    return vim_item
-                  end,
-                }
-              '';
-            };
+            formatting.__raw = ''
+              {
+                fields = { "kind", "abbr", "menu" },
+                format = function(_, vim_item)
+                  local icons = {
+                    Text = '  ',
+                    Method = '  ',
+                    Function = '  ',
+                    Constructor = '  ',
+                    Field = '  ',
+                    Variable = '  ',
+                    Class = '  ',
+                    Interface = '  ',
+                    Module = '  ',
+                    Property = '  ',
+                    Unit = '  ',
+                    Value = '  ',
+                    Enum = '  ',
+                    Keyword = '  ',
+                    Snippet = '  ',
+                    Color = '  ',
+                    File = '  ',
+                    Reference = '  ',
+                    Folder = '  ',
+                    EnumMember = '  ',
+                    Constant = '  ',
+                    Struct = '  ',
+                    Event = '  ',
+                    Operator = '  ',
+                    TypeParameter = '  ',
+                  }
+                  local kind = vim_item.kind
+                  vim_item.kind = (icons[kind] or "")
+                  vim_item.menu = "   " .. (kind or "")
+                  return vim_item
+                end,
+              }
+            '';
             mapping = {
               "<C-Space>" = "cmp.mapping.complete()";
               "<C-d>" = "cmp.mapping.scroll_docs(-4)";
@@ -349,14 +350,12 @@ makeNixvimWithModule {
                 end
               '';
             };
-            window = {
-              __raw = ''
-                {
-                  completion = cmp.config.window.bordered(),
-                  documentation = cmp.config.window.bordered(),
-                }
-              '';
-            };
+            window.__raw = ''
+              {
+                completion = cmp.config.window.bordered(),
+                documentation = cmp.config.window.bordered(),
+              }
+            '';
           };
         };
 
@@ -451,56 +450,51 @@ makeNixvimWithModule {
             diff = { };
             starter = {
               evaluate_single = true;
-              header = {
-                __raw = ''
-                  function()
-                    local hour = tonumber(vim.fn.strftime('%H'))
-                    local part_id = math.floor((hour + 4) / 8) + 1
-                    local day_part = ({ 'evening', 'morning', 'afternoon', 'evening' })[part_id]
-                    local username = vim.loop.os_get_passwd()['username'] or 'USERNAME'
-                    return ([[
-                  `7MM"""Yb.                    db  mm
-                    MM    `Yb.                  '/  MM
-                    MM     `Mb  ,pW"Wq.`7MMpMMMb. mmMMmm
-                    MM      MM 6W'   `Wb MM    MM   MM
-                    MM     ,MP 8M     M8 MM    MM   MM
-                    MM    ,dP' YA.   ,A9 MM    MM   MM
-                  .JMMmmmdP'    `Ybmd9'.JMML  JMML. `Mbmo
+              header.__raw = ''
+                function()
+                  local hour = tonumber(vim.fn.strftime('%H'))
+                  local part_id = math.floor((hour + 4) / 8) + 1
+                  local day_part = ({ 'evening', 'morning', 'afternoon', 'evening' })[part_id]
+                  local username = vim.loop.os_get_passwd()['username'] or 'USERNAME'
+                  return ([[
+                `7MM"""Yb.                    db  mm
+                  MM    `Yb.                  '/  MM
+                  MM     `Mb  ,pW"Wq.`7MMpMMMb. mmMMmm
+                  MM      MM 6W'   `Wb MM    MM   MM
+                  MM     ,MP 8M     M8 MM    MM   MM
+                  MM    ,dP' YA.   ,A9 MM    MM   MM
+                .JMMmmmdP'    `Ybmd9'.JMML  JMML. `Mbmo
 
-                  `7MM"""Mq.                     db          OO
-                    MM   `MM.                                88
-                    MM   ,M9 ,6"Yb. `7MMpMMMb. `7MM  ,p6"bo  ||
-                    MMmmdM9 8)   MM   MM    MM   MM 6M'  OO  ||
-                    MM       ,pm9MM   MM    MM   MM 8M       `'
-                    MM      8M   MM   MM    MM   MM YM.    , ,,
-                  .JMML.    `Moo9^Yo.JMML  JMML.JMML.YMbmd'  db
+                `7MM"""Mq.                     db          OO
+                  MM   `MM.                                88
+                  MM   ,M9 ,6"Yb. `7MMpMMMb. `7MM  ,p6"bo  ||
+                  MMmmdM9 8)   MM   MM    MM   MM 6M'  OO  ||
+                  MM       ,pm9MM   MM    MM   MM 8M       `'
+                  MM      8M   MM   MM    MM   MM YM.    , ,,
+                .JMML.    `Moo9^Yo.JMML  JMML.JMML.YMbmd'  db
 
-                  ~ Good %s, %s]]):format(day_part, username)
-                  end
-                '';
-              };
-              items = {
-                __raw = ''
-                  {
-                    require("mini.starter").sections.recent_files(9, true),
-                    { name = 'New',  action = 'enew',           section = 'Editor actions' },
-                    { name = 'Tree', action = 'NvimTreeToggle', section = 'Editor actions' },
-                    { name = 'Quit', action = 'qall',           section = 'Editor actions' },
+                ~ Good %s, %s]]):format(day_part, username)
+                end
+              '';
+              items.__raw = ''
+                {
+                  require("mini.starter").sections.recent_files(9, true),
+                  { name = 'New',  action = 'enew',           section = 'Editor actions' },
+                  { name = 'Tree', action = 'NvimTreeToggle', section = 'Editor actions' },
+                  { name = 'Quit', action = 'qall',           section = 'Editor actions' },
+                }
+              '';
+
+              content_hooks.__raw = ''
+                (function()
+                  local starter = require('mini.starter')
+                  return {
+                    starter.gen_hook.adding_bullet(),
+                    starter.gen_hook.indexing("all", { "Editor actions" }),
+                    starter.gen_hook.padding(2, 1),
                   }
-                '';
-              };
-              content_hooks = {
-                __raw = ''
-                  (function()
-                    local starter = require('mini.starter')
-                    return {
-                      starter.gen_hook.adding_bullet(),
-                      starter.gen_hook.indexing("all", { "Editor actions" }),
-                      starter.gen_hook.padding(2, 1),
-                    }
-                  end)()
-                '';
-              };
+                end)()
+              '';
             };
           };
         };
@@ -514,6 +508,10 @@ makeNixvimWithModule {
         MiniDiffSignAdd.fg = "#42be65";
         MiniDiffSignChange.fg = "#fddc69";
         MiniDiffSignDelete.fg = "#fa4d56";
+        MiniDiffOverAdd.bg = "#044317";
+        MiniDiffOverChange.bg = "#8e6a00";
+        MiniDiffOverDelete.bg = "#750e13";
+        MiniDiffOverContext.bg = "#262626";
       };
       match.ExtraWhitespace = "\\s\\+$";
 

@@ -28,20 +28,19 @@
     packages = with pkgs; [
       neovim
       lutgen
-      prismlauncher
-      gimp-devel
+      # gimp-devel
       pavucontrol # volume control
       wdisplays # display control
-      gnome.eog # photo viewer
-      gnome.totem # video player
-      gnome.evince # document viewer
-      gnome.file-roller # archive manager
-      gnome.nautilus # file explorer
-      gnome.simple-scan # document scanner
+      eog # photo viewer
+      totem # video player
+      evince # document viewer
+      file-roller # archive manager
+      nautilus # file explorer
+      simple-scan # document scanner
       gnome.gnome-characters # character viewer
-      gnome.gnome-font-viewer # font viewer
-      gnome.gnome-system-monitor # resource monitor
-      gnome.gnome-disk-utility # disk manager
+      gnome-font-viewer # font viewer
+      gnome-system-monitor # resource monitor
+      gnome-disk-utility # disk manager
     ];
   };
 }

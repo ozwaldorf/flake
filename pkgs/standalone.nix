@@ -9,7 +9,11 @@ let
         home = {
           inherit username homeDirectory;
           stateVersion = "24.05";
-          packages = [ pkgs.neovim ];
+          packages = with pkgs; [
+            neovim
+            xq
+            btm
+          ];
         };
       }
       ../home/zsh.nix
