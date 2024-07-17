@@ -102,9 +102,20 @@
 
   services.xserver.enable = true;
   services.xserver.videoDrivers = [ "nvidia" ];
-  services.xserver.displayManager.gdm = {
+  # services.xserver.displayManager.gdm = {
+  #   enable = true;
+  #   wayland = true;
+  # };
+  services.getty.autologinUser = username;
+  services.greetd = {
     enable = true;
-    wayland = true;
+    settings = {
+      default_session = {
+        command = "Hyprland";
+        user = username;
+      };
+    };
+    vt = 1;
   };
 
   # services.xserver.desktopManager.gnome.enable = true;
