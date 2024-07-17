@@ -12,7 +12,7 @@ in
       name = "carburetor";
     };
     iconTheme = {
-      package = pkgs.carburetor-icons;
+      package = pkgs.carburetor-papirus-folders;
       name = "Papirus-Dark";
     };
     gtk3.bookmarks = [

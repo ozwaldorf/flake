@@ -7,12 +7,6 @@
     # Update upstream
     sway-contrib.grimshot = prev.sway-contrib.grimshot;
 
-    # Carburetor gtk theme (patched catpuccin-gtk)
-    carburetor-gtk = import ./carburetor-gtk.nix { pkgs = prev; };
-
-    # Carburetor icon theme (patched papirus-icon-theme)
-    carburetor-icons = prev.papirus-icon-theme;
-
     # Webcord with arRPC bridge enabled on startup
     webcord = import ./webcord.nix { pkgs = prev; };
 

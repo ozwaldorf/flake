@@ -38,6 +38,7 @@
       url = "github:ozwaldorf/ags";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    carburetor.url = "github:ozwaldorf/carburetor";
   };
 
   nixConfig = {
@@ -65,6 +66,7 @@
             custom.overlays.default
             inputs.swayfx.overlays.insert
             inputs.lutgen.overlays.default
+            inputs.carburetor.overlays.default
           ];
           config.allowUnfree = true;
         };
@@ -121,14 +123,7 @@
       # Flake outputs
       inherit (custom) overlays;
       packages = perSystem (pkgs: {
-        inherit (pkgs)
-          standalone
-          neovim
-          ags
-          wlroots
-          swayfx-unwrapped
-          carburetor-gtk
-          ;
+        inherit (pkgs) neovim webcord;
       });
 
       # `nix run` for a standalone headless environment starting with zsh
