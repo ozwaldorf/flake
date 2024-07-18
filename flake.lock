@@ -25,11 +25,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1721190100,
-        "narHash": "sha256-CTJPrLu9J2+BEDcnfNqqm4jTbhPE7afhVOwr86K5Wks=",
+        "lastModified": 1721334664,
+        "narHash": "sha256-WXFnjZBO9BHfP2b7g4oaf+xSzB4i4mfZbizubvTRBxI=",
         "owner": "ozwaldorf",
         "repo": "carburetor",
-        "rev": "1c0d942b70cd634a08f48bd95666f42df0c9e105",
+        "rev": "86af1de63f256e401de315a61b392d96be40af4f",
         "type": "github"
       },
       "original": {

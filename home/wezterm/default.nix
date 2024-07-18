@@ -1,5 +1,11 @@
-{ pkgs, ... }:
+{ ... }:
 {
-  home.packages = [ pkgs.wezterm ];
-  xdg.configFile.wezterm.source = ../wezterm;
+  programs.wezterm = {
+    enable = true;
+    enableZshIntegration = true;
+    enableBashIntegration = true;
+    extraConfig = builtins.readFile ./wezterm.lua;
+  };
+
+  carburetor.wezterm.enable = true;
 }

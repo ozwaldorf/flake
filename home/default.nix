@@ -1,5 +1,6 @@
 {
   pkgs,
+  inputs,
   username,
   homeDirectory,
   ...
@@ -16,6 +17,9 @@
     ./ags # bar, app launcher
     ./wezterm # terminal
     ./webcord.nix # discord
+
+    # caburetor theming
+    inputs.carburetor.homeManagerModules.default
   ];
 
   programs.home-manager.enable = true;
