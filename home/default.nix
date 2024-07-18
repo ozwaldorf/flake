@@ -17,8 +17,9 @@
     ./ags # bar, app launcher
     ./wezterm # terminal
     ./webcord.nix # discord
+    ./zed.nix # zed editor
 
-    # caburetor theming
+    # global caburetor theming
     inputs.carburetor.homeManagerModules.default
   ];
 
