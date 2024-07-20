@@ -7,5 +7,5 @@
     extraConfig = builtins.readFile ./wezterm.lua;
   };
 
-  carburetor.wezterm.enable = true;
+  carburetor.themes.wezterm.enable = true;
 }

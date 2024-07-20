@@ -63,11 +63,9 @@
         import nixpkgs {
           inherit system;
           overlays = [
-
             inputs.swayfx.overlays.insert
             inputs.lutgen.overlays.default
             custom.overlays.default
-
             inputs.carburetor.overlays.default
           ];
           config.allowUnfree = true;

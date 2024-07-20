@@ -1,8 +1,15 @@
-{ ... }:
+{ pkgs, ... }:
 let
   mod = "SUPER";
 in
 {
+  carburetor.themes = {
+    hyprland.enable = true;
+    hyprlock.enable = true;
+  };
+
+  home.packages = [ pkgs.hyprlock ];
+
   wayland.windowManager.hyprland = {
     enable = true;
     settings = {

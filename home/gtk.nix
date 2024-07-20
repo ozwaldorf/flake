@@ -1,37 +1,40 @@
-{ pkgs, username, ... }:
-let
-  homeDirectory = "/home/${username}";
-in
+{ pkgs, ... }:
 {
   imports = [ ./modules/pointer.nix ];
 
-  gtk = {
+  gtk.enable = true;
+
+  carburetor.themes.gtk = {
     enable = true;
-    theme = {
-      package = pkgs.carburetor-gtk;
-      name = "carburetor";
-    };
-    iconTheme = {
-      package = pkgs.carburetor-papirus-folders;
-      name = "Papirus-Dark";
-    };
-    gtk3.bookmarks = [
-      "file://${homeDirectory}/Code"
-      "file://${homeDirectory}/Downloads"
-      "file://${homeDirectory}/Documents"
-      "file://${homeDirectory}/Music"
-      "file://${homeDirectory}/Pictures"
-    ];
+    icon = true;
   };
 
-  home.pointerCursorPatch = {
-    package = pkgs.bibata-cursors;
-    name = "Bibata-Modern-Classic";
-    size = 48;
-    x11.enable = true;
-    gtk = {
-      enable = true;
-      size = 24;
+  home = {
+    pointerCursorPatch = {
+      package = pkgs.bibata-cursors;
+      name = "Bibata-Modern-Classic";
+      size = 48;
+      x11.enable = true;
+      gtk = {
+        enable = true;
+        size = 24;
+      };
     };
+
+    # Standalone gnome desktop apps
+    packages = with pkgs; [
+      pavucontrol # volume control
+      wdisplays # display control
+      eog # photo viewer
+      totem # video player
+      evince # document viewer
+      file-roller # archive manager
+      nautilus # file explorer
+      simple-scan # document scanner
+      gnome.gnome-characters # character viewer
+      gnome-font-viewer # font viewer
+      gnome-system-monitor # resource monitor
+      gnome-disk-utility # disk manager
+    ];
   };
 }

@@ -1,5 +1,8 @@
 { pkgs, ... }:
 {
-  home.packages = [ pkgs.zed-editor ];
-  carburetor.zed.enable = true;
+  carburetor.themes.zed.enable = true;
+  home.packages = with pkgs; [
+    zed-editor
+    nixd
+  ];
 }
