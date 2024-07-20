@@ -8,7 +8,10 @@ in
     hyprlock.enable = true;
   };
 
-  home.packages = [ pkgs.hyprlock ];
+  home.packages = with pkgs; [
+    hyprlock
+    hyprshot
+  ];
 
   wayland.windowManager.hyprland = {
     enable = true;
@@ -27,6 +30,7 @@ in
           brightness = "0.9";
           popups = true;
           xray = false;
+          new_optimizations = false;
         };
         rounding = 10;
         dim_special = "0.0";
@@ -41,7 +45,8 @@ in
         [
           "${mod}, RETURN, exec, wezterm"
           "${mod}, E, exec, firefox"
-          ", Print, exec, grimshot copy anything"
+          ", Print, exec, hyprshot --clipboard-only -zm window"
+          "SHIFT, Print, exec, hyprshot --clipboard-only -zm window"
           "${mod}, J, togglesplit"
           "${mod}, D, exec, ags -t applauncher"
           "${mod} SHIFT, Q, killactive"

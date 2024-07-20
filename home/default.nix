@@ -7,7 +7,7 @@
 }:
 {
   imports = [
-    # global caburetor theming
+    # carburetor theming
     inputs.carburetor.homeManagerModules.default
 
     ./zsh.nix # Shell
@@ -24,16 +24,10 @@
   ];
 
   programs.home-manager.enable = true;
+
   home = {
     inherit username homeDirectory;
     stateVersion = "24.05";
-    sessionVariables = {
-      EDITOR = "nvim";
-    };
-    packages = with pkgs; [
-      neovim
-      lutgen
-      # gimp-devel
-    ];
+    packages = with pkgs; [ lutgen ];
   };
 }
