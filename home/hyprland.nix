@@ -41,12 +41,16 @@ in
         animate_mouse_windowdragging = false;
         close_special_on_empty = true;
       };
+      bindm = [
+        "${mod},mouse:272,movewindow"
+        "${mod},mouse:273,resizewindow"
+      ];
       bind =
         [
           "${mod}, RETURN, exec, wezterm"
           "${mod}, E, exec, firefox"
           ", Print, exec, hyprshot --clipboard-only -zm window"
-          "SHIFT, Print, exec, hyprshot --clipboard-only -zm window"
+          "SHIFT, Print, exec, hyprshot --clipboard-only -zm region"
           "${mod}, J, togglesplit"
           "${mod}, D, exec, ags -t applauncher"
           "${mod} SHIFT, Q, killactive"
@@ -82,10 +86,6 @@ in
             ) 10
           )
         );
-      bindm = [
-        "${mod},mouse:272,movewindow"
-        "${mod},mouse:273,resizewindow"
-      ];
     };
   };
 }
