@@ -1,4 +1,9 @@
-{ inputs, pkgs, ... }:
+{
+  inputs,
+  pkgs,
+  config,
+  ...
+}:
 {
   imports = [ inputs.ags.homeManagerModules.default ];
 
@@ -13,6 +18,6 @@
 
   programs.ags = {
     enable = true;
-    configDir = ../ags;
+    configDir = config.lib.file.mkOutOfStoreSymlink ../ags;
   };
 }

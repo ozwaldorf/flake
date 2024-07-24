@@ -99,7 +99,7 @@
     {
       # Full nixos system and home configuration
       nixosConfigurations = {
-        "onix" = nixpkgs.lib.nixosSystem {
+        ${hostname} = nixpkgs.lib.nixosSystem {
           inherit system;
           specialArgs = args;
           modules = [
