@@ -11,13 +11,19 @@ git clone https://github.com/ozwaldorf/flake && cd flake
 cp /etc/nixos/hardware-configuration.nix system
 
 # build and reboot
-sudo nixos-rebuild boot --upgrade-all --flake . && reboot
+sudo nixos-rebuild switch --upgrade-all --flake . && reboot
 ```
 
 Run standalone neovim:
 
 ```sh
-nix run github:ozwaldorf/flake#neovim
+nix run github:ozwaldorf/flake\#neovim
+```
+
+Dev environment:
+
+```sh
+nix run github:ozwaldorf/flake
 ```
 
 ## Cache
