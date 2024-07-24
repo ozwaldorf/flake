@@ -33,10 +33,13 @@
     # Gimp Development Version (GTK3)
     # gimp-devel = import ./gimp-devel { pkgs = prev; };
 
+    zed-editor = prev.callPackage (import ./zed) { };
+
     # Standalone shell environment
     standalone = import ./standalone.nix {
       inherit inputs;
       pkgs = final;
     };
+
   };
 }

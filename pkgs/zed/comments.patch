@@ -1,0 +1,354 @@
+diff --git a/Cargo.lock b/Cargo.lock
+index 35a55b810..ce1283d06 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -1629,9 +1629,9 @@ dependencies = [
+ 
+ [[package]]
+ name = "bitstream-io"
+-version = "2.4.2"
++version = "2.3.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "415f8399438eb5e4b2f73ed3152a3448b98149dda642a957ee704e1daa5cf1d8"
++checksum = "7c12d1856e42f0d817a835fe55853957c85c8c8a470114029143d3f12671446e"
+ 
+ [[package]]
+ name = "bitvec"
+@@ -6065,6 +6065,7 @@ dependencies = [
+  "tree-sitter",
+  "tree-sitter-bash",
+  "tree-sitter-c",
++ "tree-sitter-comment",
+  "tree-sitter-cpp",
+  "tree-sitter-css",
+  "tree-sitter-go",
+@@ -11483,6 +11484,15 @@ dependencies = [
+  "tree-sitter",
+ ]
+ 
++[[package]]
++name = "tree-sitter-comment"
++version = "0.1.0"
++source = "git+https://github.com/stsewd/tree-sitter-comment?rev=5d8b29f6ef3bf64d59430dcfe76b31cc44b5abfd#5d8b29f6ef3bf64d59430dcfe76b31cc44b5abfd"
++dependencies = [
++ "cc",
++ "tree-sitter",
++]
++
+ [[package]]
+ name = "tree-sitter-cpp"
+ version = "0.20.5"
+diff --git a/Cargo.toml b/Cargo.toml
+index 585f4451b..1b42490b5 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -386,6 +386,7 @@ tokio = { version = "1", features = ["full"] }
+ tower-http = "0.4.4"
+ tree-sitter = { version = "0.20", features = ["wasm"] }
+ tree-sitter-bash = "0.20.5"
++tree-sitter-comment = { git = "https://github.com/stsewd/tree-sitter-comment", rev = "5d8b29f6ef3bf64d59430dcfe76b31cc44b5abfd" }
+ tree-sitter-c = "0.20.1"
+ tree-sitter-cpp = "0.20.5"
+ tree-sitter-css = "0.20"
+diff --git a/crates/languages/Cargo.toml b/crates/languages/Cargo.toml
+index 3562c17a0..0d66c471f 100644
+--- a/crates/languages/Cargo.toml
++++ b/crates/languages/Cargo.toml
+@@ -37,6 +37,7 @@ settings.workspace = true
+ smol.workspace = true
+ task.workspace = true
+ toml.workspace = true
++tree-sitter-comment.workspace = true
+ tree-sitter-bash.workspace = true
+ tree-sitter-c.workspace = true
+ tree-sitter-cpp.workspace = true
+diff --git a/crates/languages/src/bash/injections.scm b/crates/languages/src/bash/injections.scm
+new file mode 100644
+index 000000000..789fd58fb
+--- /dev/null
++++ b/crates/languages/src/bash/injections.scm
+@@ -0,0 +1,2 @@
++((comment) @content
++  (#set! "language" "comment"))
+diff --git a/crates/languages/src/comment/config.toml b/crates/languages/src/comment/config.toml
+new file mode 100644
+index 000000000..39438a052
+--- /dev/null
++++ b/crates/languages/src/comment/config.toml
+@@ -0,0 +1,7 @@
++name = "Comment"
++grammar = "comment"
++path_suffixes = []
++line_comments = []
++brackets = [
++  { start = "(", end = ")", close = true, newline = false }
++]
+diff --git a/crates/languages/src/comment/highlights.scm b/crates/languages/src/comment/highlights.scm
+new file mode 100644
+index 000000000..f8e5d86f7
+--- /dev/null
++++ b/crates/languages/src/comment/highlights.scm
+@@ -0,0 +1,75 @@
++; The highlight need to override the color yourself e.g.
++; {
++; 	"experimental.theme_overrides": {
++; 	    "syntax": {
++; 	      "hint": {
++; 	        "color": "#576cdbff",
++; 	        "font_style": "italic",
++; 	        "font_weight": 700
++; 	       },
++; 	       "info": {
++; 	         "color": "#36a165ff",
++; 	         "font_style": "oblique",
++; 	         "font_weight": 700
++; 	       },
++; 	       "error": {
++; 	         "color": "#d73837ff",
++; 	         "font_style": "oblique",
++; 	         "font_weight": 700
++; 	       },
++; 	       "warning": {
++; 	         "color": "#ae9414ff",
++; 	         "font_style": "italic",
++; 	         "font_weight": 700
++; 	       }
++; 	    }
++; 	}
++; }
++
++[
++ "("
++ ")"
++] @punctuation.bracket
++
++":" @punctuation.delimiter
++
++(tag
++ (user)? @constant)
++
++; Hint level tags
++((tag (name) @hint)
++ (#match? @hint "^(HINT|MARK|PASSED|STUB|MOCK)$"))
++
++("text" @hint
++ (#match? @hint "^(HINT|MARK|PASSED|STUB|MOCK)$"))
++
++; Info level tags
++((tag (name) @info)
++ (#match? @info "^(INFO|NOTE|TODO|PERF|OPTIMIZE|PERFORMANCE|QUESTION|ASK)$"))
++
++("text" @info
++ (#match? @info "^(INFO|NOTE|TODO|PERF|OPTIMIZE|PERFORMANCE|QUESTION|ASK)$"))
++
++; Warning level tags
++((tag (name) @warning)
++ (#match? @warning "^(HACK|WARN|WARNING|TEST|TEMP)$"))
++
++("text" @warning
++ (#match? @warning "^(HACK|WARN|WARNING|TEST|TEMP)$"))
++
++; Error level tags
++((tag (name) @error)
++ (#match? @error "^(BUG|FIXME|ISSUE|XXX|FIX|SAFETY|FIXIT|FAILED|DEBUG)$"))
++
++("text" @error
++ (#match? @error "^(BUG|FIXME|ISSUE|XXX|FIX|SAFETY|FIXIT|FAILED|DEBUG)$"))
++
++; Issue number (#123)
++("text" @link_uri
++ (#match? @link_uri "^#[0-9]+$"))
++
++; User mention (@user)
++("text" @tag
++ (#match? @tag "^[@][a-zA-Z0-9_-]+$"))
++
++(uri) @link_uri
+diff --git a/crates/languages/src/css/injections.scm b/crates/languages/src/css/injections.scm
+new file mode 100644
+index 000000000..789fd58fb
+--- /dev/null
++++ b/crates/languages/src/css/injections.scm
+@@ -0,0 +1,2 @@
++((comment) @content
++  (#set! "language" "comment"))
+diff --git a/crates/languages/src/dockerfile/injections.scm b/crates/languages/src/dockerfile/injections.scm
+new file mode 100644
+index 000000000..d4a0ae504
+--- /dev/null
++++ b/crates/languages/src/dockerfile/injections.scm
+@@ -0,0 +1,5 @@
++([(shell_command) (shell_fragment)] @content
++  (#set! "language" "bash"))
++
++((comment) @content
++  (#set! "language" "comment"))
+diff --git a/crates/languages/src/go/injections.scm b/crates/languages/src/go/injections.scm
+index 7744d9867..55764a75f 100644
+--- a/crates/languages/src/go/injections.scm
++++ b/crates/languages/src/go/injections.scm
+@@ -11,3 +11,6 @@
+       (interpreted_string_literal)
+     ] @content
+     (#set! "language" "regex")))
++
++((comment) @content
++  (#set! "language" "comment"))
+diff --git a/crates/languages/src/gomod/injections.scm b/crates/languages/src/gomod/injections.scm
+new file mode 100644
+index 000000000..789fd58fb
+--- /dev/null
++++ b/crates/languages/src/gomod/injections.scm
+@@ -0,0 +1,2 @@
++((comment) @content
++  (#set! "language" "comment"))
+diff --git a/crates/languages/src/gowork/injections.scm b/crates/languages/src/gowork/injections.scm
+new file mode 100644
+index 000000000..789fd58fb
+--- /dev/null
++++ b/crates/languages/src/gowork/injections.scm
+@@ -0,0 +1,2 @@
++((comment) @content
++  (#set! "language" "comment"))
+diff --git a/crates/languages/src/javascript/injections.scm b/crates/languages/src/javascript/injections.scm
+index 5ac7186f9..ef5824a13 100644
+--- a/crates/languages/src/javascript/injections.scm
++++ b/crates/languages/src/javascript/injections.scm
+@@ -4,3 +4,14 @@
+ 
+ ((regex) @content
+   (#set! "language" "regex"))
++
++; The #7826(jsdoc) will it conflict with this
++((comment) @content
++  (#set! "language" "comment")
++  (#match? @content "^//"))
++
++; https://github.com/helix-editor/helix/pull/2763
++; Parse JSDoc annotations in multiline comments (#7826)
++; ((comment) @content
++;  (#set! "language" "jsdoc")
++;  (#match? @content "^/\\*+"))
+diff --git a/crates/languages/src/json/injections.scm b/crates/languages/src/json/injections.scm
+new file mode 100644
+index 000000000..789fd58fb
+--- /dev/null
++++ b/crates/languages/src/json/injections.scm
+@@ -0,0 +1,2 @@
++((comment) @content
++  (#set! "language" "comment"))
+diff --git a/crates/languages/src/lib.rs b/crates/languages/src/lib.rs
+index 23ffec655..890de3f61 100644
+--- a/crates/languages/src/lib.rs
++++ b/crates/languages/src/lib.rs
+@@ -40,6 +40,7 @@ pub fn init(
+         ("c", tree_sitter_c::language()),
+         ("cpp", tree_sitter_cpp::language()),
+         ("css", tree_sitter_css::language()),
++        ("comment", tree_sitter_comment::language()),
+         ("go", tree_sitter_go::language()),
+         ("gomod", tree_sitter_gomod::language()),
+         ("gowork", tree_sitter_gowork::language()),
+@@ -102,6 +103,7 @@ pub fn init(
+         };
+     }
+     language!("bash", Vec::new(), bash_task_context());
++    language!("comment");
+     language!("c", vec![Arc::new(c::CLspAdapter) as Arc<dyn LspAdapter>]);
+     language!("cpp", vec![Arc::new(c::CLspAdapter)]);
+     language!(
+diff --git a/crates/languages/src/python/injections.scm b/crates/languages/src/python/injections.scm
+new file mode 100644
+index 000000000..789fd58fb
+--- /dev/null
++++ b/crates/languages/src/python/injections.scm
+@@ -0,0 +1,2 @@
++((comment) @content
++  (#set! "language" "comment"))
+diff --git a/crates/languages/src/rust/injections.scm b/crates/languages/src/rust/injections.scm
+index 0ce91f228..4f0f85eb5 100644
+--- a/crates/languages/src/rust/injections.scm
++++ b/crates/languages/src/rust/injections.scm
+@@ -5,3 +5,6 @@
+ (macro_rule
+   (token_tree) @content
+   (#set! "language" "rust"))
++
++([(line_comment) (block_comment)] @content
++ (#set! "language" "comment"))
+diff --git a/crates/languages/src/tsx/injections.scm b/crates/languages/src/tsx/injections.scm
+index 5ac7186f9..fb73531d9 100644
+--- a/crates/languages/src/tsx/injections.scm
++++ b/crates/languages/src/tsx/injections.scm
+@@ -4,3 +4,6 @@
+ 
+ ((regex) @content
+   (#set! "language" "regex"))
++
++((comment) @content
++  (#set! "language" "comment"))
+diff --git a/crates/languages/src/typescript/injections.scm b/crates/languages/src/typescript/injections.scm
+index 6f270c010..e7b2c6215 100644
+--- a/crates/languages/src/typescript/injections.scm
++++ b/crates/languages/src/typescript/injections.scm
+@@ -8,3 +8,6 @@
+ 
+ ((regex) @content
+   (#set! "language" "regex"))
++
++((comment) @content
++  (#set! "language" "comment"))
+diff --git a/crates/languages/src/yaml/injections.scm b/crates/languages/src/yaml/injections.scm
+new file mode 100644
+index 000000000..789fd58fb
+--- /dev/null
++++ b/crates/languages/src/yaml/injections.scm
+@@ -0,0 +1,2 @@
++((comment) @content
++  (#set! "language" "comment"))
+diff --git a/extensions/dart/languages/dart/injections.scm b/extensions/dart/languages/dart/injections.scm
+new file mode 100644
+index 000000000..789fd58fb
+--- /dev/null
++++ b/extensions/dart/languages/dart/injections.scm
+@@ -0,0 +1,2 @@
++((comment) @content
++  (#set! "language" "comment"))
+diff --git a/extensions/html/languages/html/injections.scm b/extensions/html/languages/html/injections.scm
+index 9084e373f..bd19a31c7 100644
+--- a/extensions/html/languages/html/injections.scm
++++ b/extensions/html/languages/html/injections.scm
+@@ -5,3 +5,6 @@
+ (style_element
+   (raw_text) @content
+   (#set! "language" "css"))
++
++((comment) @content
++  (#set! "language" "comment"))
+diff --git a/extensions/lua/languages/lua/injections.scm b/extensions/lua/languages/lua/injections.scm
+new file mode 100644
+index 000000000..789fd58fb
+--- /dev/null
++++ b/extensions/lua/languages/lua/injections.scm
+@@ -0,0 +1,2 @@
++((comment) @content
++  (#set! "language" "comment"))
+diff --git a/extensions/ruby/languages/ruby/injections.scm b/extensions/ruby/languages/ruby/injections.scm
+index 3ad8143b8..2cb4053a7 100644
+--- a/extensions/ruby/languages/ruby/injections.scm
++++ b/extensions/ruby/languages/ruby/injections.scm
+@@ -6,3 +6,6 @@
+ ((regex
+   (string_content) @content)
+   (#set! "language" "regex"))
++
++((comment) @content
++  (#set! "language" "comment"))
+diff --git a/extensions/toml/languages/toml/injections.scm b/extensions/toml/languages/toml/injections.scm
+new file mode 100644
+index 000000000..789fd58fb
+--- /dev/null
++++ b/extensions/toml/languages/toml/injections.scm
+@@ -0,0 +1,2 @@
++((comment) @content
++  (#set! "language" "comment"))
