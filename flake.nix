@@ -122,9 +122,9 @@
 
       # Flake outputs
       inherit (custom) overlays;
-      packages = perSystem (pkgs: {
-        inherit (pkgs) neovim webcord;
-      });
+      packages = perSystem (
+        pkgs: (pkgs.lib.attrsets.getAttrs (builtins.attrNames (self.overlays.default null null)) pkgs)
+      );
 
       # `nix run` for a standalone headless environment starting with zsh
       apps = perSystem (pkgs: {

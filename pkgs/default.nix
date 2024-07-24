@@ -4,9 +4,6 @@
     # Fork with sway ipc service
     ags = inputs.ags.packages.${prev.system}.default;
 
-    # Update upstream
-    sway-contrib.grimshot = prev.sway-contrib.grimshot;
-
     # Webcord with arRPC bridge enabled on startup
     webcord = import ./webcord.nix { pkgs = prev; };
 

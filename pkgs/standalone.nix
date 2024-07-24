@@ -12,7 +12,7 @@ let
           packages = with pkgs; [
             neovim
             xq
-            btm
+            bottom
           ];
         };
       }
