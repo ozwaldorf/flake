@@ -8,9 +8,6 @@ makeNixvimWithModule {
     config = {
       clipboard.providers.wl-copy.enable = true;
 
-      # Use experimental lua loader with jit cache
-      luaLoader.enable = true;
-
       opts = {
         tabstop = 2;
         shiftwidth = 2;
@@ -173,13 +170,6 @@ makeNixvimWithModule {
         }
       '';
 
-      extraPlugins = with pkgs.vimPlugins; [
-        flatten-nvim
-        nvim-scrollbar
-        actions-preview-nvim
-        vimsence
-      ];
-
       extraConfigLua = ''
         require("scrollbar").setup({
           handlers = {
@@ -204,6 +194,17 @@ makeNixvimWithModule {
         require("actions-preview").setup()
       '';
 
+      # Use experimental lua loader with jit cache
+      luaLoader.enable = true;
+      performance.combinePlugins.enable = true;
+
+      extraPlugins = with pkgs.vimPlugins; [
+        flatten-nvim
+        nvim-scrollbar
+        actions-preview-nvim
+        vimsence
+      ];
+
       plugins = {
         lsp = {
           enable = true;
@@ -222,7 +223,7 @@ makeNixvimWithModule {
           enable = true;
           settings = {
             tools.hover_actions.replace_builtin_hover = true;
-            server.settings.check.command = "clippy";
+            server.default_settings.rust_analyzer.check.command = "clippy";
             server.on_attach = "__lspOnAttach";
           };
         };
