@@ -214,6 +214,7 @@ makeNixvimWithModule {
               enable = true;
               settings.formatting.command = [ "${pkgs.nixfmt-rfc-style}/bin/nixfmt" ];
             };
+            lua-ls.enable = true;
             tsserver.enable = true;
             clangd.enable = true;
           };
