@@ -6,6 +6,7 @@
 
   carburetor.themes.gtk = {
     enable = true;
+    transparency = true;
     icon = true;
   };
 
