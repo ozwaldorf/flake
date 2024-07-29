@@ -106,6 +106,7 @@
       bindkey '^[[1;5C' forward-word                                  #
       bindkey '^H' backward-kill-word                                 # delete previous word with ctrl+backspace
       bindkey '^[[Z' undo                                             # Shift+tab undo last action
+      WORDCHARS="*?[]~=&;!#$%^(){}<>"                                 # Let's break up words more
 
       function nixpkgs() {
         NIXPKGS_ALLOW_UNFREE=1 nix shell --impure "''${@/#/nixpkgs#}"
