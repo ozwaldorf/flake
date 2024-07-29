@@ -4,17 +4,15 @@
     # Fork with sway ipc service
     ags = inputs.ags.packages.${prev.system}.default;
 
-    # Webcord with arRPC bridge enabled on startup
-    webcord = import ./webcord.nix { pkgs = prev; };
-
-    # Patched to work with hyprland 0.37
+    # wezterm nightly
     wezterm = inputs.wezterm.packages.${prev.system}.default;
 
-    # Standalone neovim configuration
     neovim = import ./neovim.nix {
       inherit inputs;
       pkgs = prev;
     };
+    webcord = import ./webcord.nix { pkgs = prev; };
+    zed-editor = prev.callPackage (import ./zed) { };
 
     # Update to my fork
     xq = prev.xq.overrideAttrs (old: rec {
@@ -30,12 +28,6 @@
       });
     });
 
-    # Gimp Development Version (GTK3)
-    # gimp-devel = import ./gimp-devel { pkgs = prev; };
-
-    zed-editor = prev.callPackage (import ./zed) { };
-
-    # Standalone shell environment
     standalone = import ./standalone.nix {
       inherit inputs;
       pkgs = final;

@@ -1,3 +1,6 @@
+# https://github.com/NixOS/nixpkgs/blob/nixos-24.05/pkgs/by-name/ze/zed-editor/package.nix
+# Updated to 0.144.4 and patches for todo comment highlighting.
+
 {
   lib,
   rustPlatform,
