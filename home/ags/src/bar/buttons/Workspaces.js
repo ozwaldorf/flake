@@ -26,7 +26,7 @@ const Workspaces = () => {
               btn.toggleClassName("active", Hyprland.active.workspace.id === i);
               btn.toggleClassName(
                 "occupied",
-                Hyprland.getWorkspace(i)?.windows > 0,
+                Hyprland.getWorkspace(i)?.windows || 0 > 0,
               );
             },
           ],
