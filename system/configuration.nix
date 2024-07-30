@@ -80,11 +80,12 @@
     ];
   };
 
+  # CPU and GPU stuff
+  hardware.cpu.intel.updateMicrocode = true;
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
   };
-
   hardware.nvidia = {
     modesetting.enable = true;
     powerManagement.enable = false;
