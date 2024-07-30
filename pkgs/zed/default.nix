@@ -48,7 +48,10 @@ rustPlatform.buildRustPackage rec {
     fetchSubmodules = true;
   };
 
-  patches = [ ./comments.patch ];
+  patches = [
+    ./bitstream-rust-1-78.patch
+    ./comments-highlight.patch
+  ];
 
   cargoLock = {
     lockFile = ./Cargo.lock;
