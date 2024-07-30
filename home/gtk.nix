@@ -26,16 +26,16 @@
     packages = with pkgs; [
       pavucontrol # volume control
       wdisplays # display control
+      gnome-system-monitor # resource monitor
+
+      nautilus # file explorer
+      simple-scan # document scanner
+
       eog # photo viewer
       totem # video player
       evince # document viewer
-      file-roller # archive manager
-      nautilus # file explorer
-      simple-scan # document scanner
       gnome.gnome-characters # character viewer
       gnome-font-viewer # font viewer
-      gnome-system-monitor # resource monitor
-      gnome-disk-utility # disk manager
     ];
   };
 }

@@ -127,6 +127,7 @@
   services.upower.enable = true;
   services.power-profiles-daemon.enable = true;
   services.gnome.gnome-keyring.enable = true;
+  services.gnome.tracker-miners.enable = true;
 
   services.xserver = {
     xkb.layout = "us";
@@ -187,32 +188,44 @@
   # };
 
   fonts.packages = with pkgs; [ (nerdfonts.override { fonts = [ "FiraCode" ]; }) ];
-
-  programs.zsh = {
-    enable = true;
-    enableCompletion = false;
-  };
-
   environment.pathsToLink = [ "/share/zsh" ];
   fonts.fontconfig.enable = true;
 
-  programs.sway = {
-    enable = true;
-    package = pkgs.swayfx;
-    extraOptions = [ "--unsupported-gpu" ];
-  };
+  programs = {
+    # enable installing zsh at the system level to set the users default terminal. Everything else configuration wise is done in home manager.
+    zsh = {
+      enable = true;
+      enableCompletion = false;
+    };
 
-  programs.hyprland.enable = true;
+    # Same for sway and hyprland, install to system to ensure wayland sessions are propagated correctly.
+    sway = {
+      enable = true;
+      package = pkgs.swayfx;
+      extraOptions = [ "--unsupported-gpu" ];
+    };
+    hyprland.enable = true;
 
-  programs.mtr.enable = true;
-  programs.gnupg.agent = {
-    enable = true;
-    enableSSHSupport = true;
-  };
+    mtr.enable = true;
+    gnupg.agent = {
+      enable = true;
+      enableSSHSupport = true;
+    };
 
-  programs.direnv = {
-    enable = true;
-    direnvrcExtra = "export SHELL=$SHELL";
+    direnv = {
+      enable = true;
+      # re-use system shell
+      direnvrcExtra = "export SHELL=$SHELL";
+    };
+
+    file-roller.enable = true; # archive manager
+    gnome-disks.enable = true; # disk manager
+
+    # Add `open in wezterm` entry to nautilus
+    nautilus-open-any-terminal = {
+      enable = true;
+      terminal = "wezterm";
+    };
   };
 
   environment.sessionVariables = {
