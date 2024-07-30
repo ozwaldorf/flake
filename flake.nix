@@ -7,27 +7,17 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    home-manager-shell = {
-      url = "sourcehut:~dermetfan/home-manager-shell";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        home-manager.follows = "home-manager";
-      };
-    };
-    lutgen = {
-      url = "github:ozwaldorf/lutgen-rs";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    hyprland = {
-      url = "github:hyprwm/Hyprland";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    wezterm = {
-      url = "github:wez/wezterm?dir=nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     nixvim = {
       url = "github:nix-community/nixvim";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    carburetor = {
+      url = "github:ozwaldorf/carburetor";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    hyprland = {
+      url = "github:hyprwm/Hyprland";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     swayfx = {
@@ -38,7 +28,15 @@
       url = "github:ozwaldorf/ags";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    carburetor.url = "github:ozwaldorf/carburetor";
+    wezterm = {
+      url = "github:wez/wezterm?dir=nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    lutgen = {
+      url = "github:ozwaldorf/lutgen-rs";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   nixConfig = {
@@ -51,22 +49,26 @@
       self,
       nixpkgs,
       home-manager,
-      home-manager-shell,
-      swayfx,
       ...
     }@inputs:
     let
       # Flake utilities
-      custom = import ./pkgs { inherit inputs; };
+      custom = import ./pkgs inputs;
       pkgsFor =
         system:
         import nixpkgs {
           inherit system;
           overlays = [
+            custom.overlays.default
+
             inputs.swayfx.overlays.insert
             inputs.lutgen.overlays.default
-            custom.overlays.default
             inputs.carburetor.overlays.default
+
+            (final: prev: {
+              ags = inputs.ags.packages.${prev.system}.default;
+              wezterm = inputs.wezterm.packages.${prev.system}.default;
+            })
           ];
           config.allowUnfree = true;
         };

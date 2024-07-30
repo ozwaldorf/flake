@@ -1,8 +1,5 @@
 { inputs, pkgs }:
-let
-  inherit (inputs.nixvim.legacyPackages.${pkgs.system}) makeNixvimWithModule;
-in
-makeNixvimWithModule {
+inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
   inherit pkgs;
   module = {
     config = {
