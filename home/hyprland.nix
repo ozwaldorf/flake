@@ -16,8 +16,8 @@ in
   wayland.windowManager.hyprland = {
     enable = true;
     plugins = with pkgs.hyprlandPlugins; [
-      hyprtrails
       hyprexpo
+      hyprtrails
     ];
     settings = {
       plugins = {
@@ -26,6 +26,9 @@ in
           gap_size = 20;
           bg_col = "rgb(161616)";
           workspace_method = "first 1";
+        };
+        hyprtrails = {
+          color = "rgba(4589ffcc)";
         };
       };
       exec = [
@@ -58,6 +61,16 @@ in
         animate_mouse_windowdragging = false;
         close_special_on_empty = true;
       };
+      layerrule = [
+        "blur,bar*"
+        "ignorealpha,bar*"
+        "blur,quicksettings*"
+        "ignorealpha,quicksettings*"
+        "blur,notifications*"
+        "ignorealpha,notifications*"
+        "blur,applauncher*"
+        "ignorealpha,applauncher*"
+      ];
       bindm = [
         "${mod},mouse:272,movewindow"
         "${mod},mouse:273,resizewindow"
