@@ -61,11 +61,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1722368318,
-        "narHash": "sha256-Wd2Q8jUAgix/12Rslq/cednebdF5KZ9mGdxm5sPcNhA=",
+        "lastModified": 1722460022,
+        "narHash": "sha256-7Vux/oRoNwXxEFdWoYZmTAfZ2e4jLKnWJZyP1lK4uW4=",
         "owner": "ozwaldorf",
         "repo": "carburetor",
-        "rev": "3c8a688cbad7abec29a01047f70e19cc43fe8b62",
+        "rev": "c786d1e3ceac6746f3b1258f8d2e099425136f8c",
         "type": "github"
       },
       "original": {
