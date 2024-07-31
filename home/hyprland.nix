@@ -28,11 +28,16 @@ in
           workspace_method = "first 1";
         };
       };
-      monitor = [ "Unknown-1, disable" ];
       exec = [
         "swww-daemon -f xbgr"
         "ags"
       ];
+      monitor = [ "Unknown-1, disable" ];
+      general.layout = "dwindle";
+      dwindle = {
+        pseudotile = true;
+        preserve_split = true;
+      };
       decoration = {
         blur = {
           size = 8;
