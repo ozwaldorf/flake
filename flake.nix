@@ -22,10 +22,6 @@
       url = "github:hyprwm/Hyprland";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    swayfx = {
-      url = "github:WillPower3309/swayfx";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     ags = {
       url = "github:ozwaldorf/ags";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -71,9 +67,9 @@
           overlays = [
             custom.overlays.default
 
-            inputs.swayfx.overlays.insert
             inputs.lutgen.overlays.default
             inputs.carburetor.overlays.default
+            # inputs.hyprland.overlays.default
 
             (final: prev: {
               ags = inputs.ags.packages.${prev.system}.default;
