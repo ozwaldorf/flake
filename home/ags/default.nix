@@ -2,6 +2,7 @@
   inputs,
   pkgs,
   config,
+  flakeDirectory,
   ...
 }:
 {
@@ -18,6 +19,6 @@
 
   programs.ags = {
     enable = true;
-    configDir = config.lib.file.mkOutOfStoreSymlink "/etc/nixos/home/ags";
+    configDir = config.lib.file.mkOutOfStoreSymlink flakeDirectory + "/home/ags";
   };
 }
