@@ -19,7 +19,7 @@
     ./gtk.nix # gtk theming
     ./ags # bar, app launcher
     ./wezterm # terminal
-    ./vesktop.nix # discord
+    ./vesktop # discord
     ./zed.nix # zed editor
   ];
 
