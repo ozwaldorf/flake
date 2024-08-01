@@ -3,15 +3,15 @@ let
   mod = "SUPER";
 in
 {
-  carburetor.themes = {
-    hyprland.enable = true;
-    hyprlock.enable = true;
-  };
-
   home.packages = with pkgs; [
     hyprlock
     hyprshot
   ];
+
+  carburetor.themes = {
+    hyprland.enable = true;
+    hyprlock.enable = true;
+  };
 
   wayland.windowManager.hyprland = {
     enable = true;

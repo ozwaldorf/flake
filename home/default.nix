@@ -23,11 +23,11 @@
     ./zed.nix # zed editor
   ];
 
-  programs.home-manager.enable = true;
-
   home = {
     inherit username homeDirectory;
     stateVersion = "24.05";
     packages = with pkgs; [ lutgen ];
   };
+
+  programs.home-manager.enable = true;
 }

@@ -2,6 +2,7 @@
   description = "ozwaldorf's flake";
 
   inputs = {
+    # Nix libraries
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     home-manager = {
       url = "github:nix-community/home-manager";
@@ -16,6 +17,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Applications
     hyprland = {
       url = "github:hyprwm/Hyprland";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -32,7 +34,6 @@
       url = "github:wez/wezterm?dir=nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
     lutgen = {
       url = "github:ozwaldorf/lutgen-rs";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -52,6 +53,15 @@
       ...
     }@inputs:
     let
+      # Nixos system variables
+      hostname = "onix";
+      username = "oz";
+
+      # Absolute path to the directory containing this flake.
+      # Used for creating "out of store" symlinks. For example, mostly
+      # in order to allow in-app setting changes to modify the flake.
+      flakeDirectory = "/etc/nixos";
+
       # Flake utilities
       custom = import ./pkgs inputs;
       pkgsFor =
@@ -72,38 +82,26 @@
           ];
           config.allowUnfree = true;
         };
-      perSystem =
-        f:
-        nixpkgs.lib.genAttrs [
-          "x86_64-linux"
-          "aarch64-linux"
-          "i686-linux"
-          "x86_64-darwin"
-        ] (system: f (pkgsFor system));
-
-      # System variables (nixos and home)
-      system = "x86_64-linux";
-      pkgs = pkgsFor system;
-      username = "oz";
-      hostname = "onix";
-      homeDirectory = "/home/${username}";
-      args = {
-        inherit
-          inputs
-          pkgs
-          system
-          username
-          hostname
-          homeDirectory
-          ;
-      };
+      forAllSystems =
+        f: nixpkgs.lib.genAttrs nixpkgs.lib.systems.flakeExposed (system: f (pkgsFor system));
     in
     {
       # Full nixos system and home configuration
       nixosConfigurations = {
-        ${hostname} = nixpkgs.lib.nixosSystem {
-          inherit system;
-          specialArgs = args;
+        ${hostname} = nixpkgs.lib.nixosSystem rec {
+          system = "x86_64-linux";
+          specialArgs = {
+            inherit
+              inputs
+              system
+              username
+              hostname
+              flakeDirectory
+              ;
+            pkgs = pkgsFor system;
+            homeDirectory = "/home/" + username;
+          };
+
           modules = [
             # System level config
             ./system/configuration.nix
@@ -113,10 +111,12 @@
               home-manager = {
                 useGlobalPkgs = true;
                 useUserPackages = true;
-                extraSpecialArgs = args;
+                extraSpecialArgs = specialArgs;
                 users.${username} = import ./home;
               };
             }
+
+            # Modules
             home-manager.nixosModules.home-manager
           ];
         };
@@ -124,18 +124,19 @@
 
       # Flake outputs
       inherit (custom) overlays;
-      packages = perSystem (
+      packages = forAllSystems (
         pkgs: (pkgs.lib.attrsets.getAttrs (builtins.attrNames (self.overlays.default null null)) pkgs)
       );
 
       # `nix run` for a standalone headless environment starting with zsh
-      apps = perSystem (pkgs: {
+      apps = forAllSystems (pkgs: {
         default = {
           type = "app";
           program = "${pkgs.standalone}/bin/zsh";
         };
       });
 
-      formatter = perSystem (pkgs: pkgs.nixfmt-rfc-style);
+      # `nix fmt`
+      formatter = forAllSystems (pkgs: pkgs.nixfmt-rfc-style);
     };
 }

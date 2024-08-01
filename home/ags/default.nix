@@ -18,6 +18,6 @@
 
   programs.ags = {
     enable = true;
-    configDir = config.lib.file.mkOutOfStoreSymlink ../ags;
+    configDir = config.lib.file.mkOutOfStoreSymlink "/etc/nixos/home/ags";
   };
 }

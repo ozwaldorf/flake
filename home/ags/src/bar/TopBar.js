@@ -53,7 +53,7 @@ const OptionalWorkspaces = async () => {
 const Start = () =>
   Widget.Box({
     class_name: "start",
-    setup: async box => {
+    setup: async (box) => {
       box.children = [
         await OptionalWorkspaces(),
         SeparatorDot(),
@@ -102,13 +102,15 @@ export default (monitor) =>
         "anchor",
         options.bar.position,
         "value",
-        (pos) => [pos, "left", "right"],
+        (pos) => [pos, "right"],
       ],
     ],
-    child: Widget.CenterBox({
+    child: Widget.Box({
       class_name: "panel",
-      start_widget: Start(),
-      center_widget: Center(),
-      end_widget: End(),
+      children: [
+        Start(),
+        Center(),
+        End(),
+      ]
     }),
   });

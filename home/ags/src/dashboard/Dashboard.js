@@ -11,7 +11,7 @@ export default () =>
       [
         options.bar.position,
         (self) => {
-          self.anchor = [options.bar.position.value];
+          self.anchor = [options.bar.position.value, "right"];
           if (options.bar.position.value === "top") {
             self.transition = "slide_down";
           }
