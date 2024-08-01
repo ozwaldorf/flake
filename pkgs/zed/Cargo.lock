@@ -378,6 +378,7 @@ dependencies = [
  "cargo_toml",
  "chrono",
  "client",
+ "clock",
  "collections",
  "command_palette_hooks",
  "ctor",
@@ -420,6 +421,7 @@ dependencies = [
  "telemetry_events",
  "terminal",
  "terminal_view",
+ "text",
  "theme",
  "tiktoken-rs",
  "toml 0.8.10",
@@ -1629,9 +1631,9 @@ dependencies = [
 
 [[package]]
 name = "bitstream-io"
-version = "2.3.0"
+version = "2.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7c12d1856e42f0d817a835fe55853957c85c8c8a470114029143d3f12671446e"
+checksum = "415f8399438eb5e4b2f73ed3152a3448b98149dda642a957ee704e1daa5cf1d8"
 
 [[package]]
 name = "bitvec"
@@ -2406,21 +2408,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "clipboard-win"
-version = "3.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9fdf5e01086b6be750428ba4a40619f847eb2e95756eee84b18e06e5f0b50342"
-dependencies = [
- "lazy-bytes-cast",
- "winapi",
-]
-
-[[package]]
 name = "clock"
 version = "0.1.0"
 dependencies = [
  "chrono",
  "parking_lot",
+ "serde",
  "smallvec",
 ]
 
@@ -2479,6 +2472,7 @@ version = "0.44.0"
 dependencies = [
  "anthropic",
  "anyhow",
+ "assistant",
  "async-trait",
  "async-tungstenite",
  "audio",
@@ -3408,11 +3402,13 @@ dependencies = [
  "ctor",
  "editor",
  "env_logger",
+ "feature_flags",
  "futures 0.3.28",
  "gpui",
  "language",
  "log",
  "lsp",
+ "multi_buffer",
  "pretty_assertions",
  "project",
  "rand 0.8.5",
@@ -3617,6 +3613,7 @@ dependencies = [
  "linkify",
  "log",
  "lsp",
+ "markdown",
  "multi_buffer",
  "ordered-float 2.10.0",
  "parking_lot",
@@ -3990,6 +3987,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "client",
+ "collections",
  "db",
  "editor",
  "extension",
@@ -4009,6 +4007,7 @@ dependencies = [
  "theme_selector",
  "ui",
  "util",
+ "vim",
  "workspace",
 ]
 
@@ -4879,7 +4878,6 @@ dependencies = [
  "calloop",
  "calloop-wayland-source",
  "cbindgen",
- "clipboard-win",
  "cocoa",
  "collections",
  "core-foundation",
@@ -5071,6 +5069,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "client",
+ "extension",
  "fs",
  "futures 0.3.28",
  "gpui",
@@ -6084,12 +6083,6 @@ dependencies = [
  "util",
  "workspace",
 ]
-
-[[package]]
-name = "lazy-bytes-cast"
-version = "5.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10257499f089cd156ad82d0a9cd57d9501fa2c989068992a97eb3c27836f206b"
 
 [[package]]
 name = "lazy_static"
@@ -8086,6 +8079,7 @@ dependencies = [
  "serde_json",
  "settings",
  "sha2 0.10.7",
+ "shellexpand 2.1.2",
  "shlex",
  "similar",
  "smol",
@@ -8227,6 +8221,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "collections",
+ "futures 0.3.28",
  "prost",
  "prost-build",
  "serde",
@@ -8318,10 +8313,13 @@ dependencies = [
  "assistant",
  "editor",
  "gpui",
+ "repl",
  "search",
  "settings",
  "ui",
+ "util",
  "workspace",
+ "zed_actions",
 ]
 
 [[package]]
@@ -8528,7 +8526,6 @@ dependencies = [
  "client",
  "dev_server_projects",
  "editor",
- "feature_flags",
  "fuzzy",
  "gpui",
  "language",
@@ -8706,6 +8703,7 @@ dependencies = [
  "image",
  "language",
  "log",
+ "multi_buffer",
  "project",
  "runtimelib",
  "schemars",
@@ -10778,6 +10776,7 @@ dependencies = [
  "gpui",
  "libc",
  "rand 0.8.5",
+ "release_channel",
  "schemars",
  "serde",
  "serde_derive",
@@ -13347,6 +13346,7 @@ dependencies = [
  "derive_more",
  "dev_server_projects",
  "env_logger",
+ "file_icons",
  "fs",
  "futures 0.3.28",
  "gpui",
@@ -13638,7 +13638,7 @@ dependencies = [
 
 [[package]]
 name = "zed"
-version = "0.144.4"
+version = "0.145.1"
 dependencies = [
  "activity_indicator",
  "anyhow",
@@ -13766,7 +13766,7 @@ dependencies = [
 
 [[package]]
 name = "zed_dart"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "zed_extension_api 0.0.6",
 ]
@@ -13780,7 +13780,7 @@ dependencies = [
 
 [[package]]
 name = "zed_elixir"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "zed_extension_api 0.0.6",
 ]
@@ -13880,9 +13880,9 @@ dependencies = [
 
 [[package]]
 name = "zed_php"
-version = "0.0.6"
+version = "0.1.1"
 dependencies = [
- "zed_extension_api 0.0.4",
+ "zed_extension_api 0.0.6",
 ]
 
 [[package]]
@@ -13916,7 +13916,7 @@ dependencies = [
 
 [[package]]
 name = "zed_svelte"
-version = "0.0.1"
+version = "0.0.3"
 dependencies = [
  "zed_extension_api 0.0.6",
 ]
@@ -13958,9 +13958,9 @@ dependencies = [
 
 [[package]]
 name = "zed_zig"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
- "zed_extension_api 0.0.7",
+ "zed_extension_api 0.0.6",
 ]
 
 [[package]]

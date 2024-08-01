@@ -6,7 +6,7 @@ inputs: {
     };
     webcord = import ./webcord.nix { pkgs = prev; };
     xq = import ./xq.nix { pkgs = prev; };
-    zed-editor = prev.callPackage (import ./zed) { };
+    zed-editor = import ./zed prev;
 
     standalone = import ./standalone.nix {
       inherit inputs;
