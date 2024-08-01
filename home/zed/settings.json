@@ -1,0 +1,66 @@
+{
+  "theme": "carburetor regular (blue)",
+  "ui_font_family": "Berkeley Mono",
+  "buffer_font_family": "Berkeley Mono",
+  "buffer_font_features": {},
+  "load_direnv": "shell_hook",
+  "tab_size": 2,
+  "ui_font_size": 14,
+  "buffer_font_size": 14,
+  "vim_mode": true,
+  "inlay_hints": {
+    "enabled": true,
+    "show_type_hints": true,
+    "show_parameter_hints": true,
+    "show_other_hints": true,
+    "edit_debounce_ms": 700,
+    "scroll_debounce_ms": 50
+  },
+  "git": {
+    "git_gutter": "tracked_files",
+    "inline_blame": {
+      "enabled": true
+    }
+  },
+  "lsp": {
+    "bash-language-server": {
+      "binary": {
+        "path": "/etc/profiles/per-user/oz/bin/bash-language-server",
+        "arguments": ["start"]
+      }
+    },
+    "clangd": {
+      "binary": {
+        "path": "/etc/profiles/per-user/oz/bin/clangd",
+        "arguments": ["--background-index", "--compile-commands-dir=build"]
+      }
+    },
+    "rust-analyzer": {
+      "binary": {
+        "path": "/run/current-system/sw/bin/bash",
+        "arguments": [
+          "-c",
+          "if [ -e flake.nix ]; then nix develop --command rust-analyzer; else rust-analyzer; fi"
+        ]
+      },
+      "initialization_options": {
+        "checkOnSave": {
+          "command": "clippy"
+        }
+      }
+    },
+    "json-language-server": {
+      "binary": {
+        "path": "/etc/profiles/per-user/oz/bin/vscode-json-languageserver",
+        "arguments": ["--stdio"]
+      }
+    },
+    "nixd": {
+      "binary": {
+        "path": "/usr/bin/env",
+        "arguments": ["nil"]
+      }
+    }
+  }
+}
+

@@ -20,7 +20,7 @@
     ./ags # bar, app launcher
     ./wezterm # terminal
     ./vesktop # discord
-    ./zed.nix # zed editor
+    ./zed # zed editor
   ];
 
   home = {
