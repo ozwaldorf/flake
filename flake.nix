@@ -18,10 +18,6 @@
     };
 
     # Applications
-    hyprland = {
-      url = "github:hyprwm/Hyprland";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     ags = {
       url = "github:ozwaldorf/ags";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -59,19 +55,18 @@
       flakeDirectory = "/etc/nixos";
 
       # Flake utilities
-      custom = import ./pkgs inputs;
+      overlay = import ./pkgs inputs;
       pkgsFor =
         system:
         import nixpkgs {
           inherit system;
           overlays = [
-            custom.overlays.default
-
+            overlay
             inputs.lutgen.overlays.default
             inputs.carburetor.overlays.default
-            # inputs.hyprland.overlays.default
 
             (final: prev: {
+              # Force insert flake packages that dont have builtin overlays.
               ags = inputs.ags.packages.${prev.system}.default;
               wezterm = inputs.wezterm.packages.${prev.system}.default;
             })
@@ -119,7 +114,7 @@
       };
 
       # Flake outputs
-      inherit (custom) overlays;
+      overlays.default = overlay;
       packages = forAllSystems (
         pkgs: (pkgs.lib.attrsets.getAttrs (builtins.attrNames (self.overlays.default null null)) pkgs)
       );
