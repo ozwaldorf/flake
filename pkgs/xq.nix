@@ -1,4 +1,6 @@
-{ pkgs, ... }:
+pkgs:
+
+# Use my fork with toml and QoL features
 pkgs.xq.overrideAttrs (old: rec {
   version = "0-unstable-2024-05-23";
   src = pkgs.fetchFromGitHub {

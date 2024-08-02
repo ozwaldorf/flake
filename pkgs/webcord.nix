@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+pkgs:
 
 pkgs.webcord.overrideAttrs (old: {
   patches = old.patches or [ ] ++ [

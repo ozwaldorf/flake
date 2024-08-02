@@ -1,4 +1,5 @@
 pkgs:
+
 # Patch with todo comment highlighting
 pkgs.zed-editor.overrideAttrs (old: {
   patches = old.patches ++ [ ./comments-highlight.patch ];
