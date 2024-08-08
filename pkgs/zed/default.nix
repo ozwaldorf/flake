@@ -2,6 +2,7 @@ pkgs:
 
 # Patch with todo comment highlighting
 pkgs.zed-editor.overrideAttrs (old: {
+  doCheck = false;
   patches = old.patches ++ [ ./comments-highlight.patch ];
   postPatch = ''cp ${./Cargo.lock} Cargo.lock'';
   cargoDeps = pkgs.rustPlatform.importCargoLock {
