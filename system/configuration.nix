@@ -45,6 +45,10 @@
   networking = {
     hostName = hostname;
     networkmanager.enable = true;
+    nameservers = [
+      "1.1.1.1"
+      "9.9.9.9"
+    ];
   };
 
   time.timeZone = "America/New_York";
