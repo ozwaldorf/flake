@@ -5,6 +5,9 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
   inherit pkgs;
   module = {
     config = {
+      # ensure base neovim is used from pkgs
+      package = pkgs.neovim;
+
       clipboard.providers.wl-copy.enable = true;
 
       opts = {

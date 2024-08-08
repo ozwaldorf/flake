@@ -30,6 +30,10 @@
       url = "github:ozwaldorf/lutgen-rs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    neovim-nightly-overlay = {
+      url = "github:nix-community/neovim-nightly-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   nixConfig = {
@@ -61,6 +65,7 @@
         import nixpkgs {
           inherit system;
           overlays = [
+            inputs.neovim-nightly-overlay.overlays.default
             overlay
             inputs.lutgen.overlays.default
             inputs.carburetor.overlays.default
