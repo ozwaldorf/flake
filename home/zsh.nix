@@ -109,7 +109,12 @@
       WORDCHARS="*?[]~=&;!#$%^(){}<>"                                 # Let's break up words more
 
       function nixpkgs() {
-        NIXPKGS_ALLOW_UNFREE=1 nix shell --impure "''${@/#/nixpkgs#}"
+        NIXPKGS_ALLOW_UNFREE=1 nix shell "''${@/#/nixpkgs#}"
+      }
+
+      function nixpkg() {
+        PKG="$1"; shift
+        NIXPKGS_ALLOW_UNFREE=1 nix run "nixpkgs#$PKG" -- $@
       }
     '';
   };
