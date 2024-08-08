@@ -11,9 +11,10 @@
 
       nautilus # file explorer
       simple-scan # document scanner
+      fragments # torrent manager
 
       eog # photo viewer
-      totem # video player
+      celluloid # video player
       evince # document viewer
       gnome.gnome-characters # character viewer
       gnome-font-viewer # font viewer
