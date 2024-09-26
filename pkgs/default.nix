@@ -11,4 +11,6 @@ inputs: final: prev: {
     inherit inputs;
     pkgs = final;
   };
+
+  snd-hda-intel = prev.callPackage (import ./snd-hda-intel.nix) { };
 }

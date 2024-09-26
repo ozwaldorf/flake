@@ -47,8 +47,9 @@
     networkmanager.enable = true;
     nameservers = [
       # "9.9.9.9" # quad9
+      # "9.9.9.10" # quad9 unsecured
       # "1.1.1.1" # cloudflare
-      "8.8.8.8" # google
+      # "8.8.8.8" # google
     ];
   };
 
@@ -66,7 +67,7 @@
     LC_TIME = "en_US.UTF-8";
   };
 
-  boot = {
+  boot = rec {
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
@@ -74,14 +75,23 @@
     plymouth = {
       enable = true;
     };
-    kernelPackages = pkgs.linuxPackages_6_8;
     consoleLogLevel = 0;
     initrd.verbose = false;
+
+    # kernel config
     kernelParams = [
       "quiet"
       "splash"
       "udev.log_level=0"
       "video=eDP-1:2650x1600@60"
+    ];
+    kernelPackages = pkgs.linuxPackages_6_8;
+    extraModulePackages = [
+      # patch sound driver with razer blade 16 fixup
+      (pkgs.snd-hda-intel.override {
+        inherit (kernelPackages) kernel;
+        patches = [ ./snd-hda-intel-razer.patch ];
+      })
     ];
   };
 
