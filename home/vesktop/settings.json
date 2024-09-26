@@ -494,7 +494,7 @@
             "enabled": false
         },
         "ShikiCodeblocks": {
-            "enabled": true,
+            "enabled": false,
             "theme": "https://raw.githubusercontent.com/shikijs/shiki/0b28ad8ccfbf2615f2d9d38ea8255416b8ac3043/packages/shiki/themes/css-variables.json",
             "tryHljs": "ALWAYS",
             "useDevIcon": "COLOR",
@@ -656,6 +656,6 @@
         "authenticated": false,
         "url": "https://api.vencord.dev/",
         "settingsSync": false,
-        "settingsSyncVersion": 1722536683458
+        "settingsSyncVersion": 1724342203167
     }
 }
