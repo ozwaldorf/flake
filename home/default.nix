@@ -14,8 +14,8 @@
     ./starship.nix # Prompt
     ./git.nix # Git
     ./dev.nix # Dev utils
-    ./sway.nix # window manager
-    ./hyprland.nix # other window manager
+
+    ./hyprland.nix # window manager
     ./gtk.nix # gtk theming
     ./ags # bar, app launcher
     ./wezterm # terminal

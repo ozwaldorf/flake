@@ -4,6 +4,11 @@ let
 in
 {
   home.packages = with pkgs; [
+    swww
+    wl-clipboard
+    # wf-recorder
+    sway-contrib.grimshot
+
     hyprlock
     hyprshot
   ];
@@ -31,15 +36,32 @@ in
           color = "rgba(4589ffcc)";
         };
       };
+      debug.disable_logs = false;
       exec = [
         "swww-daemon -f xbgr"
         "ags"
       ];
-      monitor = [ "Unknown-1, disable" ];
-      general.layout = "dwindle";
+      source = [ "./themes/regular.conf" ];
+      # monitor = [ "Unknown-1, disable" ];
+      general = {
+        layout = "dwindle";
+        "col.active_border" = "$text";
+        "col.inactive_border" = "$base";
+      };
       dwindle = {
         pseudotile = true;
         preserve_split = true;
+      };
+      group = {
+        "col.border_inactive" = "$saphire";
+        "col.border_active" = "$sky";
+        groupbar = {
+          enabled = true;
+          text_color = "$text";
+          priority = 0;
+          "col.active" = "$base";
+          "col.inactive" = "$crust";
+        };
       };
       decoration = {
         blur = {
@@ -77,26 +99,44 @@ in
       ];
       bind =
         [
-          "${mod}, grave, hyprexpo:expo, toggle"
-          "${mod}, W, exec, bash -c 'swww img --transition-type any $(find ~/Pictures/walls/carburetor | shuf -n 1)'"
-          "${mod}, RETURN, exec, wezterm"
+          # "${mod}, grave, hyprexpo:expo, toggle"
+
+          # App launcher
+          "${mod}, D, exec, ags -t applauncher"
+          # Terminal
+          "${mod}, RETURN, exec, foot"
+          # Browser
           "${mod}, E, exec, firefox"
+
+          # Screenshots
           ", Print, exec, hyprshot --clipboard-only -zm window"
           "SHIFT, Print, exec, hyprshot --clipboard-only -zm region"
-          "${mod}, J, togglesplit"
-          "${mod}, D, exec, ags -t applauncher"
-          "${mod} SHIFT, Q, killactive"
+
+          # Cycle wallpaper
+          "${mod}, W, exec, bash -c 'swww img --transition-type any $(find ~/Pictures/walls/carburetor | shuf -n 1)'"
+
+          # Window management
           "${mod} SHIFT, E, exit"
+          "${mod} SHIFT, Q, killactive"
+          "${mod}, J, togglesplit"
           "${mod} SHIFT, Space, togglefloating"
-          "${mod}, left, movefocus, l"
+
+          # Groups
+          "${mod}, G, togglegroup"
+          "${mod}, Tab, changegroupactive, f"
+          "${mod}, Shift, changegroupactive, b"
+          "${mod} CTRL, Left, movegroupwindow, b"
+          "${mod} CTRL, Right, movegroupwindow"
+
+          # Window traversal and movement
           "${mod}, left, movefocus, l"
           "${mod}, right, movefocus, r"
           "${mod}, up, movefocus, u"
           "${mod}, down, movefocus, d"
-          "${mod} SHIFT, left, movewindow, l"
-          "${mod} SHIFT, right, movewindow, r"
-          "${mod} SHIFT, up, movewindow, u"
-          "${mod} SHIFT, down, movewindow, d"
+          "${mod} SHIFT, left, movewindoworgroup, l"
+          "${mod} SHIFT, right, movewindoworgroup, r"
+          "${mod} SHIFT, up, movewindoworgroup, u"
+          "${mod} SHIFT, down, movewindoworgroup, d"
         ]
         ++ (
           # workspaces

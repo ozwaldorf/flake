@@ -1,8 +1,55 @@
---- ./sound/pci/hda/razer_blade_helper.c	1970-01-01 01:00:00.000000000 +0100
-+++ ./sound/pci/hda/razer_blade_helper.c	2024-09-13 23:08:41.952809508 +0100
-@@ -0,0 +1,2027 @@ 
+diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
+index 452c6e7c2..8a661a6c7 100644
+--- a/sound/pci/hda/patch_realtek.c
++++ b/sound/pci/hda/patch_realtek.c
+@@ -7053,6 +7053,9 @@ static void alc256_fixup_acer_sfg16_micmute_led(struct hda_codec *codec,
+ /* for alc285_fixup_ideapad_s740_coef() */
+ #include "ideapad_s740_helper.c"
+ 
++/* for alc298_fixup_razer_blade_rz09_coefs() */
++#include "razer_blade_helper.c"
++
+ static const struct coef_fw alc256_fixup_set_coef_defaults_coefs[] = {
+ 	WRITE_COEF(0x10, 0x0020), WRITE_COEF(0x24, 0x0000),
+ 	WRITE_COEF(0x26, 0x0000), WRITE_COEF(0x29, 0x3000),
+@@ -7539,6 +7542,7 @@ enum {
+ 	ALC236_FIXUP_HP_MUTE_LED,
+ 	ALC236_FIXUP_HP_MUTE_LED_MICMUTE_VREF,
+ 	ALC236_FIXUP_LENOVO_INV_DMIC,
++	ALC298_FIXUP_RAZER_BLADE,
+ 	ALC298_FIXUP_SAMSUNG_AMP,
+ 	ALC298_FIXUP_SAMSUNG_AMP2,
+ 	ALC298_FIXUP_SAMSUNG_HEADPHONE_VERY_QUIET,
+@@ -9169,6 +9173,10 @@ static const struct hda_fixup alc269_fixups[] = {
+ 		.chained = true,
+ 		.chain_id = ALC283_FIXUP_INT_MIC,
+ 	},
++	[ALC298_FIXUP_RAZER_BLADE] = {
++		.type = HDA_FIXUP_FUNC,
++		.v.func = alc298_fixup_razer_blade_rz09_coefs,
++	},
+ 	[ALC298_FIXUP_SAMSUNG_AMP] = {
+ 		.type = HDA_FIXUP_FUNC,
+ 		.v.func = alc298_fixup_samsung_amp,
+@@ -10791,6 +10799,10 @@ static const struct snd_pci_quirk alc269
+ 	SND_PCI_QUIRK(0x19e5, 0x3204, "Huawei MACH-WX9", ALC256_FIXUP_HUAWEI_MACH_WX9_PINS),
+ 	SND_PCI_QUIRK(0x19e5, 0x320f, "Huawei WRT-WX9 ", ALC256_FIXUP_ASUS_MIC_NO_PRESENCE),
+ 	SND_PCI_QUIRK(0x19e5, 0x3212, "Huawei KLV-WX9 ", ALC256_FIXUP_ACER_HEADSET_MIC),
++	SND_PCI_QUIRK(0x1a58, 0x2020, "Razer Blade 14 2023 (RZ09-0482)", ALC298_FIXUP_RAZER_BLADE),
++	SND_PCI_QUIRK(0x1a58, 0x3006, "Razer Blade 16 2023 (RZ09-0483)", ALC298_FIXUP_RAZER_BLADE),
++	SND_PCI_QUIRK(0x1a58, 0x3007, "Razer Blade 18 2023 (RZ09-0484)", ALC298_FIXUP_RAZER_BLADE),
++	SND_PCI_QUIRK(0x1a58, 0x300a, "Razer Blade 16 2024", ALC298_FIXUP_RAZER_BLADE),
+ 	SND_PCI_QUIRK(0x1b35, 0x1235, "CZC B20", ALC269_FIXUP_CZC_B20),
+ 	SND_PCI_QUIRK(0x1b35, 0x1236, "CZC TMI", ALC269_FIXUP_CZC_TMI),
+ 	SND_PCI_QUIRK(0x1b35, 0x1237, "CZC L101", ALC269_FIXUP_CZC_L101),
+diff --git a/sound/pci/hda/razer_blade_helper.c b/sound/pci/hda/razer_blade_helper.c
+new file mode 100644
+index 000000000..33dc8b21b
+--- /dev/null
++++ b/sound/pci/hda/razer_blade_helper.c
+@@ -0,0 +1,2027 @@
 +// SPDX-License-Identifier: GPL-2.0
-+/* Fixes for Razer Blade sound hardware, to be included from the codec driver. 
++/* Fixes for Razer Blade sound hardware, to be included from the codec driver.
 + *
 + * Currently supported devices include:
 + *   0x1a582020 Razer Blade 14 2023 - RZ09-0482 (reported by jamir)
@@ -2028,45 +2075,3 @@
 +	}
 +
 +}
---- ./sound/pci/hda/patch_realtek.c	2024-09-08 22:50:28.000000000 +0100
-+++ ./sound/pci/hda/patch_realtek.c	2024-09-13 21:08:55.341183388 +0100
-@@ -7053,6 +7053,9 @@ static void alc256_fixup_acer_sfg16_micm
- /* for alc285_fixup_ideapad_s740_coef() */
- #include "ideapad_s740_helper.c"
- 
-+/* for alc298_fixup_razer_blade_rz09_coefs() */
-+#include "razer_blade_helper.c"
-+
- static const struct coef_fw alc256_fixup_set_coef_defaults_coefs[] = {
- 	WRITE_COEF(0x10, 0x0020), WRITE_COEF(0x24, 0x0000),
- 	WRITE_COEF(0x26, 0x0000), WRITE_COEF(0x29, 0x3000),
-@@ -7455,6 +7460,7 @@ enum {
-	ALC236_FIXUP_HP_GPIO_LED,
-	ALC236_FIXUP_HP_MUTE_LED,
-	ALC236_FIXUP_HP_MUTE_LED_MICMUTE_VREF,
-+	ALC298_FIXUP_RAZER_BLADE,
- 	ALC298_FIXUP_SAMSUNG_AMP,
- 	ALC298_FIXUP_SAMSUNG_AMP2,
- 	ALC298_FIXUP_SAMSUNG_HEADPHONE_VERY_QUIET,
-@@ -9169,6 +9173,10 @@ static const struct hda_fixup alc269_fix
- 		.chained = true,
- 		.chain_id = ALC283_FIXUP_INT_MIC,
- 	},
-+	[ALC298_FIXUP_RAZER_BLADE] = {
-+		.type = HDA_FIXUP_FUNC,
-+		.v.func = alc298_fixup_razer_blade_rz09_coefs,
-+	},
- 	[ALC298_FIXUP_SAMSUNG_AMP] = {
- 		.type = HDA_FIXUP_FUNC,
- 		.v.func = alc298_fixup_samsung_amp,
-@@ -10791,6 +10799,10 @@ static const struct snd_pci_quirk alc269
- 	SND_PCI_QUIRK(0x1854, 0x0441, "LG CQ6 AIO", ALC256_FIXUP_HEADPHONE_AMP_VOL),
- 	SND_PCI_QUIRK(0x19e5, 0x3204, "Huawei MACH-WX9", ALC256_FIXUP_HUAWEI_MACH_WX9_PINS),
- 	SND_PCI_QUIRK(0x19e5, 0x320f, "Huawei WRT-WX9 ", ALC256_FIXUP_ASUS_MIC_NO_PRESENCE),
-+	SND_PCI_QUIRK(0x1a58, 0x2020, "Razer Blade 14 2023 (RZ09-0482)", ALC298_FIXUP_RAZER_BLADE),
-+	SND_PCI_QUIRK(0x1a58, 0x3006, "Razer Blade 16 2023 (RZ09-0483)", ALC298_FIXUP_RAZER_BLADE),
-+	SND_PCI_QUIRK(0x1a58, 0x3007, "Razer Blade 18 2023 (RZ09-0484)", ALC298_FIXUP_RAZER_BLADE),
-+	SND_PCI_QUIRK(0x1a58, 0x300a, "Razer Blade 16 2024", ALC298_FIXUP_RAZER_BLADE),
- 	SND_PCI_QUIRK(0x1b35, 0x1235, "CZC B20", ALC269_FIXUP_CZC_B20),
- 	SND_PCI_QUIRK(0x1b35, 0x1236, "CZC TMI", ALC269_FIXUP_CZC_TMI),
- 	SND_PCI_QUIRK(0x1b35, 0x1237, "CZC L101", ALC269_FIXUP_CZC_L101),

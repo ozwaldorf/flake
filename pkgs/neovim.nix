@@ -216,15 +216,17 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
           enable = true;
           inlayHints = true;
           servers = {
-            nil-ls = {
+            nil_ls = {
               enable = true;
               settings.formatting.command = [ "${pkgs.nixfmt-rfc-style}/bin/nixfmt" ];
             };
-            lua-ls.enable = true;
-            tsserver.enable = true;
+            lua_ls.enable = true;
+            ts_ls.enable = true;
             clangd.enable = true;
           };
         };
+
+        web-devicons.enable = true;
 
         rustaceanvim = {
           enable = true;
@@ -402,56 +404,60 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
 
         bufferline = {
           enable = true;
-          separatorStyle = "thin";
-          offsets = [
-            {
-              filetype = "NvimTree";
-              text = "__ Tree __";
-              separator = "│";
-            }
-          ];
+          settings = {
+            separatorStyle = "thin";
+            offsets = [
+              {
+                filetype = "NvimTree";
+                text = "__ Tree __";
+                separator = "│";
+              }
+            ];
+          };
         };
 
         lualine = {
           enable = true;
-          globalstatus = true;
-          componentSeparators = {
-            left = "|";
-            right = "|";
-          };
-          sectionSeparators = {
-            left = "";
-            right = "";
-          };
-          sections = {
-            lualine_a = [
-              {
-                name = "mode";
-                separator = {
-                  left = "";
-                };
-                padding = {
-                  left = 1;
-                  right = 2;
-                };
-              }
-            ];
-            lualine_b = [ "branch" ];
-            lualine_c = [ "filename" ];
-            lualine_x = [ "progress" ];
-            lualine_y = [ "filetype" ];
-            lualine_z = [
-              {
-                name = "location";
-                separator = {
-                  right = "";
-                };
-                padding = {
-                  left = 2;
-                  right = 1;
-                };
-              }
-            ];
+          settings = {
+            globalstatus = true;
+            componentSeparators = {
+              left = "|";
+              right = "|";
+            };
+            sectionSeparators = {
+              left = "";
+              right = "";
+            };
+            sections = {
+              lualine_a = [
+                {
+                  name = "mode";
+                  separator = {
+                    left = "";
+                  };
+                  padding = {
+                    left = 1;
+                    right = 2;
+                  };
+                }
+              ];
+              lualine_b = [ "branch" ];
+              lualine_c = [ "filename" ];
+              lualine_x = [ "progress" ];
+              lualine_y = [ "filetype" ];
+              lualine_z = [
+                {
+                  name = "location";
+                  separator = {
+                    right = "";
+                  };
+                  padding = {
+                    left = 2;
+                    right = 1;
+                  };
+                }
+              ];
+            };
           };
         };
 

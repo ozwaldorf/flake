@@ -1,12 +1,5 @@
 { lib, pkgs, ... }:
 {
-  home.packages = with pkgs; [
-    swww
-    wl-clipboard
-    wf-recorder
-    sway-contrib.grimshot
-  ];
-
   wayland.windowManager.sway =
     let
       mod = "Mod4";

@@ -113,9 +113,9 @@
       "quiet"
       "splash"
       "udev.log_level=0"
-      "video=eDP-1:2650x1600@60"
+      # "video=eDP-1:2650x1600@60"
     ];
-    kernelPackages = pkgs.linuxPackages_6_8;
+    kernelPackages = pkgs.linuxPackages_6_11;
     extraModulePackages = [
       # patch sound driver with razer blade 16 fixup
       (pkgs.snd-hda-intel.override {
@@ -137,7 +137,7 @@
     powerManagement.finegrained = false;
     open = false;
     nvidiaSettings = true;
-    package = config.boot.kernelPackages.nvidiaPackages.stable;
+    package = config.boot.kernelPackages.nvidiaPackages.beta;
   };
 
   hardware.bluetooth = {
@@ -283,13 +283,13 @@
     # Add `open in wezterm` entry to nautilus
     nautilus-open-any-terminal = {
       enable = true;
-      terminal = "wezterm";
+      terminal = "foot";
     };
   };
 
   environment.sessionVariables = {
     NIXOS_OZONE_WL = "1";
-    WLR_NO_HARDWARE_CURSORS = "1";
+    # WLR_NO_HARDWARE_CURSORS = "1";
   };
 
   # This value determines the NixOS release from which the default
