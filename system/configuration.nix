@@ -39,13 +39,17 @@
       "wheel"
     ];
     shell = pkgs.zsh;
-    packages = with pkgs; [ firefox ];
+    packages = with pkgs; [
+      firefox
+      expressvpn
+    ];
   };
 
   networking = {
     hostName = hostname;
     networkmanager.enable = true;
     nameservers = [
+      "208.67.222.220" # open dns
       # "9.9.9.9" # quad9
       # "9.9.9.10" # quad9 unsecured
       # "1.1.1.1" # cloudflare
@@ -143,6 +147,8 @@
   services.power-profiles-daemon.enable = true;
   services.gnome.gnome-keyring.enable = true;
   services.gnome.tracker-miners.enable = true;
+
+  services.expressvpn.enable = true;
 
   services.xserver = {
     xkb.layout = "us";

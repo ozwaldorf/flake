@@ -116,6 +116,8 @@
         PKG="$1"; shift
         NIXPKGS_ALLOW_UNFREE=1 nix run "nixpkgs#$PKG" -- $@
       }
+
+      PATH="$HOME/.deno/bin:$PATH"
     '';
   };
 }

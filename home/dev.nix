@@ -5,6 +5,7 @@
       neovim
 
       deno
+      nodejs
       gnumake
 
       inotify-tools
