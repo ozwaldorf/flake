@@ -15,22 +15,23 @@ in
 
   wayland.windowManager.hyprland = {
     enable = true;
-    plugins = with pkgs.hyprlandPlugins; [
-      hyprexpo
-      hyprtrails
-    ];
+    # plugins = with pkgs.hyprlandPlugins; [
+    #   hyprexpo
+    #   hyprtrails
+    # ];
     settings = {
-      plugins = {
-        hyprexpo = {
-          columns = 2;
-          gap_size = 20;
-          bg_col = "rgb(161616)";
-          workspace_method = "first 1";
-        };
-        hyprtrails = {
-          color = "rgba(4589ffcc)";
-        };
-      };
+      # plugins = {
+      #   hyprexpo = {
+      #     columns = 2;
+      #     gap_size = 20;
+      #     bg_col = "rgb(161616)";
+      #     workspace_method = "first 1";
+      #   };
+      #   hyprtrails = {
+      #     color = "rgba(4589ffcc)";
+      #   };
+      # };
+      debug.disable_logs = false;
       exec = [
         "swww-daemon -f xbgr"
         "ags"
@@ -77,7 +78,7 @@ in
       ];
       bind =
         [
-          "${mod}, grave, hyprexpo:expo, toggle"
+          # "${mod}, grave, hyprexpo:expo, toggle"
           "${mod}, W, exec, bash -c 'swww img --transition-type any $(find ~/Pictures/walls/carburetor | shuf -n 1)'"
           "${mod}, RETURN, exec, wezterm"
           "${mod}, E, exec, firefox"
