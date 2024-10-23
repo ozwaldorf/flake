@@ -14,7 +14,6 @@
     };
     carburetor = {
       url = "github:ozwaldorf/carburetor";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     # Applications
@@ -68,7 +67,7 @@
             inputs.neovim-nightly-overlay.overlays.default
             overlay
             inputs.lutgen.overlays.default
-            inputs.carburetor.overlays.default
+            inputs.carburetor.overlays.insert
 
             (final: prev: {
               # Force insert flake packages that dont have builtin overlays.

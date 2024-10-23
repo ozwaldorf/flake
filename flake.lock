@@ -23,16 +23,14 @@
     },
     "carburetor": {
       "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
+        "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1722460022,
-        "narHash": "sha256-7Vux/oRoNwXxEFdWoYZmTAfZ2e4jLKnWJZyP1lK4uW4=",
+        "lastModified": 1729642270,
+        "narHash": "sha256-fj9jUrCakr3rDTSoKfSjc71ndnLnMIATkBdg/f0mA4A=",
         "owner": "ozwaldorf",
         "repo": "carburetor",
-        "rev": "c786d1e3ceac6746f3b1258f8d2e099425136f8c",
+        "rev": "5b2506615ef719e996a9eb0b020e844c7a35b37e",
         "type": "github"
       },
       "original": {
@@ -570,6 +568,22 @@
     },
     "nixpkgs": {
       "locked": {
+        "lastModified": 1729428082,
+        "narHash": "sha256-xb4/Y+Y7ZlkQaA5rXnrXplDzdt2Jfgdmar3+qkb56UA=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "ca30f584e18024baf39c395001262ed936f27ebd",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_2": {
+      "locked": {
         "lastModified": 1722421184,
         "narHash": "sha256-/DJBI6trCeVnasdjUo9pbnodCLZcFqnVZiLUfqLH4jA=",
         "owner": "NixOS",
@@ -641,7 +655,7 @@
         "home-manager": "home-manager",
         "lutgen": "lutgen",
         "neovim-nightly-overlay": "neovim-nightly-overlay",
-        "nixpkgs": "nixpkgs",
+        "nixpkgs": "nixpkgs_2",
         "nixvim": "nixvim",
         "wezterm": "wezterm"
       }
