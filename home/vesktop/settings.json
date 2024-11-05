@@ -276,7 +276,7 @@
             "enabled": true,
             "deleteStyle": "text",
             "logDeletes": true,
-            "collapseDeleted": false,
+            "collapseDeleted": true,
             "logEdits": true,
             "inlineEdits": true,
             "ignoreBots": true,
@@ -656,6 +656,6 @@
         "authenticated": false,
         "url": "https://api.vencord.dev/",
         "settingsSync": false,
-        "settingsSyncVersion": 1724342203167
+        "settingsSyncVersion": 1730562687522
     }
 }

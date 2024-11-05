@@ -11,7 +11,7 @@
 
       nautilus # file explorer
       simple-scan # document scanner
-      fragments # torrent manager
+      torrential # torrent manager
 
       eog # photo viewer
       celluloid # video player
