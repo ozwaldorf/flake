@@ -1,7 +1,7 @@
 {
   pkgs,
   lib,
-  kernel ? pkgs.linuxPackages_6_8.kernel,
+  kernel ? pkgs.linuxPackages_latest.kernel,
   patches ? [ ],
 }:
 
