@@ -172,7 +172,7 @@
   services.upower.enable = true;
   services.power-profiles-daemon.enable = true;
   services.gnome.gnome-keyring.enable = true;
-  services.gnome.tracker-miners.enable = true;
+  services.gnome.localsearch.enable = true;
 
   services.expressvpn.enable = true;
 
