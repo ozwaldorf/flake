@@ -10,6 +10,7 @@
     # carburetor theming
     inputs.carburetor.homeManagerModules.default
 
+    ./foot.nix # Terminal
     ./zsh.nix # Shell
     ./starship.nix # Prompt
     ./git.nix # Git
@@ -18,7 +19,6 @@
     ./hyprland.nix # window manager
     ./gtk.nix # gtk theming
     ./ags # bar, app launcher
-    ./wezterm # terminal
     ./vesktop # discord
     ./zed # zed editor
   ];
