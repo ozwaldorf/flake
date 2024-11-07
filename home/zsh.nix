@@ -6,7 +6,7 @@
     curl
     tree
     onefetch
-    fortune
+    (fortune.override { withOffensive = true; })
   ];
 
   programs.nix-index = {
