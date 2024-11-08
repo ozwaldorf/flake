@@ -36,15 +36,6 @@
 
     plugins = [
       {
-        name = "zsh-autocomplete";
-        src = pkgs.fetchFromGitHub {
-          owner = "marlonrichert";
-          repo = "zsh-autocomplete";
-          rev = "23.07.13";
-          sha256 = "0NW0TI//qFpUA2Hdx6NaYdQIIUpRSd0Y4NhwBbdssCs=";
-        };
-      }
-      {
         name = "zsh-window-title";
         src = pkgs.fetchFromGitHub {
           owner = "olets";
@@ -52,6 +43,11 @@
           rev = "v1.2.0";
           sha256 = "RqJmb+XYK35o+FjUyqGZHD6r1Ku1lmckX41aXtVIUJQ=";
         };
+      }
+      {
+        name = "zsh-autocomplete";
+        src = pkgs.zsh-autocomplete;
+        file = "share/zsh-autocomplete/zsh-autocomplete.plugin.zsh";
       }
       {
         name = "vi-mode";
@@ -92,6 +88,7 @@
 
     initExtraFirst = ''
       ## Options section
+      setopt interactive_comments                                     # Enable autocomplete
       setopt complete_aliases                                         # Complete aliased commands
       setopt correct                                                  # Auto correct mistakes
       setopt extendedglob                                             # Extended globbing. Allows using regular expressions with *
