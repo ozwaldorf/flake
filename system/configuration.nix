@@ -285,6 +285,12 @@
       enable = true;
       terminal = "foot";
     };
+
+  };
+
+  virtualisation.docker.rootless = {
+    enable = true;
+    setSocketVariable = true;
   };
 
   environment.sessionVariables = {
