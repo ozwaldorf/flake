@@ -12,6 +12,10 @@
       };
       colors.alpha = "0.8";
       mouse.hide-when-typing = "no";
+      cursor = {
+        style = "beam";
+        blink = "yes";
+      };
     };
   };
 }
