@@ -1,5 +1,13 @@
 # ozwaldorf's flake
 
+## Overview
+
+```
+├── home    : Home manager configuration
+├── pkgs    : Custom package overlay
+└── system  : System configurations
+```
+
 ## Usage
 
 Install the system and reboot (x86_64-linux):
