@@ -40,6 +40,18 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
           mode = [ "n" ];
         }
         {
+          # Next buffer (tab)
+          key = "gt";
+          action = "<cmd>bn<CR>";
+          mode = [ "n" ];
+        }
+        {
+          # Previous buffer (tab)
+          key = "gT";
+          action = "<cmd>bp<CR>";
+          mode = [ "n" ];
+        }
+        {
           # Toggle git diff overlay0
           key = "go";
           action.__raw = "MiniDiff.toggle_overlay";
@@ -464,6 +476,7 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
         mini = {
           enable = true;
           modules = {
+            jump2d = { };
             diff = { };
             starter = {
               evaluate_single = true;
