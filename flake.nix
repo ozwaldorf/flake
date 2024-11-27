@@ -19,7 +19,7 @@
     # Applications
     ags = {
       url = "github:ozwaldorf/ags";
-      inputs.nixpkgs.follows = "nixpkgs";
+      # inputs.nixpkgs.follows = "nixpkgs";
     };
     zoom-sync = {
       url = "github:ozwaldorf/zoom-sync";

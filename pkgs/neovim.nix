@@ -245,7 +245,7 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
           settings = {
             tools.hover_actions.replace_builtin_hover = true;
             server = {
-              on_attach = "__lspOnAttach";
+              # on_attach = "__lspOnAttach";
               standalone = true;
               default_settings.rust_analyzer.check.command = "clippy";
             };
