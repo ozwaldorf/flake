@@ -42,6 +42,7 @@
     packages = with pkgs; [
       firefox
       expressvpn
+      qmk
     ];
   };
 
@@ -139,6 +140,10 @@
     nvidiaSettings = true;
     package = config.boot.kernelPackages.nvidiaPackages.beta;
   };
+
+  # enable keyboard management
+  hardware.keyboard.qmk.enable = true;
+  services.udev.packages = [ pkgs.via ];
 
   hardware.bluetooth = {
     enable = true;

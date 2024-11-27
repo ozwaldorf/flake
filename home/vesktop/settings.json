@@ -613,7 +613,7 @@
             "enabled": true
         },
         "WhoReacted": {
-            "enabled": true
+            "enabled": false
         },
         "XSOverlay": {
             "enabled": false

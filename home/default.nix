@@ -26,7 +26,9 @@
   home = {
     inherit username homeDirectory;
     stateVersion = "24.05";
-    packages = with pkgs; [ lutgen ];
+    packages = with pkgs; [
+      lutgen
+    ];
   };
 
   programs.home-manager.enable = true;
