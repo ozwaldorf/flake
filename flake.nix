@@ -21,22 +21,14 @@
       url = "github:ozwaldorf/ags";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    wezterm = {
-      url = "github:wez/wezterm?dir=nix";
+    zoom-sync = {
+      url = "github:ozwaldorf/zoom-sync";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # lutgen = {
-    #   url = "github:ozwaldorf/lutgen-rs";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
     neovim-nightly-overlay = {
       url = "github:nix-community/neovim-nightly-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # hyprland {
-    #   url = "github:vaxry/hyprland";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
   };
 
   nixConfig = {
@@ -68,16 +60,16 @@
         import nixpkgs {
           inherit system;
           overlays = [
-            inputs.neovim-nightly-overlay.overlays.default
-            overlay
-            # inputs.lutgen.overlays.default
             inputs.carburetor.overlays.insert
-
+            inputs.neovim-nightly-overlay.overlays.default
             (final: prev: {
               # Force insert flake packages that dont have builtin overlays.
               ags = inputs.ags.packages.${prev.system}.default;
-              # wezterm = inputs.wezterm.packages.${prev.system}.default;
+              zoom-sync = inputs.zoom-sync.packages.${prev.system}.default;
             })
+
+            # Custom packages
+            overlay
           ];
           config.allowUnfree = true;
         };

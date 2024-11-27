@@ -41,8 +41,10 @@
     shell = pkgs.zsh;
     packages = with pkgs; [
       firefox
+      chromium
       expressvpn
       qmk
+      zoom-sync
     ];
   };
 
@@ -56,32 +58,6 @@
       "127.0.0.1"
       "::1"
     ];
-  };
-
-  services.dnscrypt-proxy2 = {
-    enable = true;
-    settings = {
-      ipv6_servers = true;
-      require_dnssec = true;
-      sources.public-resolvers = {
-        urls = [
-          "https://raw.githubusercontent.com/DNSCrypt/dnscrypt-resolvers/master/v3/public-resolvers.md"
-          "https://download.dnscrypt.info/resolvers-list/v3/public-resolvers.md"
-        ];
-        cache_file = "/var/lib/dnscrypt-proxy2/public-resolvers.md";
-        minisign_key = "RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3";
-      };
-      server_names = [
-        "cloudflare"
-        "cloudflare-ipv6"
-        "google"
-        "google-ipv6"
-      ];
-    };
-  };
-
-  systemd.services.dnscrypt-proxy2.serviceConfig = {
-    StateDirectory = "dnscrypt-proxy";
   };
 
   time.timeZone = "America/New_York";
@@ -220,21 +196,61 @@
   };
   hardware.enableAllFirmware = true;
 
+  services.dnscrypt-proxy2 = {
+    enable = true;
+    settings = {
+      ipv6_servers = true;
+      require_dnssec = true;
+      sources.public-resolvers = {
+        urls = [
+          "https://raw.githubusercontent.com/DNSCrypt/dnscrypt-resolvers/master/v3/public-resolvers.md"
+          "https://download.dnscrypt.info/resolvers-list/v3/public-resolvers.md"
+        ];
+        cache_file = "/var/lib/dnscrypt-proxy2/public-resolvers.md";
+        minisign_key = "RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3";
+      };
+      server_names = [
+        "cloudflare"
+        "cloudflare-ipv6"
+        "google"
+        "google-ipv6"
+      ];
+    };
+  };
+
   security.rtkit.enable = true;
   security.polkit.enable = true;
+
   systemd = {
-    user.services.polkit-gnome-authentication-agent-1 = {
-      description = "polkit-gnome-authentication-agent-1";
-      wantedBy = [ "graphical-session.target" ];
-      wants = [ "graphical-session.target" ];
-      after = [ "graphical-session.target" ];
-      serviceConfig = {
-        Type = "simple";
-        ExecStart = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
-        Restart = "on-failure";
-        RestartSec = 1;
-        TimeoutStopSec = 10;
+    services = {
+      dnscrypt-proxy2.serviceConfig = {
+        StateDirectory = "dnscrypt-proxy";
       };
+      zoom-sync = {
+        description = "Screen module sync for zoom65v3 keyboards";
+        wantedBy = [ "multi-user.target" ];
+        serviceConfig = {
+          Type = "simple";
+          ExecStart = "${pkgs.zoom-sync}/bin/zoom-sync -f -d 42.69 --reactive";
+          Restart = "on-failure";
+        };
+      };
+    };
+    user.services = {
+      polkit-gnome-authentication-agent-1 = {
+        description = "polkit-gnome-authentication-agent-1";
+        wantedBy = [ "graphical-session.target" ];
+        wants = [ "graphical-session.target" ];
+        after = [ "graphical-session.target" ];
+        serviceConfig = {
+          Type = "simple";
+          ExecStart = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
+          Restart = "on-failure";
+          RestartSec = 1;
+          TimeoutStopSec = 10;
+        };
+      };
+
     };
   };
 
