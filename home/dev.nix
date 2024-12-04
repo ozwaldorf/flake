@@ -15,6 +15,7 @@
       ripgrep
       xq
 
+      gh
       bottom
     ];
 

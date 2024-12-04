@@ -4,8 +4,8 @@
     "useQuickCss": false,
     "themeLinks": [],
     "enabledThemes": [
-        "carburetor-regular.css",
-        "horizontal.css"
+        "horizontal.css",
+        "carburetor-regular.css"
     ],
     "enableReactDevtools": false,
     "frameless": false,
@@ -644,6 +644,27 @@
         },
         "YoutubeAdblock": {
             "enabled": false
+        },
+        "DynamicImageModalAPI": {
+            "enabled": false
+        },
+        "AccountPanelServerProfile": {
+            "enabled": false
+        },
+        "CopyFileContents": {
+            "enabled": false
+        },
+        "FixImagesQuality": {
+            "enabled": false
+        },
+        "NoMaskedUrlPaste": {
+            "enabled": false
+        },
+        "StickerPaste": {
+            "enabled": false
+        },
+        "VolumeBooster": {
+            "enabled": false
         }
     },
     "notifications": {
@@ -656,6 +677,6 @@
         "authenticated": false,
         "url": "https://api.vencord.dev/",
         "settingsSync": false,
-        "settingsSyncVersion": 1730844946349
+        "settingsSyncVersion": 1733212437647
     }
 }
