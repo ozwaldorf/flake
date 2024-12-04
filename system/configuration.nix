@@ -265,7 +265,7 @@
   #   '';
   # };
 
-  fonts.packages = with pkgs; [ (nerdfonts.override { fonts = [ "FiraCode" ]; }) ];
+  fonts.packages = with pkgs; [ nerd-fonts.fira-code ];
   environment.pathsToLink = [ "/share/zsh" ];
   fonts.fontconfig.enable = true;
 
