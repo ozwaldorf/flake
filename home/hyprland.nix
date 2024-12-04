@@ -48,6 +48,13 @@ in
         "col.active_border" = "$text";
         "col.inactive_border" = "$base";
       };
+      workspace = [
+        "m[0] w[t1], gapsout:80 80"
+        "m[0] w[t2], gapsout:40 40"
+        # On widescreen monitor, pad 1 and 2 wide workspaces
+        "m[1] w[t1], gapsout:80 600"
+        "m[1] w[t2], gapsout:40 300"
+      ];
       dwindle = {
         pseudotile = true;
         preserve_split = true;
@@ -93,6 +100,11 @@ in
         "blur,applauncher*"
         "ignorealpha,applauncher*"
       ];
+      windowrulev2 = [
+        "float,class:float"
+        "center,class:float"
+        "size 50% 30%,class:float"
+      ];
       bindm = [
         "${mod},mouse:272,movewindow"
         "${mod},mouse:273,resizewindow"
@@ -105,6 +117,7 @@ in
           "${mod}, D, exec, ags -t applauncher"
           # Terminal
           "${mod}, RETURN, exec, foot"
+          "${mod} SHIFT, RETURN, exec, foot -a float"
           # Browser
           "${mod}, E, exec, firefox"
 
