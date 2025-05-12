@@ -60,7 +60,7 @@ in
         preserve_split = true;
       };
       group = {
-        "col.border_inactive" = "$saphire";
+        "col.border_inactive" = "$sapphire";
         "col.border_active" = "$sky";
         groupbar = {
           enabled = true;
