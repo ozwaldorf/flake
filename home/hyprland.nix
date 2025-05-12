@@ -133,6 +133,8 @@ in
           "${mod} SHIFT, Q, killactive"
           "${mod}, J, togglesplit"
           "${mod} SHIFT, Space, togglefloating"
+          "${mod}, F, fullscreen"
+          # "${mod} SHIFT, F, fullscreenstate -1 2"
 
           # Groups
           "${mod}, G, togglegroup"

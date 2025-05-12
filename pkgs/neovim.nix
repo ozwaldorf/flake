@@ -235,6 +235,7 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
             lua_ls.enable = true;
             ts_ls.enable = true;
             clangd.enable = true;
+            solc.enable = false;
           };
         };
 
