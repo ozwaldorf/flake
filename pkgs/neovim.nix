@@ -5,9 +5,6 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
   inherit pkgs;
   module = {
     config = {
-      # ensure base neovim is used from pkgs
-      package = pkgs.neovim;
-
       clipboard.providers.wl-copy.enable = true;
 
       opts = {
@@ -255,28 +252,30 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
 
         fidget = {
           enable = true;
-          integration = {
-            nvim-tree = {
-              enable = true;
-            };
-          };
-          progress = {
-            display = {
-              progressIcon = {
-                pattern = "flip";
-                period = 1;
+          settings = {
+            integration = {
+              nvim-tree = {
+                enable = true;
               };
-              overrides = {
-                rust_analyzer = {
-                  name = "rust analyzer";
+            };
+            progress = {
+              display = {
+                progress_icon = {
+                  pattern = "flip";
+                  period = 1;
+                };
+                overrides = {
+                  rust_analyzer = {
+                    name = "rust analyzer";
+                  };
                 };
               };
             };
-          };
-          notification = {
-            window = {
-              winblend = 0;
-              xPadding = 2;
+            notification = {
+              window = {
+                winblend = 0;
+                x_padding = 2;
+              };
             };
           };
         };
@@ -296,7 +295,7 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
             current_line_blame_opts.delay = 0;
           };
         };
-        nvim-colorizer.enable = true;
+        colorizer.enable = true;
         nvim-autopairs.enable = true;
         commentary.enable = true;
 
@@ -304,7 +303,7 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
         cmp-path.enable = true;
         cmp-buffer.enable = true;
         cmp-git.enable = true;
-        crates-nvim.enable = true;
+        crates.enable = true;
         cmp = {
           enable = true;
           autoEnableSources = false;
@@ -641,7 +640,7 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
           };
           show_end_of_buffer = false;
           integrations = {
-            NormalNvim = true;
+            # NormalNvim = true;
             mini.enabled = true;
             nvimtree = true;
             lsp_trouble = true;
