@@ -61,7 +61,7 @@
           inherit system;
           overlays = [
             inputs.carburetor.overlays.insert
-            inputs.neovim-nightly-overlay.overlays.default
+            # inputs.neovim-nightly-overlay.overlays.default
             (final: prev: {
               # Force insert flake packages that dont have builtin overlays.
               ags = inputs.ags.packages.${prev.system}.default;
