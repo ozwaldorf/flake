@@ -20,12 +20,13 @@
       gnome-font-viewer # font viewer
     ];
 
-    pointerCursorPatch = {
+    pointerCursor = {
       package = pkgs.bibata-cursors;
       name = "Bibata-Modern-Classic";
-      size = 48;
+      size = 24;
       x11.enable = true;
-      gtk = {
+      gtk.enable = true;
+      hyprcursor = {
         enable = true;
         size = 24;
       };

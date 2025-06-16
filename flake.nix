@@ -71,7 +71,12 @@
             # Custom packages
             overlay
           ];
-          config.allowUnfree = true;
+          config = {
+            allowUnfree = true;
+            permittedInsecurePackages = [
+              "beekeeper-studio-5.1.5"
+            ];
+          };
         };
       forAllSystems =
         f: nixpkgs.lib.genAttrs nixpkgs.lib.systems.flakeExposed (system: f (pkgsFor system));

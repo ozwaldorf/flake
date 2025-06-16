@@ -11,6 +11,7 @@ in
 
     hyprlock
     hyprshot
+    yad
   ];
 
   carburetor.themes = {
@@ -22,7 +23,8 @@ in
     enable = true;
     plugins = with pkgs.hyprlandPlugins; [
       hyprexpo
-      hyprtrails
+      # hyprtrails
+      hypr-dynamic-cursors
     ];
     settings = {
       plugins = {
@@ -34,6 +36,15 @@ in
         };
         hyprtrails = {
           color = "rgba(4589ffcc)";
+        };
+        dynamic-cursors = {
+          shake = {
+            threshold = 4.0;
+            effects = true;
+          };
+          hyprcursor = {
+            nearest = 0;
+          };
         };
       };
       debug.disable_logs = false;
@@ -104,6 +115,9 @@ in
         "float,class:float"
         "center,class:float"
         "size 50% 30%,class:float"
+        "float,class:yad"
+        "center,class:yad"
+        "size 35 80,class:yad"
       ];
       bindm = [
         "${mod},mouse:272,movewindow"
@@ -128,12 +142,16 @@ in
           # Cycle wallpaper
           "${mod}, W, exec, bash -c 'swww img --transition-type any $(find ~/Pictures/walls/carburetor | shuf -n 1)'"
 
+          # Nix run
+          "${mod}, R, exec, bash -c 'export APP=$(yad --entry --text \"nix-shell -p\") && nix-shell -p $APP --run $APP'"
+
           # Window management
           "${mod} SHIFT, E, exit"
           "${mod} SHIFT, Q, killactive"
           "${mod}, J, togglesplit"
           "${mod} SHIFT, Space, togglefloating"
           "${mod}, F, fullscreen"
+          "${mod}, P, pin"
           # "${mod} SHIFT, F, fullscreenstate -1 2"
 
           # Groups

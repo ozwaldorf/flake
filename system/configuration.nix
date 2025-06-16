@@ -22,9 +22,13 @@
         "flakes"
       ];
       auto-optimise-store = true;
-      extra-substituters = [ "https://cache.garnix.io" ];
+      # extra-substituters = [ "https://cache.garnix.io" ];
       extra-trusted-public-keys = [ "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g=" ];
     };
+    trustedUsers = [
+      "root"
+      "@wheel"
+    ];
     gc = {
       automatic = true;
       dates = "weekly";
@@ -131,10 +135,7 @@
 
   services.xserver.enable = true;
   services.xserver.videoDrivers = [ "nvidia" ];
-  # services.xserver.displayManager.gdm = {
-  #   enable = true;
-  #   wayland = true;
-  # };
+
   services.getty.autologinUser = username;
   services.greetd = {
     enable = true;
@@ -179,7 +180,7 @@
     openFirewall = true;
   };
 
-  hardware.pulseaudio.enable = false;
+  services.pulseaudio.enable = false;
   services.pipewire = {
     enable = true;
     alsa.enable = true;

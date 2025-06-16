@@ -27,7 +27,7 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
         {
           # Toggle trouble window with all current lsp errors
           key = "T";
-          action = "<cmd>TroubleToggle<CR>";
+          action = "<cmd>Trouble diagnostics toggle<CR>";
           mode = [ "n" ];
         }
         {
@@ -231,6 +231,7 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
             };
             lua_ls.enable = true;
             ts_ls.enable = true;
+            denols.enable = true;
             clangd.enable = true;
             solc.enable = false;
           };
