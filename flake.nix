@@ -47,6 +47,7 @@
       # Nixos system variables
       hostname = "onix";
       username = "oz";
+      system = "x86_64-linux";
 
       # Absolute path to the directory containing this flake.
       # Used for creating "out of store" symlinks. For example, mostly
@@ -74,18 +75,18 @@
           config = {
             allowUnfree = true;
             permittedInsecurePackages = [
-              "beekeeper-studio-5.1.5"
+              "beekeeper-studio-5.2.12"
             ];
           };
         };
       forAllSystems =
         f: nixpkgs.lib.genAttrs nixpkgs.lib.systems.flakeExposed (system: f (pkgsFor system));
+
     in
     {
       # Full nixos system and home configuration
       nixosConfigurations = {
         ${hostname} = nixpkgs.lib.nixosSystem rec {
-          system = "x86_64-linux";
           specialArgs = {
             inherit
               inputs
@@ -94,11 +95,14 @@
               hostname
               flakeDirectory
               ;
-            pkgs = pkgsFor system;
             homeDirectory = "/home/" + username;
           };
 
           modules = [
+            # Nixpkgs provisioning with overlays
+            nixpkgs.nixosModules.readOnlyPkgs
+            { nixpkgs.pkgs = pkgsFor system; }
+
             # System level config
             ./system/configuration.nix
 

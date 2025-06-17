@@ -30,7 +30,8 @@
     fsType = "ext4";
   };
 
-  boot.initrd.luks.devices."luks-f0d4830a-a4c2-4863-8966-0f3944d1feb3".device = "/dev/disk/by-uuid/f0d4830a-a4c2-4863-8966-0f3944d1feb3";
+  boot.initrd.luks.devices."luks-f0d4830a-a4c2-4863-8966-0f3944d1feb3".device =
+    "/dev/disk/by-uuid/f0d4830a-a4c2-4863-8966-0f3944d1feb3";
 
   fileSystems."/boot" = {
     device = "/dev/disk/by-uuid/2EB6-7A04";
@@ -47,6 +48,6 @@
   # networking.interfaces.enp0s20f0u4.useDHCP = lib.mkDefault true;
   # networking.interfaces.enp0s20f0u6u4c2.useDHCP = lib.mkDefault true;
 
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+  # nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 }
