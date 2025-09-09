@@ -237,6 +237,8 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
           };
         };
 
+        claude-code.enable = true;
+
         web-devicons.enable = true;
 
         rustaceanvim = {
@@ -246,7 +248,8 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
             server = {
               # on_attach = "__lspOnAttach";
               standalone = true;
-              default_settings.rust_analyzer.check.command = "clippy";
+              default_settings.rust_analyzer.check.command = "clippy --all-targets";
+
             };
           };
         };
@@ -496,13 +499,13 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
                   MM    ,dP' YA.   ,A9 MM    MM   MM
                 .JMMmmmdP'    `Ybmd9'.JMML  JMML. `Mbmo
 
-                `7MM"""Mq.                     db          OO
-                  MM   `MM.                                88
-                  MM   ,M9 ,6"Yb. `7MMpMMMb. `7MM  ,p6"bo  ||
-                  MMmmdM9 8)   MM   MM    MM   MM 6M'  OO  ||
-                  MM       ,pm9MM   MM    MM   MM 8M       `'
-                  MM      8M   MM   MM    MM   MM YM.    , ,,
-                .JMML.    `Moo9^Yo.JMML  JMML.JMML.YMbmd'  db
+                `7MM"""Mq.                   db          OO
+                  MM   `MM.                              88
+                  MM   ,M9 ,6"Yb.`7MMpMMMb.`7MM  ,p6"bo  ||
+                  MMmmdM9 19   MM  MM    MM  MM 6M'  19  ||
+                  MM       ,pm9MM  MM    MM  MM 8M       `'
+                  MM      8M   MM  MM    MM  MM YM.    , ,,
+                .JMML.    `Moo9^YoJMML  JMMLJMML.YMbmd'  db
 
                 ~ Good %s, %s]]):format(day_part, username)
                 end

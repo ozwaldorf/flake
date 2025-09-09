@@ -21,6 +21,7 @@
       ".envrc"
       ".direnv"
       "result"
+      ".claude"
     ];
     delta = {
       enable = true;
