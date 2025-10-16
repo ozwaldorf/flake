@@ -20,7 +20,7 @@
     ./gtk.nix # gtk theming
     ./ags # bar, app launcher
     ./vesktop # discord
-    ./zed # zed editor
+    ./zed.nix # zed editor
   ];
 
   home = {
@@ -29,6 +29,7 @@
     packages = with pkgs; [
       lutgen
       beekeeper-studio
+      prismlauncher
     ];
   };
 

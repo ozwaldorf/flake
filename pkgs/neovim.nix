@@ -234,6 +234,7 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
             denols.enable = true;
             clangd.enable = true;
             solc.enable = false;
+            svelte.enable = true;
           };
         };
 

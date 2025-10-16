@@ -145,7 +145,6 @@
         user = username;
       };
     };
-    vt = 1;
   };
 
   # services.xserver.desktopManager.gnome.enable = true;

@@ -118,79 +118,80 @@ in
         "float,class:yad"
         "center,class:yad"
         "size 35 80,class:yad"
+        "float,class:firefox,title:(.*)(MetaMask)(.*)"
+        "center,class:firefox,title:(.*)(MetaMask)(.*)"
       ];
       bindm = [
         "${mod},mouse:272,movewindow"
         "${mod},mouse:273,resizewindow"
       ];
-      bind =
-        [
-          # "${mod}, grave, hyprexpo:expo, toggle"
+      bind = [
+        # "${mod}, grave, hyprexpo:expo, toggle"
 
-          # App launcher
-          "${mod}, D, exec, ags -t applauncher"
-          # Terminal
-          "${mod}, RETURN, exec, foot"
-          "${mod} SHIFT, RETURN, exec, foot -a float"
-          # Browser
-          "${mod}, E, exec, firefox"
+        # App launcher
+        "${mod}, D, exec, ags -t applauncher"
+        # Terminal
+        "${mod}, RETURN, exec, foot"
+        "${mod} SHIFT, RETURN, exec, foot -a float"
+        # Browser
+        "${mod}, E, exec, firefox"
 
-          # Screenshots
-          ", Print, exec, hyprshot --clipboard-only -zm window"
-          "SHIFT, Print, exec, hyprshot --clipboard-only -zm region"
+        # Screenshots
+        ", Print, exec, hyprshot --clipboard-only -zm window"
+        "SHIFT, Print, exec, hyprshot --clipboard-only -zm region"
 
-          # Cycle wallpaper
-          "${mod}, W, exec, bash -c 'swww img --transition-type any $(find ~/Pictures/walls/carburetor | shuf -n 1)'"
+        # Cycle wallpaper
+        "${mod}, W, exec, bash -c 'swww img --transition-type any $(find ~/Pictures/walls/carburetor | shuf -n 1)'"
 
-          # Nix run
-          "${mod}, R, exec, bash -c 'export APP=$(yad --entry --text \"nix-shell -p\") && nix-shell -p $APP --run $APP'"
+        # Nix run
+        "${mod}, R, exec, bash -c 'export APP=$(yad --entry --text \"nix-shell -p\") && nix-shell -p $APP --run $APP'"
 
-          # Window management
-          "${mod} SHIFT, E, exit"
-          "${mod} SHIFT, Q, killactive"
-          "${mod}, J, togglesplit"
-          "${mod} SHIFT, Space, togglefloating"
-          "${mod}, F, fullscreen"
-          "${mod}, P, pin"
-          # "${mod} SHIFT, F, fullscreenstate -1 2"
+        # Window management
+        "${mod} SHIFT, E, exit"
+        "${mod} SHIFT, Q, killactive"
+        "${mod}, J, togglesplit"
+        "${mod} SHIFT, Space, togglefloating"
+        "${mod}, F, fullscreen"
+        "${mod}, P, pin"
+        # "${mod} SHIFT, F, fullscreenstate -1 2"
 
-          # Groups
-          "${mod}, G, togglegroup"
-          "${mod}, Tab, changegroupactive, f"
-          "${mod}, Shift, changegroupactive, b"
-          "${mod} CTRL, Left, movegroupwindow, b"
-          "${mod} CTRL, Right, movegroupwindow"
+        # Groups
+        "${mod}, G, togglegroup"
+        "${mod}, Tab, changegroupactive, f"
+        "${mod}, Shift, changegroupactive, b"
+        "${mod} CTRL, Left, movegroupwindow, b"
+        "${mod} CTRL, Right, movegroupwindow"
 
-          # Window traversal and movement
-          "${mod}, left, movefocus, l"
-          "${mod}, right, movefocus, r"
-          "${mod}, up, movefocus, u"
-          "${mod}, down, movefocus, d"
-          "${mod} SHIFT, left, movewindoworgroup, l"
-          "${mod} SHIFT, right, movewindoworgroup, r"
-          "${mod} SHIFT, up, movewindoworgroup, u"
-          "${mod} SHIFT, down, movewindoworgroup, d"
-        ]
-        ++ (
-          # workspaces
-          # binds $mod + [shift +] {1..10} to [move to] workspace {1..10}
-          builtins.concatLists (
-            builtins.genList (
-              x:
-              let
-                ws =
-                  let
-                    c = (x + 1) / 10;
-                  in
-                  builtins.toString (x + 1 - (c * 10));
-              in
-              [
-                "${mod}, ${ws}, workspace, ${toString (x + 1)}"
-                "${mod} SHIFT, ${ws}, movetoworkspace, ${toString (x + 1)}"
-              ]
-            ) 10
-          )
-        );
+        # Window traversal and movement
+        "${mod}, left, movefocus, l"
+        "${mod}, right, movefocus, r"
+        "${mod}, up, movefocus, u"
+        "${mod}, down, movefocus, d"
+        "${mod} SHIFT, left, movewindoworgroup, l"
+        "${mod} SHIFT, right, movewindoworgroup, r"
+        "${mod} SHIFT, up, movewindoworgroup, u"
+        "${mod} SHIFT, down, movewindoworgroup, d"
+      ]
+      ++ (
+        # workspaces
+        # binds $mod + [shift +] {1..10} to [move to] workspace {1..10}
+        builtins.concatLists (
+          builtins.genList (
+            x:
+            let
+              ws =
+                let
+                  c = (x + 1) / 10;
+                in
+                builtins.toString (x + 1 - (c * 10));
+            in
+            [
+              "${mod}, ${ws}, workspace, ${toString (x + 1)}"
+              "${mod} SHIFT, ${ws}, movetoworkspace, ${toString (x + 1)}"
+            ]
+          ) 10
+        )
+      );
     };
   };
 }
