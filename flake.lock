@@ -24,11 +24,11 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1740681415,
-        "narHash": "sha256-AqjNLHo2u0j9lYDEpDFb37gjFcz+zpO/wlaMAB8xMzA=",
+        "lastModified": 1761022534,
+        "narHash": "sha256-NLpsFGuQkwdyxy9AlCAkcC5JrJaJRVbAWYtaC6s7n/I=",
         "owner": "ozwaldorf",
         "repo": "carburetor",
-        "rev": "839124a7ded15d97725d9a5cf9fbab90e66749d2",
+        "rev": "3ff03965cbc421386ddd61887a9b1565e0188f09",
         "type": "github"
       },
       "original": {
@@ -307,11 +307,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1729428082,
-        "narHash": "sha256-xb4/Y+Y7ZlkQaA5rXnrXplDzdt2Jfgdmar3+qkb56UA=",
+        "lastModified": 1760965567,
+        "narHash": "sha256-0JDOal5P7xzzAibvD0yTE3ptyvoVOAL0rcELmDdtSKg=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "ca30f584e18024baf39c395001262ed936f27ebd",
+        "rev": "cb82756ecc37fa623f8cf3e88854f9bf7f64af93",
         "type": "github"
       },
       "original": {

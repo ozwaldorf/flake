@@ -1,10 +1,8 @@
+{ pkgs, ... }:
 {
-  pkgs,
-  config,
-  flakeDirectory,
-  ...
-}:
-{
+  # enable vulkan drivers
+  nixGL.vulkan.enable = true;
+
   programs.zed-editor = {
     enable = true;
     extensions = [
@@ -24,7 +22,14 @@
       lsp = {
         rust-analyzer = {
           binary = {
-            path_lookup = true;
+            path = "/usr/bin/env";
+            arguments = [
+              "nix"
+              "develop"
+              "--command"
+              "rust-analyzer"
+            ];
+            # path_lookup = true;
           };
         };
         nix = {
@@ -36,15 +41,11 @@
       };
       vim_mode = true;
       load_direnv = "shell_hook"; # flakes
-      theme = {
-        mode = "dark";
-        dark = "carburetor regular (rosewater) - No Italics";
-
-      };
+      theme = "carburetor regular (blue)";
       ui_font_family = "Berkeley Mono";
-      ui_font_size = 16;
+      ui_font_size = 14;
       buffer_font_family = "Berkeley Mono";
-      buffer_font_size = 16;
+      buffer_font_size = 14;
       inlay_hints = {
         enabled = true;
         show_type_hints = true;

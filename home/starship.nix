@@ -76,6 +76,7 @@
         symbol = "⊛ ";
         format = "nix [$symbol$state $name]($style) ";
       };
+      aws.disabled = true;
     };
   };
 }

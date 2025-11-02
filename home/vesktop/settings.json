@@ -664,7 +664,25 @@
             "enabled": false
         },
         "ExpressionCloner": {
+            "enabled": true
+        },
+        "CopyStickerLinks": {
             "enabled": false
+        },
+        "FullUserInChatbox": {
+            "enabled": false
+        },
+        "ImageFilename": {
+            "enabled": false
+        },
+        "IrcColors": {
+            "enabled": false
+        },
+        "BadgeAPI": {
+            "enabled": true
+        },
+        "DisableDeepLinks": {
+            "enabled": true
         }
     },
     "notifications": {
@@ -677,7 +695,7 @@
         "authenticated": false,
         "url": "https://api.vencord.dev/",
         "settingsSync": false,
-        "settingsSyncVersion": 1750114155013
+        "settingsSyncVersion": 1761799402170
     },
     "eagerPatches": false
 }
