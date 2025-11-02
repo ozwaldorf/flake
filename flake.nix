@@ -125,12 +125,13 @@
             home-manager.nixosModules.home-manager
             nixpkgs.nixosModules.readOnlyPkgs
             { nixpkgs.pkgs = pkgsFor system; }
+            ./systems/seedbox/configuration.nix
             {
               home-manager = {
                 useGlobalPkgs = true;
                 useUserPackages = true;
                 extraSpecialArgs = specialArgs;
-                users.${username} = import ./home/headless;
+                users.${username} = import ./home/seedbox;
               };
             }
 
