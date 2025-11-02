@@ -51,7 +51,7 @@
   # Use latest kernel.
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
-  networking.hostName = "nixos"; # Define your hostname.
+  networking.hostName = "seedbox"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
@@ -132,11 +132,23 @@
     user = username;
   };
 
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
+  services.rtorrent = {
+    enable = true;
+    # (2025-07-28) upstream develop of rtorrent continued, jesec-rtorrent does not build in nixpkgs
+    package = pkgs.rtorrent;
+    openFirewall = true;
+  };
+
+  services.flood = {
+    enable = true;
+    port = 8080;
+    host = "0.0.0.0";
+    openFirewall = true;
+    extraArgs = [ "--rtsocket=${config.services.rtorrent.rpcSocket}" ];
+  };
+  # allow access to the socket by putting it in the same group as rtorrent service
+  # the socket will have g+w permissions
+  systemd.services.flood.serviceConfig.SupplementaryGroups = [ config.services.rtorrent.group ];
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
@@ -145,5 +157,4 @@
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "25.05"; # Did you read the comment?
-
 }
