@@ -308,7 +308,6 @@
       enable = true;
       terminal = "foot";
     };
-
   };
 
   virtualisation.docker.rootless = {

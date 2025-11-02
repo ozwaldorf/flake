@@ -45,7 +45,6 @@
     }@inputs:
     let
       # Nixos system variables
-      hostname = "onix";
       username = "oz";
       system = "x86_64-linux";
 
@@ -81,43 +80,60 @@
         };
       forAllSystems =
         f: nixpkgs.lib.genAttrs nixpkgs.lib.systems.flakeExposed (system: f (pkgsFor system));
-
     in
     {
-      # Full nixos system and home configuration
       nixosConfigurations = {
-        ${hostname} = nixpkgs.lib.nixosSystem rec {
+        "onix" = nixpkgs.lib.nixosSystem rec {
           specialArgs = {
             inherit
               inputs
               system
               username
-              hostname
               flakeDirectory
               ;
+            hostname = "onix";
             homeDirectory = "/home/" + username;
           };
-
           modules = [
-            # Nixpkgs provisioning with overlays
             nixpkgs.nixosModules.readOnlyPkgs
             { nixpkgs.pkgs = pkgsFor system; }
-
-            # System level config
-            ./system/configuration.nix
-
-            # User level config
+            home-manager.nixosModules.home-manager
+            ./systems/onix/configuration.nix
             {
               home-manager = {
                 useGlobalPkgs = true;
                 useUserPackages = true;
                 extraSpecialArgs = specialArgs;
-                users.${username} = import ./home;
+                users.${username} = import ./home/onix;
+              };
+            }
+          ];
+        };
+
+        "seedbox" = nixpkgs.lib.nixosSystem rec {
+          specialArgs = {
+            inherit
+              inputs
+              system
+              username
+              flakeDirectory
+              ;
+            hostname = "seedbox";
+            homeDirectory = "/home/" + username;
+          };
+          modules = [
+            home-manager.nixosModules.home-manager
+            nixpkgs.nixosModules.readOnlyPkgs
+            { nixpkgs.pkgs = pkgsFor system; }
+            {
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                extraSpecialArgs = specialArgs;
+                users.${username} = import ./home/headless;
               };
             }
 
-            # Modules
-            home-manager.nixosModules.home-manager
           ];
         };
       };

@@ -19,6 +19,6 @@
 
   programs.ags = {
     enable = true;
-    configDir = config.lib.file.mkOutOfStoreSymlink flakeDirectory + "/home/ags";
+    configDir = config.lib.file.mkOutOfStoreSymlink flakeDirectory + "/home/onix/ags";
   };
 }
