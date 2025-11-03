@@ -11,14 +11,8 @@
 }:
 
 {
-  imports = [
-    # Include the results of the hardware scan.
-    ./hardware-configuration.nix
-  ];
-
-  disabledModules = [
-    "hardware/facter/system.nix"
-  ];
+  imports = [ ./hardware-configuration.nix ];
+  disabledModules = [ "hardware/facter/system.nix" ];
 
   nix = {
     registry = {
@@ -44,29 +38,21 @@
     };
   };
 
-  # Bootloader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
+  boot = {
+    loader = {
+      systemd-boot.enable = true;
+      efi.canTouchEfiVariables = true;
+    };
+    kernelPackages = pkgs.linuxPackages_latest;
+  };
 
-  # Use latest kernel.
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  networking.hostName = "seedbox";
 
-  networking.hostName = "seedbox"; # Define your hostname.
-  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
-
-  # Enable networking
+  # networking.wireless.enable = true;
   networking.networkmanager.enable = true;
 
-  # Set your time zone.
   time.timeZone = "America/New_York";
-
-  # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
-
   i18n.extraLocaleSettings = {
     LC_ADDRESS = "en_US.UTF-8";
     LC_IDENTIFICATION = "en_US.UTF-8";
@@ -79,38 +65,35 @@
     LC_TIME = "en_US.UTF-8";
   };
 
-  # Configure keymap in X11
   services.xserver.xkb = {
     layout = "us";
     variant = "";
   };
 
-  # Define a user account. Don't forget to set a password with ‘passwd’.
+  services.getty.autologinUser = "oz";
+
   users.users.oz = {
     isNormalUser = true;
     description = "oz";
     extraGroups = [
       "networkmanager"
       "wheel"
+      "plex"
     ];
     shell = pkgs.zsh;
     packages = with pkgs; [ ];
   };
 
-  # Enable automatic login for the user.
-  services.getty.autologinUser = "oz";
+  users.users.media = {
+    isSystemUser = true;
+    group = "media";
+  };
+  users.groups.media = { };
 
-  # List packages installed in system profile. To search, run:
-  # $ nix search wget
   environment.systemPackages = with pkgs; [
-    #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-    #  wget
-    git
     vim
   ];
 
-  # Some programs need SUID wrappers, can be configured further or are
-  # started in user sessions.
   # programs.mtr.enable = true;
   # programs.gnupg.agent = {
   #   enable = true;
@@ -118,7 +101,6 @@
   # };
 
   programs = {
-    # enable installing zsh at the system level to set the users default terminal. Everything else configuration wise is done in home manager.
     zsh = {
       enable = true;
       enableCompletion = false;
@@ -126,29 +108,51 @@
   };
 
   services.openssh.enable = true;
+
   services.plex = {
     enable = true;
     openFirewall = true;
-    user = username;
+    user = "media";
+    group = "media";
+  };
+
+  services.qbittorrent = {
+    enable = true;
+    user = "media";
+    group = "media";
   };
 
   services.rtorrent = {
     enable = true;
-    # (2025-07-28) upstream develop of rtorrent continued, jesec-rtorrent does not build in nixpkgs
-    package = pkgs.rtorrent;
+    user = "media";
+    group = "media";
+    configText = ''
+      method.redirect=load.throw,load.normal
+      method.redirect=load.start_throw,load.start
+      method.insert=d.down.sequential,value|const,0
+      method.insert=d.down.sequential.set,value|const,0
+    '';
     openFirewall = true;
   };
 
   services.flood = {
     enable = true;
     port = 8080;
-    host = "0.0.0.0";
     openFirewall = true;
     extraArgs = [ "--rtsocket=${config.services.rtorrent.rpcSocket}" ];
   };
-  # allow access to the socket by putting it in the same group as rtorrent service
-  # the socket will have g+w permissions
-  systemd.services.flood.serviceConfig.SupplementaryGroups = [ config.services.rtorrent.group ];
+  systemd.services.flood.serviceConfig = {
+    User = "media";
+    SupplementaryGroups = [ "media" ];
+  };
+
+  services.caddy = {
+    enable = true;
+    virtualHosts."http://seedbox".extraConfig = ''
+      reverse_proxy localhost:8080
+    '';
+  };
+  networking.firewall.allowedTCPPorts = [ 80 ];
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
