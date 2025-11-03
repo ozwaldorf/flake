@@ -107,8 +107,10 @@
     };
   };
 
+  # remote access
   services.openssh.enable = true;
 
+  # media server
   services.plex = {
     enable = true;
     openFirewall = true;
@@ -116,12 +118,7 @@
     group = "media";
   };
 
-  services.qbittorrent = {
-    enable = true;
-    user = "media";
-    group = "media";
-  };
-
+  # torrent client
   services.rtorrent = {
     enable = true;
     user = "media";
@@ -135,10 +132,10 @@
     openFirewall = true;
   };
 
+  # torrent web ui
   services.flood = {
     enable = true;
     port = 8080;
-    openFirewall = true;
     extraArgs = [ "--rtsocket=${config.services.rtorrent.rpcSocket}" ];
   };
   systemd.services.flood.serviceConfig = {
@@ -146,13 +143,30 @@
     SupplementaryGroups = [ "media" ];
   };
 
+  # proxy flood ui
   services.caddy = {
     enable = true;
     virtualHosts."http://seedbox".extraConfig = ''
       reverse_proxy localhost:8080
     '';
   };
-  networking.firewall.allowedTCPPorts = [ 80 ];
+
+  # beammp
+  systemd.services.beammp = {
+    enable = true;
+    description = "BeamMP server";
+    serviceConfig = {
+      User = "oz";
+      ExecStart = "${pkgs.beammp-server}/bin/BeamMP-Server --working-directory=/home/oz/beammp";
+      Restart = "on-failure";
+    };
+    wantedBy = [ "multi-user.target" ];
+  };
+
+  networking.firewall.allowedTCPPorts = [
+    80 # caddy
+    30814 # beammp
+  ];
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
