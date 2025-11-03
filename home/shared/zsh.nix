@@ -1,4 +1,9 @@
-{ pkgs, ... }:
+{
+  pkgs,
+  hostname,
+  flakeDirectory,
+  ...
+}:
 {
   home.packages = with pkgs; [
     fzf
@@ -74,11 +79,10 @@
       ytop = "ytop -spfa";
       n = "nvim";
       c = "cargo";
-      rs = "rust-script";
       wq = "exit";
       icat = "wezterm imgcat";
       fuck = "thefuck";
-      switch = "sudo nixos-rebuild switch";
+      switch = "sudo nixos-rebuild switch --flake ${flakeDirectory}\#${hostname}";
     };
 
     sessionVariables = {
@@ -123,7 +127,6 @@
         PKG="$1"; shift
         NIXPKGS_ALLOW_UNFREE=1 nix run "nixpkgs#$PKG" -- $@
       }
-
 
       # foot integration
       function osc7-pwd() {
