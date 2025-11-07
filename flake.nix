@@ -29,11 +29,18 @@
       url = "github:nix-community/neovim-nightly-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    vicinae.url = "github:vicinaehq/vicinae";
   };
 
   nixConfig = {
-    extra-substituters = [ "https://cache.garnix.io" ];
-    extra-trusted-public-keys = [ "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g=" ];
+    extra-substituters = [
+      "https://cache.garnix.io"
+      "https://vicinae.cachix.org"
+    ];
+    extra-trusted-public-keys = [
+      "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
+      "vicinae.cachix.org-1:1kDrfienkGHPYbkpNj1mWTr7Fm1+zcenzgTizIcI3oc="
+    ];
   };
 
   outputs =

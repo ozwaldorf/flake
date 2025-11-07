@@ -9,6 +9,7 @@
   imports = [
     # carburetor theming
     inputs.carburetor.homeManagerModules.default
+    inputs.vicinae.homeManagerModules.default
 
     ../shared/zsh.nix # Shell
     ../shared/starship.nix # Prompt
@@ -17,7 +18,8 @@
 
     ./hyprland.nix # window manager
     ./gtk.nix # gtk theming
-    ./ags # bar, app launcher
+    ./ags # top bar
+    ./vicinae.nix # app launcher
     ./foot.nix # Terminal
     ./vesktop # discord
     ./zed.nix # zed editor

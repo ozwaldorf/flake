@@ -11,6 +11,7 @@
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
   ];
+  disabledModules = [ "hardware/facter/system.nix" ];
 
   nix = {
     registry = {
@@ -188,6 +189,7 @@
     wireplumber = {
       enable = true;
       extraConfig = {
+        # for some reason, improves battery life
         "10-disable-camera" = {
           "wireplumber.profiles" = {
             main."monitor.libcamera" = "disabled";
@@ -222,6 +224,7 @@
 
   security.rtkit.enable = true;
   security.polkit.enable = true;
+  security.pam.services.gdm.enableGnomeKeyring = true;
 
   systemd = {
     services = {
@@ -267,9 +270,9 @@
   #   '';
   # };
 
+  fonts.fontconfig.enable = true;
   fonts.packages = with pkgs; [ nerd-fonts.fira-code ];
   environment.pathsToLink = [ "/share/zsh" ];
-  fonts.fontconfig.enable = true;
 
   programs = {
     steam.enable = true;

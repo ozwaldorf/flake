@@ -49,7 +49,7 @@ in
       };
       debug.disable_logs = false;
       exec = [
-        "swww-daemon -f xbgr"
+        "swww-daemon"
         "ags"
       ];
       source = [ "./themes/regular.conf" ];
@@ -108,8 +108,8 @@ in
         "ignorealpha,quicksettings*"
         "blur,notifications*"
         "ignorealpha,notifications*"
-        "blur,applauncher*"
-        "ignorealpha,applauncher*"
+        "blur,vicinae*"
+        "ignorealpha,vicinae*"
       ];
       windowrulev2 = [
         "float,class:float"
@@ -129,7 +129,7 @@ in
         # "${mod}, grave, hyprexpo:expo, toggle"
 
         # App launcher
-        "${mod}, D, exec, ags -t applauncher"
+        "${mod}, D, exec, vicinae toggle"
         # Terminal
         "${mod}, RETURN, exec, foot"
         "${mod} SHIFT, RETURN, exec, foot -a float"
