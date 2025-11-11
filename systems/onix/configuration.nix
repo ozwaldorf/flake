@@ -142,7 +142,7 @@
     enable = true;
     settings = {
       default_session = {
-        command = "Hyprland";
+        command = "uwsm start hyprland-uwsm.desktop";
         user = username;
       };
     };
@@ -289,7 +289,10 @@
       package = pkgs.swayfx;
       extraOptions = [ "--unsupported-gpu" ];
     };
-    hyprland.enable = true;
+    hyprland = {
+      enable = true;
+      withUWSM = true;
+    };
 
     mtr.enable = true;
     gnupg.agent = {

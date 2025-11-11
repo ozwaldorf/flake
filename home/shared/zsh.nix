@@ -82,7 +82,7 @@
       wq = "exit";
       icat = "wezterm imgcat";
       fuck = "thefuck";
-      switch = "sudo nixos-rebuild switch --flake ${flakeDirectory}\#${hostname}";
+      switch = "sudo nixos-rebuild switch --flake ${flakeDirectory}\\#${hostname}";
     };
 
     sessionVariables = {

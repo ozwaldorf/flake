@@ -1,6 +1,6 @@
 { inputs, pkgs, ... }:
 {
-  carburetor.themes.vicinae.enable = true;
+  # carburetor.themes.vicinae.enable = true;
   services.vicinae = {
     enable = true;
     autoStart = true;
