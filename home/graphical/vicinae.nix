@@ -1,9 +1,9 @@
 { inputs, pkgs, ... }:
 {
-  # carburetor.themes.vicinae.enable = true;
+  carburetor.themes.vicinae.enable = true;
   services.vicinae = {
     enable = true;
-    autoStart = true;
+    autoStart = false;
     settings = {
       faviconService = "google"; # twenty | google | none
       font.size = 11;

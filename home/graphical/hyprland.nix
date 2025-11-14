@@ -6,7 +6,7 @@ in
   home.packages = with pkgs; [
     swww
     wl-clipboard
-    # wf-recorder
+    wf-recorder
     sway-contrib.grimshot
 
     hyprlock
@@ -51,6 +51,7 @@ in
       exec = [
         "swww-daemon"
         "ags"
+        "vicinae server"
       ];
       source = [ "./themes/regular.conf" ];
       # monitor = [ "Unknown-1, disable" ];
