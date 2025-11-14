@@ -24,6 +24,6 @@
     # Out of store symlink to the configuration, allowing settings changes
     # in the UI to reflect in the code.
     "vesktop/settings/settings.json".source =
-      config.lib.file.mkOutOfStoreSymlink flakeDirectory + "/home/vesktop/settings.json";
+      config.lib.file.mkOutOfStoreSymlink flakeDirectory + "/home/graphical/vesktop/settings.json";
   };
 }
