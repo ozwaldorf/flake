@@ -293,7 +293,8 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
         };
         lsp-lines.enable = true;
         gitsigns = {
-          enable = true;
+          # for some reason broken on xps
+          enable = false;
           settings = {
             signcolumn = false;
             current_line_blame = true;

@@ -1,4 +1,5 @@
-{ username, homeDirectory, ... }: {
+{ username, homeDirectory, ... }:
+{
   imports = [
     ../shared/zsh.nix # Shell
     ../shared/starship.nix # Prompt

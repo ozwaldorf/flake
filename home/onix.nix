@@ -1,4 +1,11 @@
-{ pkgs, inputs, username, homeDirectory, ... }: {
+{
+  pkgs,
+  inputs,
+  username,
+  homeDirectory,
+  ...
+}:
+{
   imports = [
     # carburetor theming
     inputs.carburetor.homeManagerModules.default
@@ -21,7 +28,11 @@
   home = {
     inherit username homeDirectory;
     stateVersion = "24.05";
-    packages = with pkgs; [ lutgen beekeeper-studio prismlauncher ];
+    packages = with pkgs; [
+      lutgen
+      beekeeper-studio
+      prismlauncher
+    ];
   };
 
   programs.home-manager.enable = true;

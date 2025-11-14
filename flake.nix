@@ -12,7 +12,9 @@
       url = "github:nix-community/nixvim";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    carburetor = { url = "github:ozwaldorf/carburetor"; };
+    carburetor = {
+      url = "github:ozwaldorf/carburetor";
+    };
 
     # Applications
     ags = {
@@ -31,15 +33,23 @@
   };
 
   nixConfig = {
-    extra-substituters =
-      [ "https://cache.garnix.io" "https://vicinae.cachix.org" ];
+    extra-substituters = [
+      "https://cache.garnix.io"
+      "https://vicinae.cachix.org"
+    ];
     extra-trusted-public-keys = [
       "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
       "vicinae.cachix.org-1:1kDrfienkGHPYbkpNj1mWTr7Fm1+zcenzgTizIcI3oc="
     ];
   };
 
-  outputs = { self, nixpkgs, home-manager, ... }@inputs:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      home-manager,
+      ...
+    }@inputs:
     let
       # Nixos system variables
       username = "oz";
@@ -52,12 +62,13 @@
 
       # Flake utilities
       overlay = import ./pkgs inputs;
-      pkgsFor = system:
+      pkgsFor =
+        system:
         import nixpkgs {
           inherit system;
           overlays = [
             inputs.carburetor.overlays.insert
-            # inputs.neovim-nightly-overlay.overlays.default
+            inputs.neovim-nightly-overlay.overlays.default
             (final: prev: {
               # Force insert flake packages that dont have builtin overlays.
               ags = inputs.ags.packages.${prev.system}.default;
@@ -72,14 +83,19 @@
             permittedInsecurePackages = [ "beekeeper-studio-5.3.4" ];
           };
         };
-      forAllSystems = f:
-        nixpkgs.lib.genAttrs nixpkgs.lib.systems.flakeExposed
-        (system: f (pkgsFor system));
-    in {
+      forAllSystems =
+        f: nixpkgs.lib.genAttrs nixpkgs.lib.systems.flakeExposed (system: f (pkgsFor system));
+    in
+    {
       nixosConfigurations = {
         "onix" = nixpkgs.lib.nixosSystem rec {
           specialArgs = {
-            inherit inputs system username flakeDirectory;
+            inherit
+              inputs
+              system
+              username
+              flakeDirectory
+              ;
             hostname = "onix";
             homeDirectory = "/home/" + username;
           };
@@ -101,7 +117,12 @@
 
         "seedbox" = nixpkgs.lib.nixosSystem rec {
           specialArgs = {
-            inherit inputs system username flakeDirectory;
+            inherit
+              inputs
+              system
+              username
+              flakeDirectory
+              ;
             hostname = "seedbox";
             homeDirectory = "/home/" + username;
           };
@@ -123,7 +144,12 @@
 
         "xps" = nixpkgs.lib.nixosSystem rec {
           specialArgs = {
-            inherit inputs system username flakeDirectory;
+            inherit
+              inputs
+              system
+              username
+              flakeDirectory
+              ;
             hostname = "xps";
             homeDirectory = "/home/" + username;
           };
@@ -146,9 +172,14 @@
 
       # Flake outputs
       overlays.default = overlay;
-      packages = forAllSystems (pkgs:
-        (pkgs.lib.attrsets.getAttrs
-          (builtins.attrNames (self.overlays.default null null)) pkgs));
+      packages = forAllSystems (
+        # build a set of outputs from all custom packages in the overlay
+        pkgs:
+        let
+          names = builtins.attrNames (self.overlays.default null null);
+        in
+        pkgs.lib.attrsets.getAttrs names pkgs
+      );
 
       # `nix run` for a standalone headless environment starting with zsh
       apps = forAllSystems (pkgs: {

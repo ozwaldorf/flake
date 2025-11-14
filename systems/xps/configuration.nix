@@ -1,14 +1,28 @@
-{ config, pkgs, username, hostname, ... }: {
-  imports = [ # Include the results of the hardware scan.
+{
+  config,
+  pkgs,
+  username,
+  hostname,
+  ...
+}:
+{
+  imports = [
+    # Include the results of the hardware scan.
     ./hardware-configuration.nix
   ];
   disabledModules = [ "hardware/facter/system.nix" ];
 
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
 
   users.users.${username} = {
     isNormalUser = true;
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+    ];
     shell = pkgs.zsh;
     packages = with pkgs; [ firefox ];
   };
@@ -37,25 +51,50 @@
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
     };
-    plymouth = { enable = true; };
+    plymouth = {
+      enable = true;
+    };
     kernelPackages = pkgs.linuxPackages_latest;
     consoleLogLevel = 0;
-    initrd.verbose = false;
-    kernelParams = [ "quiet" "splash" "udev.log_level=0" ];
+    initrd = {
+      verbose = false;
+      kernelModules = [
+        "nvidia"
+        "i915"
+        "nvidia_modeset"
+        "nvidia_drm"
+        "nvidia_uvm"
+      ];
+    };
+    kernelParams = [
+      "quiet"
+      "splash"
+      "udev.log_level=0"
+      "nvidia-drm.fbdev=1"
+    ];
   };
 
-  hardware.opengl = {
-    enable = true;
-    driSupport32Bit = true;
-  };
-
+  hardware.graphics.enable = true;
   hardware.nvidia = {
     modesetting.enable = true;
-    powerManagement.enable = false;
-    powerManagement.finegrained = false;
     open = false;
-    nvidiaSettings = true;
+    prime = {
+      intelBusId = "PCI:0:2:0";
+      nvidiaBusId = "PCI:1:0:0";
+      offload = {
+        enable = true;
+        enableOffloadCmd = true;
+      };
+    };
     package = config.boot.kernelPackages.nvidiaPackages.stable;
+  };
+  services.power-profiles-daemon.enable = false;
+  services.tlp = {
+    enable = true;
+    settings = {
+      INTEL_GPU_MIN_FREQ_ON_BAT = 500;
+      INTEL_GPU_MIN_FREQ_ON_AC = 500;
+    };
   };
 
   hardware.bluetooth = {
@@ -69,7 +108,7 @@
     enable = true;
     settings = {
       default_session = {
-        command = "Hyprland";
+        command = "nvidia-offload Hyprland";
         user = username;
       };
     };
@@ -118,8 +157,7 @@
       after = [ "graphical-session.target" ];
       serviceConfig = {
         Type = "simple";
-        ExecStart =
-          "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
+        ExecStart = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
         Restart = "on-failure";
         RestartSec = 1;
         TimeoutStopSec = 10;
