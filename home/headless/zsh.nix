@@ -11,6 +11,7 @@
     bat
     curl
     tree
+    comma
     onefetch
     (fortune.override { withOffensive = true; })
   ];
@@ -83,6 +84,7 @@
       icat = "wezterm imgcat";
       fuck = "thefuck";
       switch = "sudo nixos-rebuild switch --flake ${flakeDirectory}\\#${hostname}";
+      nixpkg = "echo 'use ,'";
     };
 
     sessionVariables = {
@@ -121,11 +123,6 @@
 
       function nixpkgs() {
         NIXPKGS_ALLOW_UNFREE=1 nix shell "''${@/#/nixpkgs#}"
-      }
-
-      function nixpkg() {
-        PKG="$1"; shift
-        NIXPKGS_ALLOW_UNFREE=1 nix run "nixpkgs#$PKG" -- $@
       }
 
       # foot integration
