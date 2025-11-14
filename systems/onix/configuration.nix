@@ -10,6 +10,7 @@
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
+    ../blocky.nix
   ];
   disabledModules = [ "hardware/facter/system.nix" ];
 
@@ -199,18 +200,6 @@
   hardware.enableAllFirmware = true;
 
   services.expressvpn.enable = true;
-  services.blocky = {
-    enable = true;
-    settings = {
-      upstreams.groups.default = [
-        "https://one.one.one.one/dns-query" # Using Cloudflare's DNS over HTTPS server for resolving queries.
-      ];
-      blocking.denylists.ads = [
-        "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/pro.txt"
-        # "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
-      ];
-    };
-  };
 
   # services.dnscrypt-proxy2 = {
   #   enable = false;
