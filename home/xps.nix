@@ -36,15 +36,15 @@
   };
 
   # overrides
-  wayland.windowManager.hyprland.settings.decoration.blur = {
-    size = (pkgs.lib.mkForce 40);
-    passes = (pkgs.lib.mkForce 2);
-    # noise = "0.02";
+  wayland.windowManager.hyprland.settings.decoration.blur = with pkgs.lib; {
+    size = mkForce 20;
+    passes = mkForce 3;
+    noise = mkForce "0.08";
     # contrast = "0.9";
     # brightness = "0.9";
     # popups = true;
     # xray = false;
-    # new_optimizations = false;
+    new_optimizations = mkForce false;
   };
 
   programs.home-manager.enable = true;

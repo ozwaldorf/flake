@@ -112,6 +112,7 @@ in
         "blur,vicinae*"
         "ignorealpha,vicinae*"
       ];
+      windowrule = [ "size 800 500, floating:1" ];
       windowrulev2 = [
         "float,class:float"
         "center,class:float"
@@ -152,6 +153,8 @@ in
         "${mod} SHIFT, Q, killactive"
         "${mod}, J, togglesplit"
         "${mod} SHIFT, Space, togglefloating"
+        "${mod} SHIFT, Space, resizeactive, exact 800 500"
+        "${mod} SHIFT, Space, centerwindow"
         "${mod}, F, fullscreen"
         "${mod}, P, pin"
         # "${mod} SHIFT, F, fullscreenstate -1 2"
