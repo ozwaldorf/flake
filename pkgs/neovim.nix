@@ -209,7 +209,7 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
       # Use experimental lua loader with jit cache
       luaLoader.enable = true;
       performance.combinePlugins = {
-        enable = true;
+        enable = false;
         standalonePlugins = [ pkgs.vimPlugins.cord-nvim ];
       };
 
