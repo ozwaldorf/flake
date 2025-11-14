@@ -434,6 +434,15 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
         #   };
         # };
 
+        barbar = {
+          enable = true;
+          settings = {
+            sidebar_filetypes = {
+              NvimTree = true;
+            };
+          };
+        };
+
         lualine = {
           enable = true;
           settings = {
@@ -479,10 +488,11 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
           };
         };
 
+        render-markdown.enable = true;
+
         mini = {
           enable = true;
           modules = {
-            tabline = { };
             jump2d = { };
             diff = { };
             starter = {
@@ -656,6 +666,8 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
             gitsigns = true;
             fidget = true;
             cmp = true;
+            barbar = true;
+            render-markdown = true;
           };
         };
       };
