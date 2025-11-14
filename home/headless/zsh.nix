@@ -13,6 +13,7 @@
     tree
     comma
     onefetch
+    weechat
     (fortune.override { withOffensive = true; })
   ];
 

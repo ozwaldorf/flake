@@ -30,6 +30,8 @@
     stateVersion = "24.05";
     packages = with pkgs; [
       lutgen
+      lutgen-studio
+      weechat
       beekeeper-studio
       prismlauncher
     ];
