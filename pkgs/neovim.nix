@@ -420,19 +420,19 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
           };
         };
 
-        bufferline = {
-          enable = true;
-          settings.options = {
-            separatorStyle = "thin";
-            offsets = [
-              {
-                filetype = "NvimTree";
-                text = "__ Tree __";
-                separator = "│";
-              }
-            ];
-          };
-        };
+        # bufferline = {
+        #   enable = true;
+        #   settings.options = {
+        #     separatorStyle = "thin";
+        #     offsets = [
+        #       {
+        #         filetype = "NvimTree";
+        #         text = "__ Tree __";
+        #         separator = "│";
+        #       }
+        #     ];
+        #   };
+        # };
 
         lualine = {
           enable = true;
@@ -482,6 +482,7 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
         mini = {
           enable = true;
           modules = {
+            tabline = { };
             jump2d = { };
             diff = { };
             starter = {
