@@ -2,6 +2,7 @@
   lib,
   fetchFromGitHub,
   stdenv,
+  makeWrapper,
 
   cmake,
   pkg-config,
@@ -16,6 +17,8 @@
   openssl,
   rapidjson,
   zlib,
+
+  cacert,
   ...
 }:
 let
@@ -43,6 +46,7 @@ stdenv.mkDerivation rec {
   nativeBuildInputs = [
     cmake
     pkg-config
+    makeWrapper
   ];
 
   buildInputs = [
@@ -57,6 +61,7 @@ stdenv.mkDerivation rec {
     openssl
     rapidjson
     zlib
+    # cacert
     # sol2  # Don't use the nixpkgs version, we'll use our custom one
   ];
 
@@ -82,6 +87,11 @@ stdenv.mkDerivation rec {
     cp BeamMP-Server $out/bin/
     runHook postInstall
   '';
+
+  # postFixup = ''
+  #   wrapProgram $out/bin/BeamMP-Server \
+  #     --set SSL_CERT_FILE "${cacert}/etc/ssl/certs/ca-bundle.crt"
+  # '';
 
   # The project uses vcpkg by default, but we want to use Nix dependencies
   # We need to patch the CMakeLists.txt to skip vcpkg initialization

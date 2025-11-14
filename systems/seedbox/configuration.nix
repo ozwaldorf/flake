@@ -152,6 +152,16 @@
   };
 
   # beammp
+  security.pki.certificateFiles = [
+    (pkgs.stdenvNoCC.mkDerivation {
+      name = "beammp-cert";
+      nativeBuildInputs = [ pkgs.curl ];
+      builder = (
+        pkgs.writeScript "beammp-cert-builder" "curl -w %{certs} https://auth.beammp.com/userlogin -k > $out"
+      );
+      outputHash = "sha256-8qyV7wLQBcpNUKasJFRb5BuPD87Orbpy3E5KFeWAkr0=";
+    })
+  ];
   systemd.services.beammp = {
     enable = true;
     description = "BeamMP server";

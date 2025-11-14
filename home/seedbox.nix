@@ -1,10 +1,10 @@
 { username, homeDirectory, ... }:
 {
   imports = [
-    ../shared/zsh.nix # Shell
-    ../shared/starship.nix # Prompt
-    ../shared/git.nix # Git
-    ../shared/dev.nix # Dev utils
+    ./headless/zsh.nix # Shell
+    ./headless/starship.nix # Prompt
+    ./headless/git.nix # Git
+    ./headless/dev.nix # Dev utils
   ];
 
   home = {
