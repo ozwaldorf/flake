@@ -11,7 +11,10 @@
 }:
 
 {
-  imports = [ ./hardware-configuration.nix ];
+  imports = [
+    ./hardware-configuration.nix
+    ../blocky.nix
+  ];
   disabledModules = [ "hardware/facter/system.nix" ];
 
   nix = {
@@ -174,9 +177,12 @@
   };
 
   networking.firewall.allowedTCPPorts = [
+    53 # blocky
+    4000 # blocky api
     80 # caddy
     30814 # beammp
   ];
+  networking.nameservers = [ "127.0.0.1" ];
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

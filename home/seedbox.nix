@@ -1,4 +1,9 @@
-{ username, homeDirectory, ... }:
+{
+  username,
+  homeDirectory,
+  pkgs,
+  ...
+}:
 {
   imports = [
     ./headless/zsh.nix # Shell
@@ -9,6 +14,7 @@
 
   home = {
     inherit username homeDirectory;
+    packages = with pkgs; [ screen ];
     stateVersion = "25.05";
   };
 
