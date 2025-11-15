@@ -14,7 +14,6 @@
 {
   imports = [
     ./hardware-configuration.nix
-    ../blocky.nix
   ];
   disabledModules = [ "hardware/facter/system.nix" ];
 
@@ -117,6 +116,8 @@
   services.tailscale = {
     enable = true;
     useRoutingFeatures = "server";
+    openFirewall = true;
+    permitCertUid = "caddy";
   };
 
   # media server
@@ -155,7 +156,10 @@
   # proxy flood ui
   services.caddy = {
     enable = true;
-    virtualHosts."http://svalbard".extraConfig = ''
+    virtualHosts."http://${hostname}".extraConfig = ''
+      reverse_proxy localhost:8080
+    '';
+    virtualHosts."${hostname}.zuul-penny.ts.net".extraConfig = ''
       reverse_proxy localhost:8080
     '';
   };
@@ -183,12 +187,10 @@
   };
 
   networking.firewall.allowedTCPPorts = [
-    53 # blocky
-    4000 # blocky api
     80 # caddy
+    443 # caddy
     30814 # beammp
   ];
-  networking.nameservers = [ "127.0.0.1" ];
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
