@@ -7,6 +7,7 @@
   config,
   pkgs,
   username,
+  hostname,
   ...
 }:
 
@@ -49,8 +50,7 @@
     kernelPackages = pkgs.linuxPackages_latest;
   };
 
-  networking.hostName = "seedbox";
-
+  networking.hostName = hostname;
   # networking.wireless.enable = true;
   networking.networkmanager.enable = true;
 
@@ -73,18 +73,18 @@
     variant = "";
   };
 
-  services.getty.autologinUser = "oz";
+  services.getty.autologinUser = username;
 
-  users.users.oz = {
+  users.users.${username} = {
     isNormalUser = true;
-    description = "oz";
+    description = username;
     extraGroups = [
       "networkmanager"
       "wheel"
       "plex"
+      "media"
     ];
     shell = pkgs.zsh;
-    packages = with pkgs; [ ];
   };
 
   users.users.media = {
@@ -149,7 +149,7 @@
   # proxy flood ui
   services.caddy = {
     enable = true;
-    virtualHosts."http://seedbox".extraConfig = ''
+    virtualHosts."http://svalbard".extraConfig = ''
       reverse_proxy localhost:8080
     '';
   };
