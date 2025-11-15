@@ -51,20 +51,15 @@
       ...
     }@inputs:
     let
-      # Nixos system variables
-      username = "oz";
-      system = "x86_64-linux";
-
       # Absolute path to the directory containing this flake.
       # Used for creating "out of store" symlinks. For example, mostly
       # in order to allow in-app setting changes to modify the flake.
       flakeDirectory = "/etc/nixos";
 
-      # Custom package overlay
+      # Custom package overlay and list of package names
       overlay = import ./pkgs inputs;
-      # List of custom packages
       names = builtins.attrNames (overlay null null);
-
+      # Derive pkgs for a system
       pkgsFor =
         system:
         import nixpkgs {
@@ -77,7 +72,6 @@
               ags = inputs.ags.packages.${prev.system}.default;
               zoom-sync = inputs.zoom-sync.packages.${prev.system}.default;
             })
-
             # Custom packages
             overlay
           ];
@@ -86,92 +80,76 @@
             permittedInsecurePackages = [ "beekeeper-studio-5.3.4" ];
           };
         };
+      # Derive flake outputs for packages on all systems
       forAllSystems =
         f: nixpkgs.lib.genAttrs nixpkgs.lib.systems.flakeExposed (system: f (pkgsFor system));
+
+      # Derive various nixos systems
+      makeSystems =
+        items:
+        builtins.listToAttrs (
+          map (
+            {
+              username,
+              hostname,
+              system,
+              config,
+              home,
+            }:
+            {
+              name = hostname;
+              value = nixpkgs.lib.nixosSystem rec {
+                specialArgs = {
+                  inherit username hostname system;
+                  inherit inputs flakeDirectory;
+                  homeDirectory = "/home/" + username;
+                };
+                modules = [
+                  # Fixed nix packages
+                  nixpkgs.nixosModules.readOnlyPkgs
+                  { nixpkgs.pkgs = pkgsFor system; }
+                  # system configuration
+                  config
+                  # home manager configuration
+                  home-manager.nixosModules.home-manager
+                  {
+                    home-manager = {
+                      useGlobalPkgs = true;
+                      useUserPackages = true;
+                      extraSpecialArgs = specialArgs;
+                      users.${username} = import home;
+                    };
+                  }
+                ];
+              };
+            }
+          ) items
+        );
     in
     {
-      nixosConfigurations = {
-        "onix" = nixpkgs.lib.nixosSystem rec {
-          specialArgs = {
-            inherit
-              inputs
-              system
-              username
-              flakeDirectory
-              ;
-            hostname = "onix";
-            homeDirectory = "/home/" + username;
-          };
-          modules = [
-            nixpkgs.nixosModules.readOnlyPkgs
-            { nixpkgs.pkgs = pkgsFor system; }
-            home-manager.nixosModules.home-manager
-            ./systems/onix/configuration.nix
-            {
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                extraSpecialArgs = specialArgs;
-                users.${username} = import ./home/onix.nix;
-              };
-            }
-          ];
-        };
-
-        "seedbox" = nixpkgs.lib.nixosSystem rec {
-          specialArgs = {
-            inherit
-              inputs
-              system
-              username
-              flakeDirectory
-              ;
-            hostname = "seedbox";
-            homeDirectory = "/home/" + username;
-          };
-          modules = [
-            home-manager.nixosModules.home-manager
-            nixpkgs.nixosModules.readOnlyPkgs
-            { nixpkgs.pkgs = pkgsFor system; }
-            ./systems/seedbox/configuration.nix
-            {
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                extraSpecialArgs = specialArgs;
-                users.${username} = import ./home/seedbox.nix;
-              };
-            }
-          ];
-        };
-
-        "xps" = nixpkgs.lib.nixosSystem rec {
-          specialArgs = {
-            inherit
-              inputs
-              system
-              username
-              flakeDirectory
-              ;
-            hostname = "xps";
-            homeDirectory = "/home/" + username;
-          };
-          modules = [
-            nixpkgs.nixosModules.readOnlyPkgs
-            { nixpkgs.pkgs = pkgsFor system; }
-            home-manager.nixosModules.home-manager
-            ./systems/xps/configuration.nix
-            {
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                extraSpecialArgs = specialArgs;
-                users.${username} = import ./home/xps.nix;
-              };
-            }
-          ];
-        };
-      };
+      nixosConfigurations = makeSystems [
+        {
+          hostname = "onix";
+          username = "oz";
+          system = "x86_64-linux";
+          home = ./home/onix.nix;
+          config = ./systems/onix/configuration.nix;
+        }
+        {
+          hostname = "xps";
+          username = "oz";
+          system = "x86_64-linux";
+          home = ./home/xps.nix;
+          config = ./systems/xps/configuration.nix;
+        }
+        {
+          hostname = "seedbox";
+          username = "oz";
+          system = "x86_64-linux";
+          home = ./home/seedbox.nix;
+          config = ./systems/seedbox/configuration.nix;
+        }
+      ];
 
       # Flake outputs
       overlays.default = overlay;
