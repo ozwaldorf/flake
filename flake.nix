@@ -188,6 +188,6 @@
       });
 
       # `nix fmt`
-      formatter = forAllSystems (pkgs: pkgs.nixfmt-rfc-style);
+      formatter = forAllSystems (pkgs: pkgs.nixfmt-tree);
     };
 }
