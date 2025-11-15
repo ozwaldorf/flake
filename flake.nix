@@ -136,11 +136,11 @@
           config = ./systems/onix/configuration.nix;
         }
         {
-          hostname = "xps";
+          hostname = "guide";
           username = "oz";
           system = "x86_64-linux";
-          home = ./home/xps.nix;
-          config = ./systems/xps/configuration.nix;
+          home = ./home/guide.nix;
+          config = ./systems/guide/configuration.nix;
         }
         {
           hostname = "svalbard";
