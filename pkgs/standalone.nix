@@ -16,8 +16,8 @@ let
           ];
         };
       }
-      ../home/zsh.nix
-      ../home/starship.nix
+      ../home/headless/zsh.nix
+      ../home/headless/starship.nix
     ];
   };
 in
