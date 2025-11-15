@@ -1,15 +1,16 @@
-{ inputs, pkgs, ... }:
+{ inputs, ... }:
 {
+  imports = [ inputs.vicinae.homeManagerModules.default ];
   carburetor.themes.vicinae.enable = true;
   services.vicinae = {
     enable = true;
     autoStart = false;
     settings = {
-      faviconService = "google"; # twenty | google | none
+      theme.name = "carburetor";
+      faviconService = "google";
       font.size = 11;
       popToRootOnClose = true;
       rootSearch.searchFiles = false;
-      theme.name = "carburetor";
       window = {
         csd = true;
         opacity = 0.7;

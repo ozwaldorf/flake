@@ -9,7 +9,6 @@
   imports = [
     # carburetor theming
     inputs.carburetor.homeManagerModules.default
-    inputs.vicinae.homeManagerModules.default
 
     ./headless/zsh.nix # Shell
     ./headless/starship.nix # Prompt
