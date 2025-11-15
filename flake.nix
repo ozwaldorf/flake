@@ -143,11 +143,11 @@
           config = ./systems/xps/configuration.nix;
         }
         {
-          hostname = "seedbox";
+          hostname = "svalbard";
           username = "oz";
           system = "x86_64-linux";
-          home = ./home/seedbox.nix;
-          config = ./systems/seedbox/configuration.nix;
+          home = ./home/svalbard.nix;
+          config = ./systems/svalbard/configuration.nix;
         }
       ];
 
