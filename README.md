@@ -3,32 +3,39 @@
 ## Overview
 
 ```
-├── home    : Home manager configuration
+├── home    : Home manager configurations
 ├── pkgs    : Custom package overlay
-└── system  : System configurations
+└── systems  : System configurations
 ```
 
 ## Usage
 
-Install the system and reboot (x86_64-linux):
+### Installing on a new system
 
+1. Clone the repo
 ```sh
 git clone https://github.com/ozwaldorf/flake && cd flake
+```
 
-# copy your hardware config in
-cp /etc/nixos/hardware-configuration.nix system
+2. Edit `flakeDirectory` path to where you cloned the repo in `flake.nix` (or, move the repo to /etc/nixos)
 
-# build and reboot
+3. Copy your system and hardware configuration into a new host directory under `systems/my-host/*.nix`
+
+4. Initialize home manager configuration with a new host file under `home/my-host.nix`
+
+5. Install the system and reboot (x86_64-linux):
+
+```sh
 sudo nixos-rebuild switch --upgrade-all --flake . && reboot
 ```
 
-Run standalone neovim:
+### Standalone neovim:
 
 ```sh
 nix run github:ozwaldorf/flake\#neovim
 ```
 
-Dev environment:
+### Standalone headless environment:
 
 ```sh
 nix run github:ozwaldorf/flake
