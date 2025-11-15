@@ -60,8 +60,11 @@
       # in order to allow in-app setting changes to modify the flake.
       flakeDirectory = "/etc/nixos";
 
-      # Flake utilities
+      # Custom package overlay
       overlay = import ./pkgs inputs;
+      # List of custom packages
+      names = builtins.attrNames (overlay null null);
+
       pkgsFor =
         system:
         import nixpkgs {
@@ -172,14 +175,9 @@
 
       # Flake outputs
       overlays.default = overlay;
-      packages = forAllSystems (
-        # build a set of outputs from all custom packages in the overlay
-        pkgs:
-        let
-          names = builtins.attrNames (self.overlays.default null null);
-        in
-        pkgs.lib.attrsets.getAttrs names pkgs
-      );
+
+      # Export all custom packages from the overlay
+      packages = forAllSystems (pkgs: pkgs.lib.attrsets.getAttrs names pkgs);
 
       # `nix run` for a standalone headless environment starting with zsh
       apps = forAllSystems (pkgs: {
