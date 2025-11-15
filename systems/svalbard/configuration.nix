@@ -113,6 +113,9 @@
   # remote access
   services.openssh.enable = true;
 
+  # VPN server
+  services.tailscale.enable = true;
+
   # media server
   services.plex = {
     enable = true;
