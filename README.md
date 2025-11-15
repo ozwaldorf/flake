@@ -3,12 +3,12 @@
 ## Overview
 
 ```
-├── home          : Home manager configurations
-│   ├── graphical : Graphical configuration
-│   ├── headless  : Headless configuration
-│   └── *.nix     : Per-system home entrypoints
-├── pkgs    : Custom package overlay
-└── systems : Per-system nixos configurations
+├── home           : Home manager configurations
+│   ├── graphical  : Graphical configuration
+│   ├── headless   : Headless configuration
+│   └── *.nix      : Per-system home entrypoints
+├── pkgs           : Custom package overlay
+└── systems        : Per-system nixos configurations
 ```
 
 ## Usage
