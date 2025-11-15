@@ -114,7 +114,10 @@
   services.openssh.enable = true;
 
   # VPN server
-  services.tailscale.enable = true;
+  services.tailscale = {
+    enable = true;
+    useRoutingFeatures = "server";
+  };
 
   # media server
   services.plex = {

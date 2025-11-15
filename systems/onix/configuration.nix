@@ -200,6 +200,7 @@
   hardware.enableAllFirmware = true;
 
   services.expressvpn.enable = true;
+  services.tailscale.enable = true;
 
   # services.dnscrypt-proxy2 = {
   #   enable = false;
