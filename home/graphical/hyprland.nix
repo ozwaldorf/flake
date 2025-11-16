@@ -52,6 +52,7 @@ in
         "swww-daemon"
         "ags"
         "vicinae server"
+        "tailscale systray"
       ];
       source = [ "./themes/regular.conf" ];
       # monitor = [ "Unknown-1, disable" ];

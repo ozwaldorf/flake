@@ -9,7 +9,7 @@
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
-    ../blocky.nix
+    # ../blocky.nix
   ];
   disabledModules = [ "hardware/facter/system.nix" ];
 
@@ -31,6 +31,10 @@
   networking = {
     hostName = hostname;
     networkmanager.enable = true;
+  };
+  services.tailscale = {
+    enable = true;
+    useRoutingFeatures = "client";
   };
 
   time.timeZone = "America/New_York";
