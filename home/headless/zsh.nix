@@ -86,6 +86,8 @@
       fuck = "thefuck";
       switch = "sudo nixos-rebuild switch --flake ${flakeDirectory}\\#${hostname}";
       nixpkg = "echo 'use ,'";
+      cr = "claude --resume";
+      cdr = "claude --dangerously-skip-permissions --resume";
     };
 
     sessionVariables = {

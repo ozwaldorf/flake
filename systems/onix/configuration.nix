@@ -10,7 +10,7 @@
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
-    ../blocky.nix
+    # ../blocky.nix
   ];
   disabledModules = [ "hardware/facter/system.nix" ];
 
@@ -200,7 +200,11 @@
   hardware.enableAllFirmware = true;
 
   services.expressvpn.enable = true;
-  services.tailscale.enable = true;
+  services.tailscale = {
+    enable = true;
+    openFirewall = true;
+    useRoutingFeatures = "client";
+  };
 
   # services.dnscrypt-proxy2 = {
   #   enable = false;
