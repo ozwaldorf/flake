@@ -205,6 +205,7 @@
     openFirewall = true;
     useRoutingFeatures = "client";
   };
+  services.sshd.enable = true;
 
   # services.dnscrypt-proxy2 = {
   #   enable = false;
