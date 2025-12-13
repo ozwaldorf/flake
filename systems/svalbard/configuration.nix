@@ -125,14 +125,14 @@
     enable = true;
     openFirewall = true;
     user = "media";
-    group = "media";
+    group = "root";
   };
 
   # torrent client
   services.rtorrent = {
     enable = true;
     user = "media";
-    group = "media";
+    group = "root";
     configText = ''
       method.redirect=load.throw,load.normal
       method.redirect=load.start_throw,load.start
@@ -150,7 +150,7 @@
   };
   systemd.services.flood.serviceConfig = {
     User = "media";
-    SupplementaryGroups = [ "media" ];
+    SupplementaryGroups = [ "root" ];
   };
 
   # proxy flood ui
