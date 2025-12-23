@@ -148,6 +148,7 @@
       };
     };
   };
+  services.logind.lidSwitchExternalPower = "ignore";
 
   # services.xserver.desktopManager.gnome.enable = true;
   # Manually enable some services gnome used to
@@ -313,7 +314,6 @@
       direnvrcExtra = "export SHELL=$SHELL";
     };
 
-    file-roller.enable = true; # archive manager
     gnome-disks.enable = true; # disk manager
 
     # Add `open in wezterm` entry to nautilus

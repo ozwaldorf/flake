@@ -10,8 +10,8 @@
       gnome-system-monitor # resource monitor
 
       nautilus # file explorer
+      file-roller # archive manager
       simple-scan # document scanner
-      # torrential # torrent manager
 
       eog # photo viewer
       celluloid # video player

@@ -1,6 +1,7 @@
 { pkgs, options, ... }:
 let
   mod = "SUPER";
+  toggle_displays_cmd = "HYPRLAND_INSTANCE_SIGNATURE=$(hyprctl instances -j | xq '.[0].instance' -r) hyprctl dispatch dpms toggle";
 in
 {
   home.packages = with pkgs; [
@@ -13,6 +14,8 @@ in
     hyprshot
     yad
   ];
+
+  programs.zsh.shellAliases.displays = toggle_displays_cmd;
 
   carburetor.themes = {
     hyprland.enable = true;
@@ -48,7 +51,7 @@ in
         };
       };
       debug.disable_logs = false;
-      exec = [
+      exec-once = [
         "swww-daemon"
         "ags"
         "vicinae server"
@@ -138,6 +141,8 @@ in
         "${mod} SHIFT, RETURN, exec, foot -a float"
         # Browser
         "${mod}, E, exec, firefox"
+        # Toggle displays
+        "${mod}, L, dpms, toggle"
 
         # Screenshots
         ", Print, exec, hyprshot --clipboard-only -zm window"

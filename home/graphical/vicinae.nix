@@ -4,7 +4,7 @@
   carburetor.themes.vicinae.enable = true;
   services.vicinae = {
     enable = true;
-    autoStart = false;
+    # autoStart = false;
     settings = {
       theme.name = "carburetor";
       faviconService = "google";

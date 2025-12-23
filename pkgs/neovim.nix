@@ -203,21 +203,21 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
         })
 
         require("actions-preview").setup()
-        require("cord").setup()
+        -- require("cord").setup()
       '';
 
       # Use experimental lua loader with jit cache
       luaLoader.enable = true;
       performance.combinePlugins = {
         enable = false;
-        standalonePlugins = [ pkgs.vimPlugins.cord-nvim ];
+        # standalonePlugins = [ pkgs.vimPlugins.cord-nvim ];
       };
 
       extraPlugins = with pkgs.vimPlugins; [
         flatten-nvim
         nvim-scrollbar
         actions-preview-nvim
-        cord-nvim
+        # cord-nvim
       ];
 
       plugins = {
