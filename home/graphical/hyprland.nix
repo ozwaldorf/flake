@@ -30,26 +30,26 @@ in
       hypr-dynamic-cursors
     ];
     settings = {
-      plugins = {
-        hyprexpo = {
-          columns = 2;
-          gap_size = 20;
-          bg_col = "rgb(161616)";
-          workspace_method = "first 1";
-        };
-        hyprtrails = {
-          color = "rgba(4589ffcc)";
-        };
-        dynamic-cursors = {
-          shake = {
-            threshold = 4.0;
-            effects = true;
-          };
-          hyprcursor = {
-            nearest = 0;
-          };
-        };
-      };
+      # plugins = {
+      #   hyprexpo = {
+      #     columns = 2;
+      #     gap_size = 20;
+      #     bg_col = "rgb(161616)";
+      #     workspace_method = "first 1";
+      #   };
+      #   hyprtrails = {
+      #     color = "rgba(4589ffcc)";
+      #   };
+      #   dynamic-cursors = {
+      #     shake = {
+      #       threshold = 4.0;
+      #       effects = true;
+      #     };
+      #     hyprcursor = {
+      #       nearest = 0;
+      #     };
+      #   };
+      # };
       debug.disable_logs = false;
       exec-once = [
         "swww-daemon"

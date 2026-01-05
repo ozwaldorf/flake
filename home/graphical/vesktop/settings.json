@@ -95,7 +95,8 @@
         },
         "BetterSessions": {
             "enabled": true,
-            "backgroundCheck": false
+            "backgroundCheck": false,
+            "checkInterval": 20
         },
         "BetterSettings": {
             "enabled": false,
@@ -695,7 +696,11 @@
         "authenticated": false,
         "url": "https://api.vencord.dev/",
         "settingsSync": false,
-        "settingsSyncVersion": 1761799402170
+        "settingsSyncVersion": 1767628192985
     },
-    "eagerPatches": false
+    "eagerPatches": false,
+    "uiElements": {
+        "chatBarButtons": {},
+        "messagePopoverButtons": {}
+    }
 }
