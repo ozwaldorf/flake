@@ -13,7 +13,7 @@
 
       ripgrep-all
       ripgrep
-      xq
+      # xq
 
       gh
       bottom
