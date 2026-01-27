@@ -2,8 +2,14 @@
   description = "ozwaldorf's flake";
 
   inputs = {
-    # Nix libraries
+    # Nix and nixos
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    determinate = {
+      url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # Configuration librarires
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -48,6 +54,7 @@
       self,
       nixpkgs,
       home-manager,
+      determinate,
       ...
     }@inputs:
     let
@@ -108,6 +115,8 @@
                   # Fixed nix packages
                   nixpkgs.nixosModules.readOnlyPkgs
                   { nixpkgs.pkgs = pkgsFor system; }
+                  determinate.nixosModules.default
+
                   # system configuration
                   config
                   # home manager configuration
