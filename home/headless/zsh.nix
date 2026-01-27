@@ -1,4 +1,5 @@
 {
+  lib,
   pkgs,
   hostname,
   flakeDirectory,
@@ -96,53 +97,54 @@
       PATH = "$HOME/.deno/bin:$HOME/.local/bin:$PATH";
     };
 
-    initExtraFirst = ''
-      ## Options section
-      setopt interactive_comments                                     # Enable autocomplete
-      setopt complete_aliases                                         # Complete aliased commands
-      setopt correct                                                  # Auto correct mistakes
-      setopt extendedglob                                             # Extended globbing. Allows using regular expressions with *
-      setopt nocaseglob                                               # Case insensitive globbing
-      setopt rcexpandparam                                            # Array expension with parameters
-      setopt nocheckjobs                                              # Don't warn about running processes when exiting
-      setopt numericglobsort                                          # Sort filenames numerically when it makes sense
+    initContent = lib.mkMerge [
+      (lib.mkBefore ''
+        ## Options section
+        setopt interactive_comments                                     # Enable autocomplete
+        setopt complete_aliases                                         # Complete aliased commands
+        setopt correct                                                  # Auto correct mistakes
+        setopt extendedglob                                             # Extended globbing. Allows using regular expressions with *
+        setopt nocaseglob                                               # Case insensitive globbing
+        setopt rcexpandparam                                            # Array expension with parameters
+        setopt nocheckjobs                                              # Don't warn about running processes when exiting
+        setopt numericglobsort                                          # Sort filenames numerically when it makes sense
 
-      # autocompletions config
-      zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'       # Case insensitive tab completion
-      zstyle ':completion:*' list-colors "''${(s.:.)LS_COLORS}"       # Colored completion (different colors for dirs/files/etc)
-      zstyle ':completion:*' rehash true                              # automatically find new executables in path
-      zstyle ':completion::complete:*' gain-privileges 1
-      zstyle -e ':autocomplete:*:*' list-lines 'reply=( $(( LINES / 3 )) )'
+        # autocompletions config
+        zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'       # Case insensitive tab completion
+        zstyle ':completion:*' list-colors "''${(s.:.)LS_COLORS}"       # Colored completion (different colors for dirs/files/etc)
+        zstyle ':completion:*' rehash true                              # automatically find new executables in path
+        zstyle ':completion::complete:*' gain-privileges 1
+        zstyle -e ':autocomplete:*:*' list-lines 'reply=( $(( LINES / 3 )) )'
 
-      # Cycle/enter autocomplete with tab
-      bindkey              '^I' menu-select
-      bindkey "$terminfo[kcbt]" menu-select
+        # Cycle/enter autocomplete with tab
+        bindkey              '^I' menu-select
+        bindkey "$terminfo[kcbt]" menu-select
 
-      # Navigate words
-      bindkey '^[[1;5D' backward-word                                 # Ctrl + right key
-      bindkey '^[[1;5C' forward-word                                  # Ctrl + left key
-      bindkey '^H' backward-kill-word                                 # delete previous word with ctrl+backspace
-      # bindkey '^[[Z' undo                                             # Shift+tab undo last action
+        # Navigate words
+        bindkey '^[[1;5D' backward-word                                 # Ctrl + right key
+        bindkey '^[[1;5C' forward-word                                  # Ctrl + left key
+        bindkey '^H' backward-kill-word                                 # delete previous word with ctrl+backspace
+        # bindkey '^[[Z' undo                                             # Shift+tab undo last action
 
-      function nixpkgs() {
-        NIXPKGS_ALLOW_UNFREE=1 nix shell "''${@/#/nixpkgs#}"
-      }
+        function nixpkgs() {
+          NIXPKGS_ALLOW_UNFREE=1 nix shell "''${@/#/nixpkgs#}"
+        }
 
-      # foot integration
-      function osc7-pwd() {
-          emulate -L zsh # also sets localoptions for us
-          setopt extendedglob
-          local LC_ALL=C
-          printf '\e]7;file://%s%s\e\' $HOST ''${PWD//(#m)([^@-Za-z&-;_~])/%''${(l:2::0:)$(([##16]#MATCH))}}
-      }
-      function chpwd-osc7-pwd() {
-          (( ZSH_SUBSHELL )) || osc7-pwd
-      }
-      add-zsh-hook -Uz chpwd chpwd-osc7-pwd
-    '';
-
-    initExtra = ''
-      fortune -s
-    '';
+        # foot integration
+        function osc7-pwd() {
+            emulate -L zsh # also sets localoptions for us
+            setopt extendedglob
+            local LC_ALL=C
+            printf '\e]7;file://%s%s\e\' $HOST ''${PWD//(#m)([^@-Za-z&-;_~])/%''${(l:2::0:)$(([##16]#MATCH))}}
+        }
+        function chpwd-osc7-pwd() {
+            (( ZSH_SUBSHELL )) || osc7-pwd
+        }
+        add-zsh-hook -Uz chpwd chpwd-osc7-pwd
+      '')
+      ''
+        fortune -s
+      ''
+    ];
   };
 }

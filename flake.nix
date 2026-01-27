@@ -107,7 +107,7 @@
               name = hostname;
               value = nixpkgs.lib.nixosSystem rec {
                 specialArgs = {
-                  inherit username hostname system;
+                  inherit username hostname;
                   inherit inputs flakeDirectory;
                   homeDirectory = "/home/" + username;
                 };

@@ -227,7 +227,7 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
           servers = {
             nil_ls = {
               enable = true;
-              settings.formatting.command = [ "${pkgs.nixfmt-rfc-style}/bin/nixfmt" ];
+              settings.formatting.command = [ "${pkgs.nixfmt}/bin/nixfmt" ];
             };
             lua_ls.enable = true;
             ts_ls.enable = true;
@@ -394,27 +394,29 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
 
         nvim-tree = {
           enable = true;
-          renderer.addTrailing = true;
-          renderer.highlightOpenedFiles = "all";
-          updateFocusedFile = {
-            enable = true;
-            updateRoot = true;
-          };
-          diagnostics = {
-            enable = true;
-            showOnDirs = true;
-            icons = {
-              hint = {
-                __raw = "symbols.Hint";
-              };
-              info = {
-                __raw = "symbols.Info";
-              };
-              warning = {
-                __raw = "symbols.Warn";
-              };
-              error = {
-                __raw = "symbols.Error";
+          settings = {
+            renderer.add_trailing = true;
+            renderer.highlight_opened_files = "all";
+            update_focused_file = {
+              enable = true;
+              update_root = true;
+            };
+            diagnostics = {
+              enable = true;
+              show_on_dirs = true;
+              icons = {
+                hint = {
+                  __raw = "symbols.Hint";
+                };
+                info = {
+                  __raw = "symbols.Info";
+                };
+                warning = {
+                  __raw = "symbols.Warn";
+                };
+                error = {
+                  __raw = "symbols.Error";
+                };
               };
             };
           };
@@ -446,19 +448,21 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
         lualine = {
           enable = true;
           settings = {
-            globalstatus = true;
-            componentSeparators = {
-              left = "|";
-              right = "|";
-            };
-            sectionSeparators = {
-              left = "";
-              right = "";
+            options = {
+              globalstatus = true;
+              component_separators = {
+                left = "|";
+                right = "|";
+              };
+              section_separators = {
+                left = "";
+                right = "";
+              };
             };
             sections = {
               lualine_a = [
                 {
-                  name = "mode";
+                  __unkeyed-1 = "mode";
                   separator = {
                     left = "";
                   };
@@ -474,7 +478,7 @@ inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
               lualine_y = [ "filetype" ];
               lualine_z = [
                 {
-                  name = "location";
+                  __unkeyed-1 = "location";
                   separator = {
                     right = "";
                   };

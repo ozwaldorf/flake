@@ -30,7 +30,7 @@
       extra-trusted-public-keys = [ "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g=" ];
       eval-cores = 0;
     };
-    trustedUsers = [
+    settings.trusted-users = [
       "root"
       "@wheel"
     ];
@@ -150,7 +150,7 @@
       };
     };
   };
-  services.logind.lidSwitchExternalPower = "ignore";
+  services.logind.settings.Login.HandleLidSwitchExternalPower = "ignore";
 
   # services.xserver.desktopManager.gnome.enable = true;
   # Manually enable some services gnome used to
