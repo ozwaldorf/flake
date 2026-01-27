@@ -306,11 +306,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1735360755,
-        "narHash": "sha256-+uc0pHRou0BYXG2PVfrfhmFO5ib6WrWwsR+ckA4kxFA=",
+        "lastModified": 1769489691,
+        "narHash": "sha256-IkCXw1Llf+/lbYoCPuOELIwJCzYUW40PY5aYWST83NA=",
         "owner": "ozwaldorf",
         "repo": "zoom-sync",
-        "rev": "fbc8befd5de331738d6c9cad1c7de6bf1f06efe9",
+        "rev": "a2cce8c351930f9d2af229e2a5f03429f5b7213a",
         "type": "github"
       },
       "original": {

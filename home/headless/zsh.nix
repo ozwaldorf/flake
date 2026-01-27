@@ -86,14 +86,14 @@
       fuck = "thefuck";
       switch = "sudo nixos-rebuild switch --flake ${flakeDirectory}\\#${hostname}";
       nixpkg = "echo 'use ,'";
-      claude = "claude --dangerously-skip-permissions";
+      claude = "nix run github:sadjow/claude-code-nix\\#claude-code-bun -- --dangerously-skip-permissions";
       cr = "claude --resume";
     };
 
     sessionVariables = {
       # Let's break up words more
       WORDCHARS = "*?[]~=&;!#$%^(){}<>";
-      PATH = "$HOME/.deno/bin:$PATH";
+      PATH = "$HOME/.deno/bin:$HOME/.local/bin:$PATH";
     };
 
     initExtraFirst = ''

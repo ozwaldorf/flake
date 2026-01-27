@@ -11,6 +11,8 @@
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
     # ../blocky.nix
+
+    inputs.zoom-sync.nixosModules.default
   ];
   disabledModules = [ "hardware/facter/system.nix" ];
 
@@ -51,7 +53,6 @@
       chromium
       expressvpn
       qmk
-      zoom-sync
     ];
   };
 
@@ -239,15 +240,6 @@
       dnscrypt-proxy2.serviceConfig = {
         StateDirectory = "dnscrypt-proxy";
       };
-      zoom-sync = {
-        description = "Screen module sync for zoom65v3 keyboards";
-        wantedBy = [ "multi-user.target" ];
-        serviceConfig = {
-          Type = "simple";
-          ExecStart = "${pkgs.zoom-sync}/bin/zoom-sync -f -d 42.69 --reactive";
-          Restart = "on-failure";
-        };
-      };
     };
     user.services = {
       polkit-gnome-authentication-agent-1 = {
@@ -263,8 +255,12 @@
           TimeoutStopSec = 10;
         };
       };
-
     };
+  };
+
+  services.zoom-sync = {
+    enable = true;
+    user = username;
   };
 
   # environment.etc = {
