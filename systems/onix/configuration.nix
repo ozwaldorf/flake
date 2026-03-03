@@ -170,7 +170,20 @@
   xdg.portal = {
     enable = true;
     wlr.enable = true;
-    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+    extraPortals = with pkgs; [
+      xdg-desktop-portal-hyprland
+      xdg-desktop-portal-gtk
+    ];
+    config = {
+      common = {
+        default = [
+          "hyprland"
+          "gtk"
+        ];
+        # GTK portal handles file choosers well
+        "org.freedesktop.impl.portal.FileChooser" = "gtk";
+      };
+    };
   };
 
   services.printing.enable = true;
@@ -280,6 +293,7 @@
   environment.pathsToLink = [ "/share/zsh" ];
 
   programs = {
+    nix-ld.enable = true;
     steam.enable = true;
 
     # enable installing zsh at the system level to set the users default terminal. Everything else configuration wise is done in home manager.

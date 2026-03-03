@@ -107,25 +107,25 @@ in
         close_special_on_empty = true;
       };
       layerrule = [
-        "blur,bar*"
-        "ignorealpha,bar*"
-        "blur,quicksettings*"
-        "ignorealpha,quicksettings*"
-        "blur,notifications*"
-        "ignorealpha,notifications*"
-        "blur,vicinae*"
-        "ignorealpha,vicinae*"
+        # "blur,bar*"
+        # "ignorealpha,bar*"
+        # "blur,quicksettings*"
+        # "ignorealpha,quicksettings*"
+        # "blur,notifications*"
+        # "ignorealpha,notifications*"
+        # "blur,vicinae*"
+        # "ignorealpha,vicinae*"
       ];
-      windowrule = [ "size 800 500, floating:1" ];
+      # windowrule = [ "size 800 500, floating:1" ];
       windowrulev2 = [
-        "float,class:float"
-        "center,class:float"
-        "size 50% 30%,class:float"
-        "float,class:yad"
-        "center,class:yad"
-        "size 35 80,class:yad"
-        "float,class:firefox,title:(.*)(MetaMask)(.*)"
-        "center,class:firefox,title:(.*)(MetaMask)(.*)"
+        # "float,class:float"
+        # "center,class:float"
+        # "size 50% 30%,class:float"
+        # "float,class:yad"
+        # "center,class:yad"
+        # "size 35 80,class:yad"
+        # "float,class:firefox,title:(.*)(MetaMask)(.*)"
+        # "center,class:firefox,title:(.*)(MetaMask)(.*)"
       ];
       bindm = [
         "${mod},mouse:272,movewindow"

@@ -3,21 +3,19 @@
   home = {
     packages = with pkgs; [
       neovim
-
       deno
       nodejs
       gnumake
-
       inotify-tools
       nix-tree
-
       ripgrep-all
       ripgrep
       jq
       # xq
-
       gh
       bottom
+      tmux
+      waypipe
     ];
 
     sessionVariables = {

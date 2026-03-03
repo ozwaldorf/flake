@@ -7,7 +7,6 @@
 }:
 {
   home.packages = with pkgs; [
-    fzf
     eza
     bat
     curl
@@ -19,6 +18,11 @@
   ];
 
   programs.nix-index = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+
+  programs.fzf = {
     enable = true;
     enableZshIntegration = true;
   };
@@ -37,11 +41,15 @@
     autosuggestion = {
       enable = true;
       highlight = "fg=244";
+      strategy = [
+        "history"
+        "completion"
+      ];
     };
     syntaxHighlighting.enable = true;
     autocd = true;
     enableVteIntegration = true;
-    enableCompletion = false; # autocomplete will compinit on its own
+    # enableCompletion = false; # autocomplete will compinit on its own
 
     plugins = [
       {
@@ -53,28 +61,28 @@
           sha256 = "RqJmb+XYK35o+FjUyqGZHD6r1Ku1lmckX41aXtVIUJQ=";
         };
       }
-      {
-        name = "zsh-autocomplete";
-        src = pkgs.zsh-autocomplete;
-        file = "share/zsh-autocomplete/zsh-autocomplete.plugin.zsh";
-      }
-      {
-        name = "vi-mode";
-        src = pkgs.zsh-vi-mode;
-        file = "share/zsh-vi-mode/zsh-vi-mode.plugin.zsh";
-      }
+      # {
+      #   name = "zsh-autocomplete";
+      #   src = pkgs.zsh-autocomplete;
+      #   file = "share/zsh-autocomplete/zsh-autocomplete.plugin.zsh";
+      # }
+      # {
+      #   name = "vi-mode";
+      #   src = pkgs.zsh-vi-mode;
+      #   file = "share/zsh-vi-mode/zsh-vi-mode.plugin.zsh";
+      # }
     ];
 
     shellAliases = with { ls_args = "--git --icons"; }; {
-      ls = "eza -lh ${ls_args}";
-      la = "eza -lah ${ls_args}";
-      l = "eza -lah ${ls_args}";
-      lg = "eza -lah ${ls_args} --git-ignore";
-      cat = "bat";
+      ls = "eza -lh ${ls_args}"; # better ls
+      la = "ls -a";
+      lg = "la --git-ignore";
+      l = "lg";
+      cat = "bat"; # better cat
       cp = "cp -i"; # Confirm before overwriting something
       df = "df -h"; # Human-readable sizes
       free = "free -m"; # Show sizes in MB
-      clip = "wl-copy";
+      clip = "wl-copy"; # clipboard pipe
       curl = "curl -s";
       commit = "git commit";
       add = "git add";
@@ -83,18 +91,16 @@
       n = "nvim";
       c = "cargo";
       wq = "exit";
-      icat = "wezterm imgcat";
       fuck = "thefuck";
       switch = "sudo nixos-rebuild switch --flake ${flakeDirectory}\\#${hostname}";
-      nixpkg = "echo 'use ,'";
-      claude = "nix run github:sadjow/claude-code-nix\\#claude-code-bun -- --dangerously-skip-permissions";
-      cr = "claude --resume";
+      claude = "nix run github:sadjow/claude-code-nix -- --dangerously-skip-permissions";
     };
 
     sessionVariables = {
       # Let's break up words more
       WORDCHARS = "*?[]~=&;!#$%^(){}<>";
       PATH = "$HOME/.deno/bin:$HOME/.local/bin:$PATH";
+
     };
 
     initContent = lib.mkMerge [
@@ -108,17 +114,20 @@
         setopt rcexpandparam                                            # Array expension with parameters
         setopt nocheckjobs                                              # Don't warn about running processes when exiting
         setopt numericglobsort                                          # Sort filenames numerically when it makes sense
+        setopt AUTO_MENU
 
-        # autocompletions config
-        zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'       # Case insensitive tab completion
-        zstyle ':completion:*' list-colors "''${(s.:.)LS_COLORS}"       # Colored completion (different colors for dirs/files/etc)
-        zstyle ':completion:*' rehash true                              # automatically find new executables in path
-        zstyle ':completion::complete:*' gain-privileges 1
-        zstyle -e ':autocomplete:*:*' list-lines 'reply=( $(( LINES / 3 )) )'
+        # # autocompletions config
+        zstyle ':completion:*:*:*:default' menu yes select search
 
-        # Cycle/enter autocomplete with tab
-        bindkey              '^I' menu-select
-        bindkey "$terminfo[kcbt]" menu-select
+        # zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'       # Case insensitive tab completion
+        # zstyle ':completion:*' list-colors "''${(s.:.)LS_COLORS}"       # Colored completion (different colors for dirs/files/etc)
+        # zstyle ':completion:*' rehash true                              # automatically find new executables in path
+        # zstyle ':completion::complete:*' gain-privileges 1
+        # zstyle -e ':autocomplete:*:*' list-lines 'reply=( $(( LINES / 3 )) )'
+
+        # # Cycle/enter autocomplete with tab
+        # bindkey              '^I' menu-select
+        # bindkey "$terminfo[kcbt]" menu-select
 
         # Navigate words
         bindkey '^[[1;5D' backward-word                                 # Ctrl + right key
@@ -141,6 +150,20 @@
             (( ZSH_SUBSHELL )) || osc7-pwd
         }
         add-zsh-hook -Uz chpwd chpwd-osc7-pwd
+
+        # Advanced customization of fzf options via _fzf_comprun function
+        # - The first argument to the function is the name of the command.
+        # - You should make sure to pass the rest of the arguments ($@) to fzf.
+        _fzf_comprun() {
+          local command=$1
+          shift
+
+          case "$command" in
+            cd)           fzf --preview 'tree -C {} | head -200'   "$@" ;;
+            ssh)          fzf --preview 'dig {}'                   "$@" ;;
+            nvim)         fzf --preview 'bat -n --color=always {}' "$@" ;;
+          esac
+        }
       '')
       ''
         fortune -s
