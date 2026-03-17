@@ -24,11 +24,11 @@ in
 
   wayland.windowManager.hyprland = {
     enable = true;
-    plugins = with pkgs.hyprlandPlugins; [
-      hyprexpo
-      # hyprtrails
-      hypr-dynamic-cursors
-    ];
+    # plugins = with pkgs.hyprlandPlugins; [
+    # hyprexpo
+    # hyprtrails
+    # hypr-dynamic-cursors
+    # ];
     settings = {
       # plugins = {
       #   hyprexpo = {

@@ -12,7 +12,10 @@
     })
   ];
 
-  carburetor.themes.vesktop.enable = true;
+  carburetor.themes.vesktop = {
+    enable = true;
+    transparency = true;
+  };
 
   xdg.configFile = {
     # # Install horizontal server list css

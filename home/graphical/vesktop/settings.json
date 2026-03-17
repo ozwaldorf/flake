@@ -1,14 +1,14 @@
 {
     "autoUpdate": true,
     "autoUpdateNotification": true,
-    "useQuickCss": false,
+    "useQuickCss": true,
     "themeLinks": [],
     "enabledThemes": [
         "horizontal.css",
         "carburetor-regular.css"
     ],
     "enableReactDevtools": false,
-    "frameless": false,
+    "frameless": true,
     "transparent": false,
     "winCtrlQ": false,
     "disableMinSize": false,
@@ -684,6 +684,9 @@
         },
         "DisableDeepLinks": {
             "enabled": true
+        },
+        "MoreQuickReactions": {
+            "enabled": false
         }
     },
     "notifications": {
@@ -696,7 +699,7 @@
         "authenticated": false,
         "url": "https://api.vencord.dev/",
         "settingsSync": false,
-        "settingsSyncVersion": 1767628192985
+        "settingsSyncVersion": 1773776575269
     },
     "eagerPatches": false,
     "uiElements": {
