@@ -47,6 +47,8 @@
       "networkmanager"
       "wheel"
       "dialout"
+      "scanner"
+      "lp"
     ];
     shell = pkgs.zsh;
     packages = with pkgs; [
@@ -130,6 +132,15 @@
   # enable keyboard management
   hardware.keyboard.qmk.enable = true;
   services.udev.packages = [ pkgs.via ];
+
+  # printer scanning services
+  hardware.sane = {
+    enable = true;
+    extraBackends = [ pkgs.sane-airscan pkgs.pantum-driver ];
+  };
+  environment.systemPackages = with pkgs; [
+    sane-frontends
+  ];
 
   hardware.bluetooth = {
     enable = true;
