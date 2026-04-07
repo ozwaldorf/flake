@@ -33,6 +33,7 @@
       weechat
       beekeeper-studio
       prismlauncher
+      gimp
     ];
   };
 
