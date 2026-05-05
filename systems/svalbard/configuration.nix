@@ -120,11 +120,18 @@
     permitCertUid = "caddy";
   };
 
+  services.jellyfin = {
+    enable = true;
+    openFirewall = true;
+    user = "oz";
+    group = "root";
+  };
+
   # media server
   services.plex = {
     enable = true;
     openFirewall = true;
-    user = "media";
+    user = "oz";
     group = "root";
   };
 
