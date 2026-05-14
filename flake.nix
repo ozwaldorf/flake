@@ -35,17 +35,14 @@
       url = "github:nix-community/neovim-nightly-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    vicinae.url = "github:vicinaehq/vicinae";
   };
 
   nixConfig = {
     extra-substituters = [
       "https://cache.garnix.io"
-      "https://vicinae.cachix.org"
     ];
     extra-trusted-public-keys = [
       "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
-      "vicinae.cachix.org-1:1kDrfienkGHPYbkpNj1mWTr7Fm1+zcenzgTizIcI3oc="
     ];
   };
 
@@ -78,6 +75,12 @@
               # Force insert flake packages that dont have builtin overlays.
               ags = inputs.ags.packages.${prev.system}.default;
               zoom-sync = inputs.zoom-sync.packages.${prev.system}.default;
+              vimPlugins = prev.vimPlugins // {
+                catppuccin-nvim = prev.vimPlugins.catppuccin-nvim.overrideAttrs {
+                  doCheck = false;
+                  nvimRequireCheck = null;
+                };
+              };
             })
             # Custom packages
             overlay
