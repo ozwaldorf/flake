@@ -150,6 +150,7 @@
 
   services.xserver.enable = true;
   services.xserver.videoDrivers = [ "nvidia" ];
+  services.xserver.desktopManager.xterm.enable = false;
 
   services.getty.autologinUser = username;
   services.greetd = {
@@ -220,6 +221,19 @@
           "wireplumber.profiles" = {
             main."monitor.libcamera" = "disabled";
           };
+        };
+        # Larger USB buffers + no suspend; fixes crackling on UA Volt 176
+        "11-usb-audio-quantum" = {
+          "monitor.alsa.rules" = [
+            {
+              matches = [ { "node.name" = "~alsa_output.usb-.*"; } ];
+              actions.update-props = {
+                "api.alsa.period-size" = 1024;
+                "api.alsa.headroom" = 1024;
+                "session.suspend-timeout-seconds" = 0;
+              };
+            }
+          ];
         };
       };
     };
