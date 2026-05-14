@@ -5,7 +5,6 @@ let
 in
 {
   home.packages = with pkgs; [
-    swww
     wl-clipboard
     wf-recorder
     sway-contrib.grimshot
@@ -20,6 +19,41 @@ in
   carburetor.themes = {
     hyprland.enable = true;
     hyprlock.enable = true;
+  };
+
+  # wallpaper daemon
+  services.awww.enable = true;
+
+  # notification daemon
+  services.mako = {
+    enable = true;
+    settings = {
+      font = "Berkeley Mono 10";
+      background-color = "#161616";
+      text-color = "#f4f4f4";
+      border-color = "#4589ff";
+      progress-color = "over #262626";
+      "urgency=low" = {
+        border-color = "#393939";
+      };
+      "urgency=high" = {
+        border-color = "#fa4d56";
+        default-timeout = 0;
+      };
+
+      border-size = 2;
+      border-radius = 10;
+      padding = 12;
+      margin = 10;
+      default-timeout = 0;
+      max-icon-size = 48;
+
+      # pin to laptop top left
+      layer = "overlay";
+      anchor = "top-left";
+      output = "eDP-1";
+
+    };
   };
 
   wayland.windowManager.hyprland = {
@@ -52,10 +86,8 @@ in
       # };
       debug.disable_logs = false;
       exec-once = [
-        "swww-daemon"
-        "ags"
-        "vicinae server"
         "tailscale systray"
+        "mako"
       ];
       source = [ "./themes/regular.conf" ];
       # monitor = [ "Unknown-1, disable" ];
@@ -113,8 +145,8 @@ in
         # "ignorealpha,quicksettings*"
         # "blur,notifications*"
         # "ignorealpha,notifications*"
-        # "blur,vicinae*"
-        # "ignorealpha,vicinae*"
+        "blur on, match:namespace vicinae"
+        "ignore_alpha 0, match:namespace vicinae"
       ];
       # windowrule = [ "size 800 500, floating:1" ];
       windowrulev2 = [
