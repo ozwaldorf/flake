@@ -22,6 +22,7 @@
       ".direnv"
       "result"
       ".claude"
+      "CLAUDE.local.md"
     ];
   };
 

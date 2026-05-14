@@ -34,6 +34,7 @@
       beekeeper-studio
       prismlauncher
       gimp
+      obsidian
     ];
   };
 

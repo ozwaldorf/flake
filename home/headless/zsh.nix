@@ -94,6 +94,7 @@
       fuck = "thefuck";
       switch = "sudo nixos-rebuild switch --flake ${flakeDirectory}\\#${hostname}";
       claude = "nix run github:sadjow/claude-code-nix -- --dangerously-skip-permissions";
+      codex = "nix run github:sadjow/codex-cli-nix -- --yolo";
     };
 
     sessionVariables = {
