@@ -15,7 +15,7 @@
     "winNativeTitleBar": false,
     "plugins": {
         "ChatInputButtonAPI": {
-            "enabled": false
+            "enabled": true
         },
         "CommandsAPI": {
             "enabled": true
@@ -280,9 +280,6 @@
             "ignoreChannels": "",
             "ignoreGuilds": ""
         },
-        "MessageTags": {
-            "enabled": false
-        },
         "MoreCommands": {
             "enabled": false
         },
@@ -474,7 +471,8 @@
             "enabled": false
         },
         "SendTimestamps": {
-            "enabled": false
+            "enabled": true,
+            "replaceMessageContents": true
         },
         "ServerInfo": {
             "enabled": false
@@ -496,10 +494,16 @@
             "enabled": false
         },
         "ShowHiddenChannels": {
-            "enabled": false
+            "enabled": true,
+            "showMode": 0,
+            "hideUnreads": true,
+            "defaultAllowedUsersAndRolesDropdownState": true
         },
         "ShowHiddenThings": {
-            "enabled": false
+            "enabled": true,
+            "showTimeouts": true,
+            "showInvitesPaused": true,
+            "showModView": true
         },
         "ShowMeYourName": {
             "enabled": false
@@ -687,6 +691,9 @@
         },
         "MoreQuickReactions": {
             "enabled": false
+        },
+        "CustomCommands": {
+            "enabled": false
         }
     },
     "notifications": {
@@ -699,11 +706,15 @@
         "authenticated": false,
         "url": "https://api.vencord.dev/",
         "settingsSync": false,
-        "settingsSyncVersion": 1773776575269
+        "settingsSyncVersion": 1777909284872
     },
     "eagerPatches": false,
     "uiElements": {
-        "chatBarButtons": {},
+        "chatBarButtons": {
+            "SendTimestamps": {
+                "enabled": true
+            }
+        },
         "messagePopoverButtons": {}
     }
 }
