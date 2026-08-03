@@ -341,7 +341,11 @@
     mtr.enable = true;
     gnupg.agent = {
       enable = true;
-      enableSSHSupport = true;
+      # SSH is handled by gnome-keyring's gcr-ssh-agent, unlocked by pam at
+      # login. gpg-agent would hijack SSH_AUTH_SOCK and prompt via pinentry
+      # on every use, which is unreachable over a remote session.
+      enableSSHSupport = false;
+      pinentryPackage = pkgs.pinentry-curses;
     };
 
     direnv = {
