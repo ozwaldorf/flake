@@ -8,8 +8,8 @@
         "carburetor-regular.css"
     ],
     "enableReactDevtools": false,
-    "frameless": true,
-    "transparent": false,
+    "frameless": false,
+    "transparent": true,
     "winCtrlQ": false,
     "disableMinSize": false,
     "winNativeTitleBar": false,
@@ -627,7 +627,8 @@
         },
         "Settings": {
             "enabled": true,
-            "settingsLocation": "aboveNitro"
+            "settingsLocation": "aboveNitro",
+            "includeVencordInfoWhenCopying": true
         },
         "SupportHelper": {
             "enabled": true
@@ -694,6 +695,15 @@
         },
         "CustomCommands": {
             "enabled": false
+        },
+        "CharacterCounter": {
+            "enabled": false
+        },
+        "NoMiddleClickPaste": {
+            "enabled": false
+        },
+        "ConcatenatedComponentExtractor": {
+            "enabled": true
         }
     },
     "notifications": {
@@ -706,7 +716,7 @@
         "authenticated": false,
         "url": "https://api.vencord.dev/",
         "settingsSync": false,
-        "settingsSyncVersion": 1777909284872
+        "settingsSyncVersion": 1778777191147
     },
     "eagerPatches": false,
     "uiElements": {

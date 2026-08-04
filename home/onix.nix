@@ -35,6 +35,7 @@
       prismlauncher
       gimp
       obsidian
+      kdePackages.kdenlive
     ];
   };
 

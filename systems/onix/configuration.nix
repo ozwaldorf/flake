@@ -26,8 +26,6 @@
         "flakes"
       ];
       auto-optimise-store = true;
-      extra-substituters = [ "https://cache.garnix.io" ];
-      extra-trusted-public-keys = [ "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g=" ];
       eval-cores = 0;
     };
     settings.trusted-users = [
@@ -68,6 +66,7 @@
     nameservers = [
       # "127.0.0.1"
       # "::1"
+      "8.8.8.8"
       "9.9.9.9"
     ];
   };
@@ -136,7 +135,10 @@
   # printer scanning services
   hardware.sane = {
     enable = true;
-    extraBackends = [ pkgs.sane-airscan pkgs.pantum-driver ];
+    extraBackends = [
+      pkgs.sane-airscan
+      pkgs.pantum-driver
+    ];
   };
   environment.systemPackages = with pkgs; [
     sane-frontends
