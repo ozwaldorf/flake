@@ -1,7 +1,36 @@
-{ pkgs, options, ... }:
+{ lib, pkgs, ... }:
 let
   mod = "SUPER";
   toggle_displays_cmd = "HYPRLAND_INSTANCE_SIGNATURE=$(hyprctl instances -j | xq '.[0].instance' -r) hyprctl dispatch dpms toggle";
+
+  inherit (lib.generators) mkLuaInline;
+
+  # theme palette, provided by carburetor as a lua module. required inline since
+  # home-manager emits extraConfig after the settings that reference it.
+  theme = ''require("themes.carburetor-regular")'';
+  color = name: mkLuaInline "${theme}.${name}";
+
+  bind = key: dispatcher: { _args = [ key dispatcher ]; };
+  exec = cmd: mkLuaInline "hl.dsp.exec_cmd(${builtins.toJSON cmd})";
+
+  workspaceBinds = builtins.concatMap (
+    x:
+    let
+      ws = toString (x + 1);
+      key = toString ((x + 1) - ((x + 1) / 10 * 10));
+    in
+    [
+      (bind "${mod} + ${key}" (mkLuaInline "hl.dsp.focus({ workspace = ${ws} })"))
+      (bind "${mod} + SHIFT + ${key}" (mkLuaInline "hl.dsp.window.move({ workspace = ${ws} })"))
+    ]
+  ) (builtins.genList (x: x) 10);
+
+  directionBinds = builtins.concatMap (dir: [
+    (bind "${mod} + ${dir}" (mkLuaInline "hl.dsp.focus({ direction = ${builtins.toJSON dir} })"))
+    (bind "${mod} + SHIFT + ${dir}" (
+      mkLuaInline "hl.dsp.window.move({ direction = ${builtins.toJSON dir}, group_aware = true })"
+    ))
+  ]) [ "left" "right" "up" "down" ];
 in
 {
   home.packages = with pkgs; [
@@ -58,182 +87,156 @@ in
 
   wayland.windowManager.hyprland = {
     enable = true;
-    # plugins = with pkgs.hyprlandPlugins; [
-    # hyprexpo
-    # hyprtrails
-    # hypr-dynamic-cursors
-    # ];
+    configType = "lua";
     settings = {
-      # plugins = {
-      #   hyprexpo = {
-      #     columns = 2;
-      #     gap_size = 20;
-      #     bg_col = "rgb(161616)";
-      #     workspace_method = "first 1";
-      #   };
-      #   hyprtrails = {
-      #     color = "rgba(4589ffcc)";
-      #   };
-      #   dynamic-cursors = {
-      #     shake = {
-      #       threshold = 4.0;
-      #       effects = true;
-      #     };
-      #     hyprcursor = {
-      #       nearest = 0;
-      #     };
-      #   };
-      # };
-      debug.disable_logs = false;
-      exec-once = [
+      config = {
+        debug.disable_logs = false;
+        general = {
+          layout = "dwindle";
+          col = {
+            active_border = color "text";
+            inactive_border = color "base";
+          };
+        };
+        dwindle = {
+          pseudotile = true;
+          preserve_split = true;
+        };
+        group = {
+          col = {
+            border_inactive = color "sapphire";
+            border_active = color "sky";
+          };
+          groupbar = {
+            enabled = true;
+            text_color = color "text";
+            priority = 0;
+            col = {
+              active = color "base";
+              inactive = color "crust";
+            };
+          };
+        };
+        decoration = {
+          blur = {
+            size = 8;
+            passes = 3;
+            noise = 0.02;
+            contrast = 0.9;
+            brightness = 0.9;
+            popups = true;
+            xray = false;
+            new_optimizations = false;
+          };
+          rounding = 10;
+          dim_special = 0.0;
+        };
+        misc = {
+          disable_hyprland_logo = true;
+          animate_manual_resizes = false;
+          animate_mouse_windowdragging = false;
+          close_special_on_empty = true;
+        };
+      };
+
+      exec_cmd = [
         "tailscale systray"
         "mako"
       ];
-      source = [ "./themes/regular.conf" ];
-      # monitor = [ "Unknown-1, disable" ];
-      general = {
-        layout = "dwindle";
-        "col.active_border" = "$text";
-        "col.inactive_border" = "$base";
-      };
-      workspace = [
-        "m[0] w[t1], gapsout:80 80"
-        "m[0] w[t2], gapsout:40 40"
-        # On widescreen monitor, pad 1 and 2 wide workspaces
-        "m[1] w[t1], gapsout:80 600"
-        "m[1] w[t2], gapsout:40 300"
-      ];
-      dwindle = {
-        pseudotile = true;
-        preserve_split = true;
-      };
-      group = {
-        "col.border_inactive" = "$sapphire";
-        "col.border_active" = "$sky";
-        groupbar = {
-          enabled = true;
-          text_color = "$text";
-          priority = 0;
-          "col.active" = "$base";
-          "col.inactive" = "$crust";
-        };
-      };
-      decoration = {
-        blur = {
-          size = 8;
-          passes = 3;
-          noise = "0.02";
-          contrast = "0.9";
-          brightness = "0.9";
-          popups = true;
-          xray = false;
-          new_optimizations = false;
-        };
-        rounding = 10;
-        dim_special = "0.0";
-      };
-      misc = {
-        disable_hyprland_logo = true;
-        animate_manual_resizes = false;
-        animate_mouse_windowdragging = false;
-        close_special_on_empty = true;
-      };
-      layerrule = [
-        # "blur,bar*"
-        # "ignorealpha,bar*"
-        # "blur,quicksettings*"
-        # "ignorealpha,quicksettings*"
-        # "blur,notifications*"
-        # "ignorealpha,notifications*"
-        "blur on, match:namespace vicinae"
-        "ignore_alpha 0, match:namespace vicinae"
-      ];
-      # windowrule = [ "size 800 500, floating:1" ];
-      windowrulev2 = [
-        # "float,class:float"
-        # "center,class:float"
-        # "size 50% 30%,class:float"
-        # "float,class:yad"
-        # "center,class:yad"
-        # "size 35 80,class:yad"
-        # "float,class:firefox,title:(.*)(MetaMask)(.*)"
-        # "center,class:firefox,title:(.*)(MetaMask)(.*)"
-      ];
-      bindm = [
-        "${mod},mouse:272,movewindow"
-        "${mod},mouse:273,resizewindow"
-      ];
-      bind = [
-        # "${mod}, grave, hyprexpo:expo, toggle"
 
+      workspace_rule = [
+        {
+          workspace = "m[0] w[t1]";
+          gaps_out = "80 80";
+        }
+        {
+          workspace = "m[0] w[t2]";
+          gaps_out = "40 40";
+        }
+        # On widescreen monitor, pad 1 and 2 wide workspaces
+        {
+          workspace = "m[1] w[t1]";
+          gaps_out = "80 600";
+        }
+        {
+          workspace = "m[1] w[t2]";
+          gaps_out = "40 300";
+        }
+      ];
+
+      layer_rule = [
+        {
+          match.namespace = "vicinae";
+          blur = true;
+        }
+        {
+          match.namespace = "vicinae";
+          ignore_alpha = 0;
+        }
+      ];
+
+      bind = [
         # App launcher
-        "${mod}, D, exec, vicinae toggle"
+        (bind "${mod} + D" (exec "vicinae toggle"))
         # Terminal
-        "${mod}, RETURN, exec, foot"
-        "${mod} SHIFT, RETURN, exec, foot -a float"
+        (bind "${mod} + RETURN" (exec "foot"))
+        (bind "${mod} + SHIFT + RETURN" (exec "foot -a float"))
         # Browser
-        "${mod}, E, exec, firefox"
+        (bind "${mod} + E" (exec "firefox"))
         # Toggle displays
-        "${mod}, L, dpms, toggle"
+        (bind "${mod} + L" (mkLuaInline "hl.dsp.dpms({ action = \"toggle\" })"))
 
         # Screenshots
-        ", Print, exec, hyprshot --clipboard-only -zm window"
-        "SHIFT, Print, exec, hyprshot --clipboard-only -zm region"
+        (bind "Print" (exec "hyprshot --clipboard-only -zm window"))
+        (bind "SHIFT + Print" (exec "hyprshot --clipboard-only -zm region"))
 
         # Cycle wallpaper
-        "${mod}, W, exec, bash -c 'swww img --transition-type any $(find ~/Pictures/walls/carburetor | shuf -n 1)'"
+        (bind "${mod} + W" (
+          exec "bash -c 'swww img --transition-type any $(find ~/Pictures/walls/carburetor | shuf -n 1)'"
+        ))
 
         # Nix run
-        "${mod}, R, exec, bash -c 'export APP=$(yad --entry --text \"nix-shell -p\") && nix-shell -p $APP --run $APP'"
+        (bind "${mod} + R" (
+          exec "bash -c 'export APP=$(yad --entry --text \"nix-shell -p\") && nix-shell -p $APP --run $APP'"
+        ))
 
         # Window management
-        "${mod} SHIFT, E, exit"
-        "${mod} SHIFT, Q, killactive"
-        "${mod}, J, togglesplit"
-        "${mod} SHIFT, Space, togglefloating"
-        "${mod} SHIFT, Space, resizeactive, exact 800 500"
-        "${mod} SHIFT, Space, centerwindow"
-        "${mod}, F, fullscreen"
-        "${mod}, P, pin"
-        # "${mod} SHIFT, F, fullscreenstate -1 2"
+        (bind "${mod} + SHIFT + E" (mkLuaInline "hl.dsp.exit()"))
+        (bind "${mod} + SHIFT + Q" (mkLuaInline "hl.dsp.window.close()"))
+        (bind "${mod} + J" (mkLuaInline "hl.dsp.layout(\"togglesplit\")"))
+        (bind "${mod} + SHIFT + Space" (mkLuaInline "hl.dsp.window.float({ action = \"toggle\" })"))
+        (bind "${mod} + SHIFT + Space" (mkLuaInline "hl.dsp.window.resize({ x = 800, y = 500 })"))
+        (bind "${mod} + SHIFT + Space" (mkLuaInline "hl.dsp.window.center()"))
+        (bind "${mod} + F" (mkLuaInline "hl.dsp.window.fullscreen({ action = \"toggle\" })"))
+        (bind "${mod} + P" (mkLuaInline "hl.dsp.window.pin({ action = \"toggle\" })"))
 
         # Groups
-        "${mod}, G, togglegroup"
-        "${mod}, Tab, changegroupactive, f"
-        "${mod}, Shift, changegroupactive, b"
-        "${mod} CTRL, Left, movegroupwindow, b"
-        "${mod} CTRL, Right, movegroupwindow"
+        (bind "${mod} + G" (mkLuaInline "hl.dsp.group.toggle()"))
+        (bind "${mod} + Tab" (mkLuaInline "hl.dsp.group.next()"))
+        (bind "${mod} + Shift" (mkLuaInline "hl.dsp.group.prev()"))
+        (bind "${mod} + CTRL + Left" (mkLuaInline "hl.dsp.group.move_window({ forward = false })"))
+        (bind "${mod} + CTRL + Right" (mkLuaInline "hl.dsp.group.move_window({ forward = true })"))
 
-        # Window traversal and movement
-        "${mod}, left, movefocus, l"
-        "${mod}, right, movefocus, r"
-        "${mod}, up, movefocus, u"
-        "${mod}, down, movefocus, d"
-        "${mod} SHIFT, left, movewindoworgroup, l"
-        "${mod} SHIFT, right, movewindoworgroup, r"
-        "${mod} SHIFT, up, movewindoworgroup, u"
-        "${mod} SHIFT, down, movewindoworgroup, d"
+        # Mouse move/resize
+        {
+          _args = [
+            "${mod} + mouse:272"
+            (mkLuaInline "hl.dsp.window.drag()")
+            { mouse = true; }
+          ];
+        }
+        {
+          _args = [
+            "${mod} + mouse:273"
+            (mkLuaInline "hl.dsp.window.resize()")
+            { mouse = true; }
+          ];
+        }
       ]
-      ++ (
-        # workspaces
-        # binds $mod + [shift +] {1..10} to [move to] workspace {1..10}
-        builtins.concatLists (
-          builtins.genList (
-            x:
-            let
-              ws =
-                let
-                  c = (x + 1) / 10;
-                in
-                builtins.toString (x + 1 - (c * 10));
-            in
-            [
-              "${mod}, ${ws}, workspace, ${toString (x + 1)}"
-              "${mod} SHIFT, ${ws}, movetoworkspace, ${toString (x + 1)}"
-            ]
-          ) 10
-        )
-      );
+      # Window traversal and movement
+      ++ directionBinds
+      # binds $mod + [shift +] {1..10} to [move to] workspace {1..10}
+      ++ workspaceBinds;
     };
   };
 }
