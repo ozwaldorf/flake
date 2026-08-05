@@ -56,11 +56,16 @@ ModalPanel {
                 onHoverChanged: hovered => root.setChildHovered(hovered)
             }
 
+            BluetoothTile {
+                width: parent.width
+                onHoverChanged: hovered => root.setChildHovered(hovered)
+            }
+
             Rectangle {
                 width: parent.width
                 implicitHeight: 1
                 color: Theme.surface1
-                visible: Wifi.available
+                visible: Wifi.available || Bluetooth.available
             }
 
             VolumeSlider {
