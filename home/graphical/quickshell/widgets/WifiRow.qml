@@ -105,11 +105,43 @@ Item {
             }
         }
 
-        Text {
-            id: name
+        // padlock, ahead of the name: whether a network wants a key belongs
+        // with what it is called, not stranded at the far edge of the row
+        Item {
+            id: lock
 
             anchors.left: lead.right
             anchors.leftMargin: Theme.spaceXs
+            anchors.verticalCenter: parent.verticalCenter
+            width: visible ? 7 : 0
+            height: 9
+            visible: Wifi.needsKey(root.network) || root.network.known
+
+            Rectangle {
+                anchors.horizontalCenter: parent.horizontalCenter
+                y: 0
+                implicitWidth: 5
+                implicitHeight: 5
+                radius: 2.5
+                color: "transparent"
+                border.width: 1.2
+                border.color: Theme.overlay0
+            }
+
+            Rectangle {
+                anchors.bottom: parent.bottom
+                width: parent.width
+                height: 5.5
+                radius: 1.5
+                color: Theme.overlay0
+            }
+        }
+
+        Text {
+            id: name
+
+            anchors.left: lock.right
+            anchors.leftMargin: lock.visible ? Theme.spaceXs : 0
             anchors.right: badges.left
             anchors.rightMargin: Theme.spaceSm
             anchors.verticalCenter: parent.verticalCenter
@@ -121,49 +153,20 @@ Item {
             elide: Text.ElideRight
         }
 
-        Row {
+        // Sized against the 11px name rather than the 15px the tiles use: at
+        // that size the arcs outweigh the text they sit beside.
+        WifiGlyph {
             id: badges
 
             anchors.right: parent.right
             anchors.rightMargin: Theme.spaceXs
             anchors.verticalCenter: parent.verticalCenter
-            spacing: Theme.spaceXs
 
-            // padlock: a shackle over a body, small enough to read as a badge
-            Item {
-                anchors.verticalCenter: parent.verticalCenter
-                width: 7
-                height: 10
-                visible: Wifi.needsKey(root.network) || root.network.known
-
-                Rectangle {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    y: 0
-                    implicitWidth: 5
-                    implicitHeight: 5
-                    radius: 2.5
-                    color: "transparent"
-                    border.width: 1.2
-                    border.color: Theme.overlay0
-                }
-
-                Rectangle {
-                    anchors.bottom: parent.bottom
-                    width: parent.width
-                    height: 6
-                    radius: 1.5
-                    color: Theme.overlay0
-                }
-            }
-
-            WifiGlyph {
-                anchors.verticalCenter: parent.verticalCenter
-                implicitWidth: 15
-                implicitHeight: 12
-                bars: Wifi.bars(root.network.signalStrength)
-                fill: Theme.subtext0
-                dim: Theme.surface1
-            }
+            implicitWidth: 12
+            implicitHeight: 9
+            bars: Wifi.bars(root.network.signalStrength)
+            fill: Theme.overlay1
+            dim: Theme.surface1
         }
 
         HoverHandler {
