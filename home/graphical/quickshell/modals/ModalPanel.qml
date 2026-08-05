@@ -136,12 +136,18 @@ PanelWindow {
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.right: parent.right
-            implicitHeight: 50
+
+            // Inset above the title, then only what the title itself needs:
+            // the body carries its own top padding, so centring the title in a
+            // taller box would pad below it twice over.
+            implicitHeight: Theme.padPanel + title.implicitHeight
 
             Text {
+                id: title
+
                 anchors.left: parent.left
                 anchors.leftMargin: Theme.padPanel
-                anchors.verticalCenter: parent.verticalCenter
+                anchors.bottom: parent.bottom
                 text: root.title.toUpperCase()
                 font.family: Theme.font
                 font.pixelSize: 10
@@ -152,12 +158,14 @@ PanelWindow {
             Rectangle {
                 anchors.right: parent.right
                 anchors.rightMargin: Theme.spaceSm
-                anchors.verticalCenter: parent.verticalCenter
+                anchors.verticalCenter: title.verticalCenter
 
                 implicitWidth: actionLabel.implicitWidth + Theme.space
                 implicitHeight: 24
                 radius: 5
-                color: actionHover.hovered ? Theme.surface0 : "transparent"
+                // alpha zero rather than "transparent", which is transparent
+                // black and drags the fade through black at both ends
+                color: actionHover.hovered ? Theme.surface0 : Qt.alpha(Theme.surface0, 0)
                 visible: root.headerAction.length > 0
 
                 Text {
