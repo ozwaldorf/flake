@@ -35,23 +35,9 @@ ShellRoot {
 
             property string openModal: ""
 
-            // set by clicking a mark: pins the modal so it survives the pointer
-            // leaving, until clicked again or another mark takes over
-            property bool pinned: false
-
             // whichever mark the pointer is over, and whether a modal has it
             property string hoveredMark: ""
             property bool modalHovered: false
-
-            function toggle(name) {
-                if (openModal === name && pinned) {
-                    openModal = "";
-                    pinned = false;
-                } else {
-                    openModal = name;
-                    pinned = true;
-                }
-            }
 
             // Opening waits out a dwell so crossing a mark on the way to another
             // does not flash it open. Closing waits longer so the pointer can
@@ -80,7 +66,7 @@ ShellRoot {
                 id: closeTimer
                 interval: 320
                 onTriggered: {
-                    if (scope.pinned || scope.modalHovered || scope.hoveredMark !== "")
+                    if (scope.modalHovered || scope.hoveredMark !== "")
                         return;
                     if (graceTimer.running) {
                         // layout still settling; re-arm rather than dismissing
@@ -97,14 +83,13 @@ ShellRoot {
                     // switching between marks while one is open is immediate
                     if (openModal !== "" && openModal !== hoveredMark) {
                         openModal = hoveredMark;
-                        pinned = false;
                         graceTimer.restart();
                     } else if (openModal === "") {
                         openTimer.restart();
                     }
                 } else {
                     openTimer.stop();
-                    if (!pinned && !modalHovered)
+                    if (!modalHovered)
                         closeTimer.restart();
                 }
             }
@@ -113,7 +98,7 @@ ShellRoot {
             onModalHoveredChanged: {
                 if (modalHovered)
                     closeTimer.stop();
-                else if (!pinned && hoveredMark === "")
+                else if (hoveredMark === "")
                     closeTimer.restart();
             }
 
@@ -125,7 +110,6 @@ ShellRoot {
                 modalOpen: scope.openModal !== ""
                 settingsActive: scope.openModal === "settings"
 
-                onSettingsToggled: scope.toggle("settings")
                 onMarkHovered: name => scope.hoveredMark = name
             }
 
@@ -133,10 +117,7 @@ ShellRoot {
                 modelData: scope.modelData
                 anchorRight: scope.anchorRight
                 shown: scope.openModal === "settings"
-                onDismissed: {
-                    scope.openModal = "";
-                    scope.pinned = false;
-                }
+                onDismissed: scope.openModal = ""
                 onHoverChanged: hovered => scope.modalHovered = hovered
             }
 

@@ -13,7 +13,6 @@ Rectangle {
     required property bool expanded
     property bool active: false
 
-    signal clicked
     signal hoverChanged(bool hovered)
 
     readonly property bool has: Notifications.count > 0
@@ -115,14 +114,12 @@ Rectangle {
         width: Theme.rail
         height: parent.height
 
+        // The panel opens on hover alone, so the mark is a target to reach
+        // rather than a button: no tap handler, and the default cursor since
+        // there is nothing to click.
         HoverHandler {
             id: hover
-            cursorShape: Qt.PointingHandCursor
             onHoveredChanged: root.hoverChanged(hovered)
-        }
-
-        TapHandler {
-            onTapped: root.clicked()
         }
     }
 }

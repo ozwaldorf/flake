@@ -30,8 +30,6 @@ PanelWindow {
             SysMeters.watch(false);
     }
 
-    signal settingsToggled
-
     // name of the mark under the pointer, or empty
     signal markHovered(string name)
 
@@ -172,7 +170,6 @@ PanelWindow {
                 anchors.horizontalCenter: parent.horizontalCenter
                 expanded: bar.expanded
                 active: bar.settingsActive
-                onClicked: bar.settingsToggled()
                 onHoverChanged: hovered => bar.markHovered(hovered ? "settings" : "")
             }
 
