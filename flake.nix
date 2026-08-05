@@ -66,6 +66,15 @@
               # Force insert flake packages that dont have builtin overlays.
               ags = inputs.ags.packages.${prev.system}.default;
               zoom-sync = inputs.zoom-sync.packages.${prev.system}.default;
+              # Relax glaze pin so it accepts nixpkgs' 8.0.0.
+              # Remove once NixOS/nixpkgs#549253 lands.
+              hyprland = prev.hyprland.overrideAttrs (old: {
+                postPatch = ''
+                  substituteInPlace CMakeLists.txt start/CMakeLists.txt hyprpm/CMakeLists.txt \
+                    --replace-fail "glaze 7...<8" "glaze"
+                ''
+                + old.postPatch;
+              });
               vimPlugins = prev.vimPlugins // {
                 catppuccin-nvim = prev.vimPlugins.catppuccin-nvim.overrideAttrs {
                   doCheck = false;

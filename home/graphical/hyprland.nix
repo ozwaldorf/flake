@@ -88,6 +88,8 @@ in
   wayland.windowManager.hyprland = {
     enable = true;
     configType = "lua";
+    # uwsm owns the session; its own units handle the activation environment
+    systemd.enable = false;
     settings = {
       config = {
         debug.disable_logs = false;
@@ -99,7 +101,6 @@ in
           };
         };
         dwindle = {
-          pseudotile = true;
           preserve_split = true;
         };
         group = {
@@ -139,30 +140,40 @@ in
         };
       };
 
-      exec_cmd = [
-        "tailscale systray"
-        "mako"
-      ];
+      # uwsm waits for these before letting the session come up, and the
+      # hyprland.start hook fires too late (first render frame) to satisfy it.
+      # mako and tailscale-systray are started by their own systemd units.
+      exec_cmd = [ "uwsm finalize WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE" ];
 
-      workspace_rule = [
-        {
-          workspace = "m[0] w[t1]";
-          gaps_out = "80 80";
-        }
-        {
-          workspace = "m[0] w[t2]";
-          gaps_out = "40 40";
-        }
-        # On widescreen monitor, pad 1 and 2 wide workspaces
-        {
-          workspace = "m[1] w[t1]";
-          gaps_out = "80 600";
-        }
-        {
-          workspace = "m[1] w[t2]";
-          gaps_out = "40 300";
-        }
-      ];
+      workspace_rule =
+        let
+          # css gaps: vertical (top/bottom) and horizontal (left/right)
+          gaps = v: h: {
+            top = v;
+            bottom = v;
+            left = h;
+            right = h;
+          };
+        in
+        [
+          {
+            workspace = "m[0] w[t1]";
+            gaps_out = gaps 80 80;
+          }
+          {
+            workspace = "m[0] w[t2]";
+            gaps_out = gaps 40 40;
+          }
+          # On widescreen monitor, pad 1 and 2 wide workspaces
+          {
+            workspace = "m[1] w[t1]";
+            gaps_out = gaps 80 600;
+          }
+          {
+            workspace = "m[1] w[t2]";
+            gaps_out = gaps 40 300;
+          }
+        ];
 
       layer_rule = [
         {
@@ -213,7 +224,7 @@ in
         # Groups
         (bind "${mod} + G" (mkLuaInline "hl.dsp.group.toggle()"))
         (bind "${mod} + Tab" (mkLuaInline "hl.dsp.group.next()"))
-        (bind "${mod} + Shift" (mkLuaInline "hl.dsp.group.prev()"))
+        (bind "${mod} + SHIFT + Tab" (mkLuaInline "hl.dsp.group.prev()"))
         (bind "${mod} + CTRL + Left" (mkLuaInline "hl.dsp.group.move_window({ forward = false })"))
         (bind "${mod} + CTRL + Right" (mkLuaInline "hl.dsp.group.move_window({ forward = true })"))
 
