@@ -168,9 +168,9 @@ ModalPanel {
                 width: parent.width
                 spacing: Theme.spaceXs
 
-                // a quarter of the row, leaving the rest for the tray to flow
-                // into alongside it
-                readonly property real cell: (width - spacing) / 4
+                // Half the row, matching the connectivity tiles above it. A
+                // quarter left the status line with no room to say anything.
+                readonly property real cell: (width - spacing) / 2
 
                 RecorderTile {
                     width: utility.cell
