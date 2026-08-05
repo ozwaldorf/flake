@@ -10,7 +10,7 @@
         pad = "14x14 center";
         term = "xterm-256color";
       };
-      colors = {
+      colors-dark = {
         alpha = "0.8";
         # foot negotiates its own blur via ext-background-effect-v1
         blur = "yes";
