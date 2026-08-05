@@ -9,8 +9,11 @@ Item {
     property bool open: false
     property color fill: Theme.overlay0
 
-    implicitWidth: 12
-    implicitHeight: 12
+    // Sized so the arms clear the box on every side as it turns: they reach
+    // arm past the vertex at the centre in whichever direction the rotation
+    // points them.
+    implicitWidth: arm * 2
+    implicitHeight: arm * 2
 
     rotation: open ? 90 : 0
 
@@ -24,18 +27,12 @@ Item {
     readonly property real arm: 6.2
     readonly property real spread: 42
 
-    // Both strokes pivot about the vertex where they meet. Measured from that
-    // vertex the glyph reaches sideways to the arm tips and an equal distance
-    // above and below, so its bounding box is reach wide and 2 * rise tall.
-    //
-    // Item.rotation turns about the item's centre, so that box has to be
-    // centred on the item or the chevron swings off its own axis as it opens.
-    // Placing the vertex half the box's width to the left of centre is what
-    // centres it.
-    readonly property real reach: arm * Math.sin(spread * Math.PI / 180)
-    readonly property real rise: arm * Math.cos(spread * Math.PI / 180)
-
-    readonly property real vertexX: width / 2 - reach / 2
+    // Both strokes pivot about the vertex where they meet, and the vertex sits
+    // at the item's centre so it coincides with the point Item.rotation turns
+    // about. Centring the glyph's bounding box instead would put the vertex
+    // off centre, and since the vertex is what the eye tracks the chevron
+    // would appear to swing around rather than turn in place.
+    readonly property real vertexX: width / 2
     readonly property real vertexY: height / 2
 
     Rectangle {
