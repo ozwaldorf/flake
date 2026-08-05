@@ -95,13 +95,6 @@ ModalPanel {
 
             // ---- now playing, only when a player exists ----
 
-            Rectangle {
-                width: parent.width
-                implicitHeight: 1
-                color: Theme.surface1
-                visible: layout.player !== null
-            }
-
             Row {
                 width: parent.width
                 spacing: Theme.space
@@ -172,13 +165,6 @@ ModalPanel {
             }
 
             // ---- tray, only when something is registered ----
-
-            Rectangle {
-                width: parent.width
-                implicitHeight: 1
-                color: Theme.surface1
-                visible: SystemTray.items.values.length > 0
-            }
 
             Flow {
                 width: parent.width
