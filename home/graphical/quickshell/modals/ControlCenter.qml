@@ -173,6 +173,8 @@ ModalPanel {
                 readonly property real cell: (width - spacing) / 2
 
                 RecorderTile {
+                    id: recorder
+
                     width: utility.cell
                     onHoverChanged: hovered => root.setChildHovered(hovered)
                 }
@@ -190,8 +192,11 @@ ModalPanel {
 
                             required property var modelData
 
-                            implicitWidth: 38
-                            implicitHeight: 38
+                            // Square, and as tall as the tile beside it so the
+                            // row reads as one band rather than icons floating
+                            // against a taller card.
+                            implicitWidth: recorder.height
+                            implicitHeight: recorder.height
                             radius: 9
 
                             // same surface as the tiles and the level cards: half
@@ -217,11 +222,15 @@ ModalPanel {
                             Image {
                                 id: trayIcon
 
-                                readonly property int px: Math.ceil(18 * Screen.devicePixelRatio)
+                                // Sized off the entry so it keeps its inset as
+                                // the entry follows the tile's height, rather
+                                // than a fixed size floating in a bigger box.
+                                readonly property real side: Math.round(trayEntry.height * 0.44)
+                                readonly property int px: Math.ceil(side * Screen.devicePixelRatio)
 
                                 anchors.centerIn: parent
-                                width: 18
-                                height: 18
+                                width: side
+                                height: side
                                 sourceSize.width: px
                                 sourceSize.height: px
                                 source: trayEntry.modelData.icon
