@@ -15,7 +15,7 @@
         rounding = 16;
       };
       providers = {
-        "@sovereign/store.vicinae.awww-switcher" = {
+        "@sovereign/awww-switcher" = {
           preferences.wallpaperPath = "~/Pictures/walls/carburetor";
         };
       };
