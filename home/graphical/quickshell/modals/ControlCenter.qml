@@ -168,9 +168,20 @@ ModalPanel {
                 width: parent.width
                 spacing: Theme.spaceXs
 
-                // Half the row, matching the connectivity tiles above it. A
-                // quarter left the status line with no room to say anything.
-                readonly property real cell: (width - spacing) / 2
+                readonly property int trayCount: SystemTray.items.values.length
+
+                // Entries are square and as tall as the row, so what the tray
+                // needs is known before laying anything out. Fixed rather than
+                // derived from the tile, which now derives from this.
+                readonly property real entry: 54
+
+                readonly property real trayWidth: trayCount > 0 ? trayCount * entry + (trayCount - 1) * spacing : 0
+
+                // The recorder takes whatever the tray does not, so an uneven
+                // remainder ends up in the tile rather than as a gap at the end
+                // of the row. Floored at half so a crowded tray cannot squeeze
+                // the status line out.
+                readonly property real cell: Math.max((width - spacing) / 2, trayCount > 0 ? width - trayWidth - spacing : width)
 
                 RecorderTile {
                     id: recorder
@@ -180,9 +191,9 @@ ModalPanel {
                 }
 
                 Flow {
-                    width: utility.width - utility.cell - utility.spacing
+                    width: utility.trayWidth
                     spacing: Theme.spaceXs
-                    visible: SystemTray.items.values.length > 0
+                    visible: utility.trayCount > 0
 
                     Repeater {
                         model: SystemTray.items
@@ -195,8 +206,8 @@ ModalPanel {
                             // Square, and as tall as the tile beside it so the
                             // row reads as one band rather than icons floating
                             // against a taller card.
-                            implicitWidth: recorder.height
-                            implicitHeight: recorder.height
+                            implicitWidth: utility.entry
+                            implicitHeight: utility.entry
                             radius: 9
 
                             // same surface as the tiles and the level cards: half
