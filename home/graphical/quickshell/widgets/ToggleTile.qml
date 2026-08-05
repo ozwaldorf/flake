@@ -38,10 +38,11 @@ Rectangle {
     implicitHeight: Theme.spaceSm * 2 + Math.max(puck.implicitHeight, rows.implicitHeight)
     radius: 9
 
-    // Faded to alpha zero rather than "transparent", which is transparent
-    // black: interpolating to it drags the colour through black on the way out
-    // and back through it on the way in.
-    color: tileHover.hovered || expanded ? Theme.surface0 : Qt.alpha(Theme.surface0, 0)
+    // Resting fill matches the level cards so every tile in the panel reads as
+    // the same kind of surface; hover and an open list lift it from there.
+    // Alpha only, never "transparent", which is transparent black and would
+    // drag the fade through black at both ends.
+    color: tileHover.hovered || expanded ? Theme.surface0 : Qt.alpha(Theme.surface0, 0.5)
 
     Behavior on color {
         ColorAnimation {

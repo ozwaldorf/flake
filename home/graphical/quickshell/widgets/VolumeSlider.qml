@@ -38,7 +38,22 @@ Rectangle {
 
     implicitHeight: body.implicitHeight + Theme.spaceSm * 2
     radius: 9
-    color: Qt.alpha(Theme.surface0, 0.5)
+
+    // Same resting fill and the same lift on hover as the toggle tiles, so
+    // every card in the panel is one kind of surface.
+    color: cardHover.hovered || expanded ? Theme.surface0 : Qt.alpha(Theme.surface0, 0.5)
+
+    Behavior on color {
+        ColorAnimation {
+            duration: 160
+        }
+    }
+
+    // Behind the content so the children keep their own hover states; this
+    // only reports whether the pointer is over the card at all.
+    HoverHandler {
+        id: cardHover
+    }
 
     Behavior on implicitHeight {
         NumberAnimation {
@@ -288,7 +303,9 @@ Rectangle {
                             width: picker.width
                             implicitHeight: 26
                             radius: 6
-                            color: entryHover.hovered ? Theme.surface0 : Qt.alpha(Theme.surface0, 0)
+                            // a step above the card, which is already surface0
+                            // once the pointer is over it
+                            color: entryHover.hovered ? Theme.surface1 : Qt.alpha(Theme.surface1, 0)
 
                             Behavior on color {
                                 ColorAnimation {
