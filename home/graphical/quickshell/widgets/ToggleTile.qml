@@ -144,53 +144,24 @@ Column {
             }
         }
 
-        // Chevron, rotating to point down when the list is out. Two strokes
-        // rather than a glyph, matching the drawn transport controls.
-        Item {
+        // rotates to point down when the list is out
+        Chevron {
             id: chevron
 
             anchors.right: parent.right
             anchors.rightMargin: Theme.spaceSm + 2
             anchors.verticalCenter: parent.verticalCenter
-            width: 12
-            height: 12
+
+            open: root.expanded
+            fill: tileHover.hovered ? Theme.text : Theme.overlay0
 
             opacity: root.on ? 1 : 0
             visible: opacity > 0
-            rotation: root.expanded ? 90 : 0
 
-            Behavior on rotation {
-                NumberAnimation {
-                    duration: Theme.morphDuration
-                    easing.type: Easing.OutQuint
-                }
-            }
             Behavior on opacity {
                 NumberAnimation {
                     duration: Theme.fadeDuration
                 }
-            }
-
-            Rectangle {
-                x: 4
-                y: 1.5
-                width: 1.6
-                height: 6.5
-                radius: 0.8
-                color: tileHover.hovered ? Theme.text : Theme.overlay0
-                transformOrigin: Item.BottomLeft
-                rotation: -40
-            }
-
-            Rectangle {
-                x: 4
-                y: 5.5
-                width: 1.6
-                height: 6.5
-                radius: 0.8
-                color: tileHover.hovered ? Theme.text : Theme.overlay0
-                transformOrigin: Item.TopLeft
-                rotation: 40
             }
         }
 
