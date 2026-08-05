@@ -181,12 +181,6 @@ PanelWindow {
                 }
             }
 
-            Rectangle {
-                anchors.bottom: parent.bottom
-                width: parent.width
-                height: 1
-                color: Theme.surface0
-            }
         }
 
         Item {
