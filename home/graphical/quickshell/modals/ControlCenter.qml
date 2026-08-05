@@ -51,13 +51,6 @@ ModalPanel {
                 onHoverChanged: hovered => root.setChildHovered(hovered)
             }
 
-            Rectangle {
-                width: parent.width
-                implicitHeight: 1
-                color: Theme.surface1
-                visible: Wifi.available || Bluetooth.available
-            }
-
             // The two levels are one group, so they sit closer to each other
             // than to whatever is above and below them.
             Column {
