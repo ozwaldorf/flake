@@ -1,6 +1,7 @@
 {
   inputs,
   config,
+  lib,
   pkgs,
   username,
   hostname,
@@ -366,6 +367,33 @@
   };
 
   virtualisation.waydroid.enable = true;
+  # waydroid.cfg is mutable state the module doesn't manage. [properties] is only
+  # folded into waydroid_base.prop by `waydroid init`/`upgrade`, not on container
+  # start, so write both. Density 200 keeps the display above android's 600dp
+  # large-screen threshold, below which activities cannot be resized.
+  systemd.services.waydroid-container.preStart =
+    let
+      props = {
+        "persist.waydroid.multi_windows" = "true";
+        "persist.waydroid.width" = "1600";
+        "persist.waydroid.height" = "900";
+        "ro.sf.lcd_density" = "200";
+      };
+    in
+    ''
+      cfg=/var/lib/waydroid/waydroid.cfg
+      prop=/var/lib/waydroid/waydroid_base.prop
+      [ -f "$cfg" ] || exit 0
+    ''
+    + lib.concatStrings (
+      lib.mapAttrsToList (k: v: ''
+        ${pkgs.crudini}/bin/crudini --set "$cfg" properties ${k} ${v}
+        if [ -f "$prop" ]; then
+          ${pkgs.gnused}/bin/sed -i '/^${k}=/d' "$prop"
+          echo '${k}=${v}' >> "$prop"
+        fi
+      '') props
+    );
   virtualisation.docker.rootless = {
     enable = true;
     setSocketVariable = true;

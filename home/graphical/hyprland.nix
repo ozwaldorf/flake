@@ -186,6 +186,27 @@ in
         }
       ];
 
+      window_rule = [
+        # foot -a float
+        {
+          match.class = "float";
+          float = true;
+        }
+        # waydroid maps at android's phone-sized default and never resizes itself
+        {
+          match.class = "Waydroid";
+          float = true;
+        }
+        {
+          match.class = "Waydroid";
+          size = "1200 800";
+        }
+        {
+          match.class = "Waydroid";
+          center = true;
+        }
+      ];
+
       bind = [
         # App launcher
         (bind "${mod} + D" (exec "vicinae toggle"))
