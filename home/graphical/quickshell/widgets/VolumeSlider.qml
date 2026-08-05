@@ -30,6 +30,9 @@ Rectangle {
     readonly property bool isSink: device === "speaker"
     readonly property real clamped: Math.max(0, Math.min(1, value))
 
+    // one wheel notch, matching the increment the media keys use
+    readonly property real step: 0.05
+
     readonly property var devices: isSink ? Audio.sinks : Audio.sources
     readonly property var current: isSink ? Audio.sink : Audio.source
 
@@ -215,6 +218,18 @@ Rectangle {
 
                 TapHandler {
                     onTapped: eventPoint => root.moved(Math.max(0, Math.min(1, eventPoint.position.x / track.width)))
+                }
+
+                // Scroll adjusts by a step rather than jumping to the pointer.
+                // Angle delta is in eighths of a degree and a notch is 15
+                // degrees, so dividing by 120 gives whole notches; a free
+                // spinning wheel or a touchpad sends fractions of one and
+                // those accumulate into the same step.
+                WheelHandler {
+                    acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+                    onWheel: event => {
+                        root.moved(Math.max(0, Math.min(1, root.clamped + event.angleDelta.y / 120 * root.step)));
+                    }
                 }
 
                 HoverHandler {
