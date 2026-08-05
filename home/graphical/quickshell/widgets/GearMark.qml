@@ -13,7 +13,9 @@ Rectangle {
     required property bool expanded
     property bool active: false
 
-    signal hoverChanged(bool hovered)
+    // set by the bar's corner hover zone, which is what actually opens the
+    // panel; the mark only draws the state
+    property bool hovered: false
 
     readonly property bool has: Notifications.count > 0
     readonly property bool urgent: Notifications.hasUrgent
@@ -40,7 +42,7 @@ Rectangle {
     // collapsed, so without this the sliver would light up in passing
     // not readonly: Behavior writes to it, and a Behavior on a readonly
     // property is an invalid assignment
-    property real highlight: expanded && (active || hover.hovered) ? 1 : 0
+    property real highlight: expanded && (active || hovered) ? 1 : 0
 
     Behavior on highlight {
         NumberAnimation {
@@ -108,18 +110,6 @@ Rectangle {
         visible: opacity > 0
     }
 
-    // fixed size target so expanding never moves it under a stationary pointer
-    Item {
-        anchors.centerIn: parent
-        width: Theme.rail
-        height: parent.height
-
-        // The panel opens on hover alone, so the mark is a target to reach
-        // rather than a button: no tap handler, and the default cursor since
-        // there is nothing to click.
-        HoverHandler {
-            id: hover
-            onHoveredChanged: root.hoverChanged(hovered)
-        }
-    }
+    // The hover zone that opens the panel is not here: it spans the whole top
+    // corner of the rail, which only the bar knows the geometry of.
 }

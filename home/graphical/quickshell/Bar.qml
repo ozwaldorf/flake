@@ -149,6 +149,28 @@ PanelWindow {
         }
     }
 
+    // Opening the control centre: the whole top corner of the rail, rather
+    // than the mark alone. The mark is a small block in a narrow strip, and
+    // aiming at it is the only fiddly part of reaching a panel that opens on
+    // hover; the corner is what the pointer travels to anyway.
+    //
+    // Outside the padded content item so it reaches the rail's actual top
+    // edge, and following the rail's width so it covers the sliver while
+    // collapsed and the full width once out.
+    Item {
+        id: corner
+
+        x: bar.railX
+        y: 0
+        width: bar.railWidth
+        height: Theme.railPad + gear.height + Theme.railItemGap
+
+        HoverHandler {
+            id: cornerHover
+            onHoveredChanged: bar.markHovered(hovered ? "settings" : "")
+        }
+    }
+
     // follows the rail, not the fixed surface, so the marks stay centred on the
     // visible strip as it widens
     Item {
@@ -167,10 +189,12 @@ PanelWindow {
             spacing: Theme.railGroupGap
 
             GearMark {
+                id: gear
+
                 anchors.horizontalCenter: parent.horizontalCenter
                 expanded: bar.expanded
                 active: bar.settingsActive
-                onHoverChanged: hovered => bar.markHovered(hovered ? "settings" : "")
+                hovered: cornerHover.hovered
             }
 
             Workspaces {
