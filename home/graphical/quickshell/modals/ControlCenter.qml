@@ -55,6 +55,11 @@ ModalPanel {
                 onHoverChanged: hovered => root.setChildHovered(hovered)
             }
 
+            BrightnessCard {
+                width: parent.width
+                onHoverChanged: hovered => root.setChildHovered(hovered)
+            }
+
             VolumeSlider {
                 width: parent.width
                 device: "speaker"
