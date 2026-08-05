@@ -193,24 +193,44 @@ ModalPanel {
 
                         required property var modelData
 
-                        implicitWidth: 34
-                        implicitHeight: 34
-                        radius: 7
-                        color: Theme.surface0
-                        border.width: 1
-                        border.color: trayHover.hovered ? Theme.surface2 : Theme.surface1
+                        implicitWidth: 38
+                        implicitHeight: 38
+                        radius: 9
 
-                        Behavior on border.color {
+                        // same surface as the tiles and the level cards: half
+                        // alpha at rest, lifting to solid under the pointer
+                        color: trayHover.hovered ? Theme.surface0 : Qt.alpha(Theme.surface0, 0.5)
+
+                        Behavior on color {
                             ColorAnimation {
                                 duration: 160
                             }
                         }
 
+                        // Decoded at device resolution rather than at the 16
+                        // logical pixels it draws into. Without a sourceSize
+                        // Qt renders the icon at whatever size the source
+                        // happens to be and rescales, which on a fractional
+                        // scale display is a resample either way; asking for
+                        // the real pixel count gets a crisp icon instead.
+                        //
+                        // Quickshell's tray icons carry a size hint in the
+                        // URL, so the request has to reach the provider rather
+                        // than only the painter.
                         Image {
+                            id: trayIcon
+
+                            readonly property int px: Math.ceil(18 * Screen.devicePixelRatio)
+
                             anchors.centerIn: parent
-                            width: 16
-                            height: 16
+                            width: 18
+                            height: 18
+                            sourceSize.width: px
+                            sourceSize.height: px
                             source: trayEntry.modelData.icon
+                            fillMode: Image.PreserveAspectFit
+                            smooth: true
+                            mipmap: true
                             asynchronous: true
                         }
 
