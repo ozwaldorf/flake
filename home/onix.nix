@@ -19,6 +19,7 @@
     ./graphical/gtk.nix # gtk theming
     ./graphical/vicinae.nix # app launcher
     ./graphical/quickshell.nix # bar and notifications
+    ./graphical/tailscale-systray.nix # vpn tray icon
     ./graphical/foot.nix # Terminal
     ./graphical/vesktop # discord
     ./graphical/zed.nix # zed editor
