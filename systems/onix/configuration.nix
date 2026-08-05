@@ -120,9 +120,11 @@
 
     kernelModules = [
       # ddcci talks to monitors over the display's i2c bus, which is only
-      # reachable once i2c-dev is up
+      # reachable once i2c-dev is up. ddcci alone is just the bus layer; the
+      # backlight half is what registers the /sys/class/backlight entries.
       "i2c-dev"
       "ddcci"
+      "ddcci-backlight"
     ];
   };
 
@@ -144,6 +146,16 @@
   # enable keyboard management
   hardware.keyboard.qmk.enable = true;
   services.udev.packages = [ pkgs.via ];
+
+  # Bind ddcci to every display i2c bus as it appears. The module cannot
+  # auto-probe on 6.8 and later, so each bus has to be attached by hand, and
+  # bus numbering is not stable across reboots or a GPU reset: match the
+  # adapter by name instead of by number. Buses with nothing listening simply
+  # fail to attach, which is why this can be blanket rather than targeted.
+  services.udev.extraRules = ''
+    SUBSYSTEM=="i2c-dev", ATTR{name}=="NVIDIA i2c adapter*", TAG+="ddcci", \
+      RUN+="${pkgs.bash}/bin/sh -c 'echo ddcci 0x37 > /sys/bus/i2c/devices/%k/new_device'"
+  '';
 
   # printer scanning services
   hardware.sane = {
