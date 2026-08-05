@@ -1,20 +1,25 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Effects
 import ".."
+import "../services"
 
-// Level capsule: the fill is the track, with the device glyph inset at the
-// left end and no knob. Dragging anywhere in the capsule sets the level;
-// tapping the glyph mutes.
-Item {
+// One audio level as a card: a label row carrying the device name and a
+// chevron, the level under it as a glyph beside a thin track, and the device
+// picker expanding inside the same card. Tapping the glyph mutes.
+Rectangle {
     id: root
 
-    // what the glyph draws: "speaker" or "mic"
+    // what the glyph draws and which half of Pipewire this drives:
+    // "speaker" for the default sink, "mic" for the default source
     required property string device
+
+    required property string label
 
     property real value: 0
     property bool muted: false
+
+    property bool expanded: false
 
     signal moved(real value)
     signal muteToggled
@@ -22,164 +27,311 @@ Item {
     // exposed so the panel can tell the pointer is still inside it
     signal hoverChanged(bool hovered)
 
+    readonly property bool isSink: device === "speaker"
     readonly property real clamped: Math.max(0, Math.min(1, value))
 
-    // The glyph sits in the filled part once the level passes it, so it is
-    // drawn in the fill's own contrast colour from that point on rather than
-    // going illegible against it.
-    readonly property bool glyphSubmerged: !muted && clamped * width > glyphSlot.x + glyphSlot.width
+    readonly property var devices: isSink ? Audio.sinks : Audio.sources
+    readonly property var current: isSink ? Audio.sink : Audio.source
 
-    implicitHeight: 30
+    implicitHeight: body.implicitHeight + Theme.spaceSm * 2
+    radius: 9
+    color: Qt.alpha(Theme.surface0, 0.5)
 
-    Rectangle {
-        id: capsule
-
-        anchors.fill: parent
-        radius: height / 2
-
-        // Translucent rather than a flat grey, so the panel's own blur carries
-        // through the control instead of the capsule punching an opaque hole
-        // in it. The fill above is translucent for the same reason, and only
-        // reads as a level because it is lighter than the track behind it.
-        color: Qt.alpha(Theme.surface2, 0.28)
-
-        // border brightens on hover, matching the tray entries
-        border.width: 1
-        border.color: hover.hovered ? Theme.surface2 : Theme.surface1
-
-        Behavior on border.color {
-            ColorAnimation {
-                duration: 160
-            }
+    Behavior on implicitHeight {
+        NumberAnimation {
+            duration: Theme.morphDuration
+            easing.type: Easing.OutQuint
         }
+    }
 
-        // The fill is the whole left hand portion of the capsule rather than a
-        // bar inside it, so the control reads as one object being filled.
-        //
-        // Square cornered and masked to the capsule rather than carrying its
-        // own radius: a rounded fill collapses into itself once it is narrower
-        // than its own corner diameter, and Qt's clip is a rectangular scissor
-        // that would leave the right hand end square against the capsule's
-        // curve. The mask gives it the capsule's shape at every width.
-        // Inset by the border rather than running to the capsule's edge: the
-        // fill's masked curve and the border's own curve are two separate
-        // antialiased edges, and landing them on the same pixels leaves the
-        // rounding looking chewed.
+    Column {
+        id: body
+
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.margins: Theme.spaceSm
+        spacing: Theme.spaceXs
+
+        // ---- label row ----
+
         Item {
-            anchors.fill: parent
-            anchors.margins: capsule.border.width
-            layer.enabled: true
-            layer.effect: MultiEffect {
-                maskEnabled: true
-                maskSource: capsuleMask
+            width: parent.width
+            implicitHeight: 16
+
+            Text {
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                text: root.label
+                font.family: Theme.font
+                font.pixelSize: 11
+                color: Theme.text
             }
 
-            Rectangle {
-                width: Math.max(0, parent.width * root.clamped)
-                height: parent.height
-                color: root.muted ? Qt.alpha(Theme.text, 0.18) : Qt.alpha(Theme.text, 0.45)
+            // Current device, sharing the row with the label so the card says
+            // what it is driving without being opened.
+            Text {
+                anchors.right: chevron.left
+                anchors.rightMargin: Theme.spaceXs
+                anchors.verticalCenter: parent.verticalCenter
+                width: Math.max(0, parent.width - 90)
+                horizontalAlignment: Text.AlignRight
+                text: Audio.label(root.current)
+                font.family: Theme.font
+                font.pixelSize: 10
+                color: pickHover.hovered ? Theme.subtext0 : Theme.overlay0
+                elide: Text.ElideRight
 
                 Behavior on color {
                     ColorAnimation {
-                        duration: 200
-                    }
-                }
-
-                Behavior on width {
-                    enabled: !drag.active
-                    NumberAnimation {
-                        duration: 180
-                        easing.type: Easing.OutQuint
+                        duration: 160
                     }
                 }
             }
-        }
-    }
 
-    // Shape the fill is masked to: the capsule inset by its border, so the two
-    // curves are concentric and never share an edge.
-    Item {
-        id: capsuleMask
+            // rotates to point down when the picker is out
+            Chevron {
+                id: chevron
 
-        width: capsule.width - capsule.border.width * 2
-        height: capsule.height - capsule.border.width * 2
-        layer.enabled: true
-        visible: false
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
 
-        Rectangle {
-            anchors.fill: parent
-            radius: height / 2
-            color: "black"
-        }
-    }
+                open: root.expanded
+                fill: pickHover.hovered ? Theme.text : Theme.overlay0
+            }
 
-    // Glyph, inset at the left end and clickable to mute. Outside the capsule
-    // in the item tree so the capsule's clip does not cut it, and so its tap
-    // handler takes the pointer before the drag surface below.
-    Item {
-        id: glyphSlot
+            // The whole row opens the picker, not just the chevron: a 12px
+            // target is not worth aiming at when the row is already there.
+            HoverHandler {
+                id: pickHover
+                cursorShape: Qt.PointingHandCursor
+                onHoveredChanged: root.hoverChanged(hovered)
+            }
 
-        x: 9
-        anchors.verticalCenter: parent.verticalCenter
-        width: 16
-        height: 14
-
-        readonly property color tint: root.glyphSubmerged ? Theme.base : root.muted ? Theme.overlay0 : Theme.overlay2
-
-        SpeakerGlyph {
-            anchors.centerIn: parent
-            visible: root.device === "speaker"
-            muted: root.muted
-            fill: glyphSlot.tint
-            // arcs follow the level, so a quiet sink reads as quiet even
-            // before you look at the fill
-            arcs: root.clamped > 0.5 ? 2 : root.clamped > 0 ? 1 : 0
-        }
-
-        MicGlyph {
-            anchors.centerIn: parent
-            visible: root.device === "mic"
-            muted: root.muted
-            fill: glyphSlot.tint
-        }
-
-        HoverHandler {
-            id: glyphHover
-            cursorShape: Qt.PointingHandCursor
-            onHoveredChanged: root.hoverChanged(hovered)
-        }
-
-        TapHandler {
-            gesturePolicy: TapHandler.ReleaseWithinBounds
-            onTapped: root.muteToggled()
-        }
-    }
-
-    // Drag surface over the capsule but under the glyph. Levels are taken from
-    // the capsule's full width, so the fill tracks the pointer exactly.
-    Item {
-        anchors.fill: parent
-        z: -1
-
-        DragHandler {
-            id: drag
-
-            target: null
-            xAxis.enabled: true
-            yAxis.enabled: false
-            onCentroidChanged: {
-                if (active)
-                    root.moved(Math.max(0, Math.min(1, centroid.position.x / capsule.width)));
+            TapHandler {
+                onTapped: root.expanded = !root.expanded
             }
         }
 
-        TapHandler {
-            onTapped: eventPoint => root.moved(Math.max(0, Math.min(1, eventPoint.position.x / capsule.width)))
+        // ---- level ----
+
+        // Glyph outside the track rather than inset in it, with the track
+        // taking whatever width is left. The hit area is the whole row so the
+        // 4px track is not what you have to aim at.
+        Item {
+            width: parent.width
+            implicitHeight: 20
+
+            Item {
+                id: glyphSlot
+
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                width: 16
+                height: 14
+
+                readonly property color tint: root.muted ? Theme.surface2 : Theme.overlay2
+
+                SpeakerGlyph {
+                    anchors.centerIn: parent
+                    visible: root.isSink
+                    muted: root.muted
+                    fill: glyphSlot.tint
+                    // arcs follow the level, so a quiet sink reads as quiet
+                    // before you look at the track
+                    arcs: root.clamped > 0.5 ? 2 : root.clamped > 0 ? 1 : 0
+                }
+
+                MicGlyph {
+                    anchors.centerIn: parent
+                    visible: !root.isSink
+                    muted: root.muted
+                    fill: glyphSlot.tint
+                }
+
+                HoverHandler {
+                    cursorShape: Qt.PointingHandCursor
+                    onHoveredChanged: root.hoverChanged(hovered)
+                }
+
+                TapHandler {
+                    gesturePolicy: TapHandler.ReleaseWithinBounds
+                    onTapped: root.muteToggled()
+                }
+            }
+
+            // Taller than the track so the hit target is not a 4px sliver.
+            Item {
+                id: hit
+
+                anchors.left: glyphSlot.right
+                anchors.leftMargin: Theme.spaceSm
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                height: parent.height
+
+                Rectangle {
+                    id: track
+
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: parent.width
+                    height: Theme.barThickness
+                    radius: height / 2
+                    color: Qt.alpha(Theme.surface2, 0.55)
+
+                    Rectangle {
+                        width: Math.max(0, parent.width * root.clamped)
+                        height: parent.height
+                        radius: parent.radius
+                        color: root.muted ? Theme.surface2 : Theme.subtext0
+
+                        Behavior on color {
+                            ColorAnimation {
+                                duration: 200
+                            }
+                        }
+
+                        Behavior on width {
+                            enabled: !drag.active
+                            NumberAnimation {
+                                duration: 180
+                                easing.type: Easing.OutQuint
+                            }
+                        }
+                    }
+                }
+
+                DragHandler {
+                    id: drag
+
+                    target: null
+                    xAxis.enabled: true
+                    yAxis.enabled: false
+                    onCentroidChanged: {
+                        if (active)
+                            root.moved(Math.max(0, Math.min(1, centroid.position.x / track.width)));
+                    }
+                }
+
+                TapHandler {
+                    onTapped: eventPoint => root.moved(Math.max(0, Math.min(1, eventPoint.position.x / track.width)))
+                }
+
+                HoverHandler {
+                    id: hover
+                    onHoveredChanged: root.hoverChanged(hovered)
+                }
+            }
         }
 
-        HoverHandler {
-            id: hover
-            onHoveredChanged: root.hoverChanged(hovered)
+        // ---- device picker ----
+
+        Item {
+            width: parent.width
+            clip: true
+
+            implicitHeight: root.expanded ? Math.min(picker.implicitHeight, 150) : 0
+            opacity: root.expanded ? 1 : 0
+
+            Behavior on implicitHeight {
+                NumberAnimation {
+                    duration: Theme.morphDuration
+                    easing.type: Easing.OutQuint
+                }
+            }
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: Theme.fadeDuration
+                }
+            }
+
+            Flickable {
+                anchors.fill: parent
+                contentHeight: picker.implicitHeight
+                contentWidth: width
+                interactive: contentHeight > height
+                boundsBehavior: Flickable.StopAtBounds
+                clip: true
+
+                Column {
+                    id: picker
+
+                    width: parent.width
+                    spacing: 1
+                    topPadding: Theme.spaceXs
+
+                    Repeater {
+                        model: root.devices
+
+                        Rectangle {
+                            id: entry
+
+                            required property var modelData
+
+                            readonly property bool active: Audio.isDefault(modelData, root.isSink)
+
+                            width: picker.width
+                            implicitHeight: 26
+                            radius: 6
+                            color: entryHover.hovered ? Theme.surface0 : Qt.alpha(Theme.surface0, 0)
+
+                            Behavior on color {
+                                ColorAnimation {
+                                    duration: 160
+                                }
+                            }
+
+                            // filled dot on the device currently in use
+                            Rectangle {
+                                id: marker
+
+                                anchors.left: parent.left
+                                anchors.leftMargin: Theme.spaceSm
+                                anchors.verticalCenter: parent.verticalCenter
+                                implicitWidth: 5
+                                implicitHeight: 5
+                                radius: 2.5
+                                color: entry.active ? Theme.blue : Qt.alpha(Theme.blue, 0)
+
+                                Behavior on color {
+                                    ColorAnimation {
+                                        duration: 160
+                                    }
+                                }
+                            }
+
+                            Text {
+                                anchors.left: marker.right
+                                anchors.leftMargin: Theme.spaceSm
+                                anchors.right: parent.right
+                                anchors.rightMargin: Theme.spaceSm
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: Audio.label(entry.modelData)
+                                font.family: Theme.font
+                                font.pixelSize: 10
+                                color: entry.active ? Theme.text : Theme.subtext0
+                                elide: Text.ElideRight
+                            }
+
+                            HoverHandler {
+                                id: entryHover
+                                cursorShape: Qt.PointingHandCursor
+                                onHoveredChanged: root.hoverChanged(hovered)
+                            }
+
+                            TapHandler {
+                                onTapped: {
+                                    if (root.isSink)
+                                        Audio.setSink(entry.modelData);
+                                    else
+                                        Audio.setSource(entry.modelData);
+                                    root.expanded = false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

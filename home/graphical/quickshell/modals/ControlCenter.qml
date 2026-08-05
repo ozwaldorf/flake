@@ -24,11 +24,6 @@ ModalPanel {
 
     contentHeight: layout.implicitHeight
 
-    // keep the default sink bound so volume tracks without polling
-    PwObjectTracker {
-        objects: [Pipewire.defaultAudioSink, Pipewire.defaultAudioSource]
-    }
-
     Flickable {
         anchors.fill: parent
         anchors.margins: Theme.padPanel
@@ -77,6 +72,7 @@ ModalPanel {
                 VolumeSlider {
                     width: parent.width
                     device: "speaker"
+                    label: "Volume"
                     value: Pipewire.defaultAudioSink?.audio?.volume ?? 0
                     muted: Pipewire.defaultAudioSink?.audio?.muted ?? false
                     onMoved: v => {
@@ -93,6 +89,7 @@ ModalPanel {
                 VolumeSlider {
                     width: parent.width
                     device: "mic"
+                    label: "Microphone"
                     value: Pipewire.defaultAudioSource?.audio?.volume ?? 0
                     muted: Pipewire.defaultAudioSource?.audio?.muted ?? false
                     onMoved: v => {
