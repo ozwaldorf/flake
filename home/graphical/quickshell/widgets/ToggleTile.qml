@@ -3,9 +3,9 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import ".."
 
-// Toggle tile: a round puck carrying the state over a name and status line,
-// with a chevron marking that it has a list to open. Tapping the puck flips
-// the switch, tapping the body opens the list.
+// Toggle tile: the switch on the left spanning a name over the current
+// connection, with a chevron on the right. Tapping the puck flips the switch,
+// tapping the body opens the list.
 //
 // The list itself lives outside the tile, in whatever lays these out: two
 // tiles sit side by side and share one expanding area below them, so only one
@@ -34,8 +34,8 @@ Rectangle {
     signal toggled
     signal listToggled
 
-    // puck, the gap under it, both text lines and the padding either end
-    implicitHeight: Theme.spaceSm * 2 + 34 + Theme.spaceXs + labels.implicitHeight
+    // whichever is taller, the puck or the two text rows, plus padding
+    implicitHeight: Theme.spaceSm * 2 + Math.max(puck.implicitHeight, rows.implicitHeight)
     radius: 9
 
     // Faded to alpha zero rather than "transparent", which is transparent
@@ -50,14 +50,14 @@ Rectangle {
     }
 
     // Round puck, filled when the switch is on. This is the switch itself: the
-    // state lives in the fill rather than in a separate control.
+    // state lives in the fill rather than in a separate control. It spans both
+    // text rows rather than sitting on one of them.
     Rectangle {
         id: puck
 
         anchors.left: parent.left
         anchors.leftMargin: Theme.spaceSm
-        anchors.top: parent.top
-        anchors.topMargin: Theme.spaceSm
+        anchors.verticalCenter: parent.verticalCenter
 
         implicitWidth: 34
         implicitHeight: 34
@@ -110,7 +110,7 @@ Rectangle {
 
         anchors.right: parent.right
         anchors.rightMargin: Theme.spaceSm
-        anchors.verticalCenter: puck.verticalCenter
+        anchors.verticalCenter: parent.verticalCenter
 
         open: root.expanded
         fill: tileHover.hovered ? Theme.text : Theme.overlay0
@@ -125,18 +125,14 @@ Rectangle {
         }
     }
 
-    // Name and state below the puck rather than beside it: side by side these
-    // tiles are half a panel wide, and a row would leave the status line no
-    // room to say anything.
     Column {
-        id: labels
+        id: rows
 
-        anchors.left: parent.left
+        anchors.left: puck.right
         anchors.leftMargin: Theme.spaceSm
-        anchors.right: parent.right
-        anchors.rightMargin: Theme.spaceSm
-        anchors.top: puck.bottom
-        anchors.topMargin: Theme.spaceXs
+        anchors.right: chevron.left
+        anchors.rightMargin: Theme.spaceXs
+        anchors.verticalCenter: parent.verticalCenter
         spacing: 1
 
         Text {
