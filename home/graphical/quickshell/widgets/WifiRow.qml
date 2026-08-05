@@ -43,7 +43,9 @@ Item {
         width: parent.width
         height: root.rowHeight
         radius: 6
-        color: hover.hovered || root.asking ? Theme.surface0 : "transparent"
+        // alpha zero rather than "transparent", which is transparent black and
+        // drags the fade through black at both ends
+        color: hover.hovered || root.asking ? Theme.surface0 : Qt.alpha(Theme.surface0, 0)
 
         Behavior on color {
             ColorAnimation {

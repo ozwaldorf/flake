@@ -15,7 +15,9 @@ Rectangle {
     implicitWidth: 18
     implicitHeight: 18
     radius: 4
-    color: hover.hovered && enabled ? Theme.surface0 : "transparent"
+    // alpha zero rather than "transparent", which is transparent black and
+    // drags the fade through black at both ends
+    color: hover.hovered && enabled ? Theme.surface0 : Qt.alpha(Theme.surface0, 0)
     opacity: enabled ? 1 : 0.35
 
     readonly property color fill: hover.hovered && enabled ? Theme.text : Theme.overlay1
