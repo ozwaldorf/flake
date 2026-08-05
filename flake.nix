@@ -23,10 +23,6 @@
     };
 
     # Applications
-    ags = {
-      url = "github:ozwaldorf/ags";
-      # inputs.nixpkgs.follows = "nixpkgs";
-    };
     zoom-sync = {
       url = "github:ozwaldorf/zoom-sync";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -64,7 +60,6 @@
             # inputs.neovim-nightly-overlay.overlays.default
             (final: prev: {
               # Force insert flake packages that dont have builtin overlays.
-              ags = inputs.ags.packages.${prev.system}.default;
               zoom-sync = inputs.zoom-sync.packages.${prev.system}.default;
               # Relax glaze pin so it accepts nixpkgs' 8.0.0.
               # Remove once NixOS/nixpkgs#549253 lands.

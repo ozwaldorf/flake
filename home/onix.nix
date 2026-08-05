@@ -17,7 +17,6 @@
 
     ./graphical/hyprland.nix # window manager
     ./graphical/gtk.nix # gtk theming
-    ./graphical/ags # top bar
     ./graphical/vicinae.nix # app launcher
     ./graphical/foot.nix # Terminal
     ./graphical/vesktop # discord

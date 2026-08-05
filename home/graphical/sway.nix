@@ -10,10 +10,6 @@
       package = pkgs.swayfx;
       config = {
         startup = [
-          {
-            command = "ags";
-            always = true;
-          }
           { command = "swww init"; }
           { command = "gnome-keyring-daemon --start"; }
           { command = "systemctl --user start polkit-gnome-authentication-agent-1"; }
@@ -21,7 +17,7 @@
         modifier = mod;
         keybindings = lib.mkOptionDefault {
           "${mod}+Return" = "exec wezterm";
-          "${mod}+d" = "exec ags -t applauncher";
+          "${mod}+d" = "exec vicinae toggle";
           "${mod}+e" = "exec firefox";
           "${mod}+Shift+r" = "reload";
           "${mod}+Shift+e" = "exit";
