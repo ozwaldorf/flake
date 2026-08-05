@@ -1,0 +1,112 @@
+pragma Singleton
+
+import QtQuick
+import Quickshell
+import Quickshell.Services.Notifications
+
+// Owns org.freedesktop.Notifications. Only one process can hold the name, so
+// no other notification daemon can be running.
+Singleton {
+    id: root
+
+    // full history, newest first
+    property ListModel history: ListModel {}
+    // currently visible toasts
+    property ListModel toasts: ListModel {}
+
+    readonly property int count: history.count
+    property bool hasUrgent: false
+
+    // Suppressed while a control centre is open: new notifications still land
+    // in history, they just do not pop a toast that duplicates the panel.
+    //
+    // Counted rather than a flag because there is one panel per monitor, and
+    // closing one must not unsuppress while another is still open.
+    property int toastHolders: 0
+    readonly property bool toastsSuppressed: toastHolders > 0
+
+    function holdToasts(on) {
+        toastHolders = Math.max(0, toastHolders + (on ? 1 : -1));
+    }
+
+    function refreshUrgent() {
+        for (let i = 0; i < history.count; i++) {
+            if (history.get(i).urgency === NotificationUrgency.Critical) {
+                root.hasUrgent = true;
+                return;
+            }
+        }
+        root.hasUrgent = false;
+    }
+
+    function dismiss(id) {
+        for (let i = 0; i < toasts.count; i++) {
+            if (toasts.get(i).id === id) {
+                toasts.remove(i);
+                break;
+            }
+        }
+    }
+
+    function remove(id) {
+        for (let i = 0; i < history.count; i++) {
+            if (history.get(i).id === id) {
+                history.remove(i);
+                break;
+            }
+        }
+        dismiss(id);
+        refreshUrgent();
+    }
+
+    // Drops every visible toast without touching history, including critical
+    // ones that have no timeout. Used when the control centre opens, since the
+    // same notifications are listed there.
+    function dismissAllToasts() {
+        toasts.clear();
+    }
+
+    function clear() {
+        history.clear();
+        toasts.clear();
+        refreshUrgent();
+    }
+
+    NotificationServer {
+        id: server
+
+        keepOnReload: true
+        bodySupported: true
+        bodyMarkupSupported: true
+        imageSupported: true
+        actionsSupported: true
+        actionIconsSupported: true
+        inlineReplySupported: true
+
+        onNotification: notif => {
+            // keep it alive past the callback so actions stay invokable
+            notif.tracked = true;
+
+            const entry = {
+                id: notif.id,
+                appName: notif.appName || "system",
+                summary: notif.summary,
+                body: notif.body,
+                image: notif.image,
+                appIcon: notif.appIcon,
+                urgency: notif.urgency,
+                // seconds as the app requested it; -1 means it has no
+                // preference and 0 means it should never expire
+                expireTimeout: notif.expireTimeout,
+                notification: notif
+            };
+
+            root.history.insert(0, entry);
+            // while the panel is open the entry is already visible in its
+            // history list, so a toast would just duplicate it
+            if (!root.toastsSuppressed)
+                root.toasts.insert(0, entry);
+            root.refreshUrgent();
+        }
+    }
+}

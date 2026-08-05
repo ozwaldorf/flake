@@ -40,4 +40,8 @@
     transparency = true;
     icon = true;
   };
+
+  # Qt does not read gtk-icon-theme-name, so tray and menu icon lookups need
+  # the theme naming its own way
+  home.sessionVariables.QT_ICON_THEME = "Papirus-Dark";
 }
