@@ -160,6 +160,11 @@ ModalPanel {
                 }
             }
 
+            RecorderTile {
+                width: parent.width
+                onHoverChanged: hovered => root.setChildHovered(hovered)
+            }
+
             // ---- tray, only when something is registered ----
 
             Flow {

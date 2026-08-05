@@ -36,6 +36,9 @@ in
   home.packages = with pkgs; [
     wl-clipboard
     wf-recorder
+    # region selection for the shell's screen recorder; grimshot bundles its
+    # own copy, but the widget calls it directly
+    slurp
     sway-contrib.grimshot
 
     hyprlock

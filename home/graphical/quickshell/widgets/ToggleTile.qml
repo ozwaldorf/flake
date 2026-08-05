@@ -28,6 +28,14 @@ Rectangle {
     // the puck's contents; given the fill colours to use
     property alias glyph: glyphSlot.data
 
+    // Some tiles are a switch and nothing more: no list to disclose, so no
+    // chevron and the body is not a second target.
+    property bool hasList: true
+
+    // Overridable for tiles whose on state is not simply "enabled", like a
+    // recorder that is red while it is running.
+    property color puckFill: on ? Theme.blue : Theme.surface1
+
     property bool expanded: false
 
     signal hoverChanged(bool hovered)
@@ -64,7 +72,7 @@ Rectangle {
         implicitHeight: 34
         radius: 17
 
-        color: root.on ? Theme.blue : Theme.surface1
+        color: root.puckFill
 
         Behavior on color {
             ColorAnimation {
@@ -116,7 +124,7 @@ Rectangle {
         open: root.expanded
         fill: tileHover.hovered ? Theme.text : Theme.overlay0
 
-        opacity: root.on ? 1 : 0
+        opacity: root.hasList && root.on ? 1 : 0
         visible: opacity > 0
 
         Behavior on opacity {
@@ -163,7 +171,11 @@ Rectangle {
 
     TapHandler {
         onTapped: {
-            if (root.on)
+            // With no list to open, the whole tile is the switch rather than
+            // only the puck: there is nothing else it could mean.
+            if (!root.hasList)
+                root.toggled();
+            else if (root.on)
                 root.listToggled();
         }
     }
