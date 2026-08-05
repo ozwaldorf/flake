@@ -169,11 +169,12 @@
     sane-frontends
   ];
 
+  # No blueman: it autostarts an applet whose only visible part is a tray icon,
+  # and the shell's own tile drives BlueZ directly. The stack itself is here.
   hardware.bluetooth = {
     enable = true;
     powerOnBoot = true;
   };
-  services.blueman.enable = true;
 
   services.xserver.enable = true;
   services.xserver.videoDrivers = [ "nvidia" ];
