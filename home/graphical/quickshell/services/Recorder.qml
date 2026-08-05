@@ -15,9 +15,11 @@ Singleton {
     // true from the moment wf-recorder starts until it has written the file
     readonly property bool recording: recorder.running
 
-    // true while the region is being drawn, so the widget can show that
-    // something is happening before any recording exists
-    readonly property bool selecting: slurp.running
+    // Tracked rather than bound to slurp.running: a process that fails to
+    // start never enters the running state and never emits exited, so a
+    // binding would either never light up or, worse, latch on with nothing
+    // left to turn it off.
+    property bool selecting: false
 
     readonly property bool busy: recording || selecting
 
@@ -59,7 +61,27 @@ Singleton {
 
     function start() {
         error = "";
+        selecting = true;
         slurp.running = true;
+        // running is still false here: the process starts asynchronously, so
+        // a failure is caught by the watchdog below rather than inline.
+        selectGuard.restart();
+    }
+
+    // A binary that cannot be found fails without ever running, and quickshell
+    // reports that as a warning with no exited signal, so nothing would clear
+    // the waiting state. Anything that has not started shortly after being
+    // asked to never will.
+    Timer {
+        id: selectGuard
+
+        interval: 2000
+        onTriggered: {
+            if (root.selecting && !slurp.running) {
+                root.selecting = false;
+                root.error = "Could not start slurp";
+            }
+        }
     }
 
     // SIGINT rather than kill: wf-recorder traps it to flush the encoder and
@@ -81,11 +103,20 @@ Singleton {
         }
 
         onExited: (exitCode, exitStatus) => {
+            root.selecting = false;
+
+            // Escape prints nothing and exits non zero, which is a cancel and
+            // not a failure worth reporting.
             const geometry = region.text.trim();
             if (exitCode !== 0 || geometry === "")
                 return;
+
             root.begin(geometry);
         }
+
+        // Covers the binary being missing or unexecutable, where exited never
+        // fires because the process never started.
+        onStarted: root.selecting = true
     }
 
     function begin(geometry) {
@@ -100,6 +131,20 @@ Singleton {
 
         recorder.command = ["wf-recorder", "-c", "libx264", "-g", geometry, "-f", path];
         recorder.running = true;
+        recordGuard.restart();
+    }
+
+    // same failure to start as slurp, caught the same way
+    Timer {
+        id: recordGuard
+
+        interval: 2000
+        onTriggered: {
+            if (root.path !== "" && !recorder.running) {
+                root.path = "";
+                root.error = "Could not start wf-recorder";
+            }
+        }
     }
 
     function pad(n) {
