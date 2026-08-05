@@ -48,6 +48,21 @@ ModalPanel {
             width: parent.width
             spacing: Theme.space
 
+            // Connectivity first, matching where the system panel puts it: it
+            // is the control you reach for when something is wrong, and the
+            // only one whose state you read without touching it.
+            WifiTile {
+                width: parent.width
+                onHoverChanged: hovered => root.setChildHovered(hovered)
+            }
+
+            Rectangle {
+                width: parent.width
+                implicitHeight: 1
+                color: Theme.surface1
+                visible: Wifi.available
+            }
+
             VolumeSlider {
                 width: parent.width
                 label: "Volume"

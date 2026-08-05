@@ -38,6 +38,18 @@ PanelWindow {
     // body (a scrolling list) leave this at 0 and get the full height instead.
     property real contentHeight: 0
 
+    // A panel that grows or shrinks under a stationary pointer moves its own
+    // surface out from under it, and Qt re-evaluates hover against the new
+    // geometry before the pointer has gone anywhere. That reads as leaving the
+    // panel and dismisses it mid interaction, so hold it open until the
+    // geometry has settled. Same problem the rail solves on expand.
+    onContentHeightChanged: resizeGrace.restart()
+
+    Timer {
+        id: resizeGrace
+        interval: Theme.morphDuration + 120
+    }
+
     default property alias content: body.data
 
     // Items stacked below the panel as their own surfaces rather than inside
@@ -291,8 +303,9 @@ PanelWindow {
     }
 
     // true while the pointer is anywhere over the panel, whether that is the
-    // bare surface or one of its interactive children
-    readonly property bool pointerInside: surfaceHover.hovered || childHovered
+    // bare surface or one of its interactive children, and held true across a
+    // resize so the settling geometry cannot dismiss it
+    readonly property bool pointerInside: surfaceHover.hovered || childHovered || resizeGrace.running
 
     onPointerInsideChanged: root.hoverChanged(pointerInside)
 
