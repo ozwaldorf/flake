@@ -19,7 +19,18 @@ Column {
     readonly property int listHeight: 200
 
     width: parent ? parent.width : 0
-    spacing: Theme.spaceXs
+
+    // A Column still spaces around a zero height child, so with no list out
+    // the gap would hang below the tiles as bare padding. Animated rather
+    // than switched so it opens with the list rather than ahead of it.
+    spacing: open === "" ? 0 : Theme.spaceXs
+
+    Behavior on spacing {
+        NumberAnimation {
+            duration: Theme.morphDuration
+            easing.type: Easing.OutQuint
+        }
+    }
 
     function toggle(name) {
         open = open === name ? "" : name;
