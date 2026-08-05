@@ -111,6 +111,18 @@
         inherit (kernelPackages) kernel;
         patches = [ ./snd-hda-intel-razer.patch ];
       })
+
+      # Registers DDC/CI monitors as ordinary /sys/class/backlight devices, so
+      # external displays are driven exactly like the internal panel rather
+      # than needing a separate path through ddcutil.
+      kernelPackages.ddcci-driver
+    ];
+
+    kernelModules = [
+      # ddcci talks to monitors over the display's i2c bus, which is only
+      # reachable once i2c-dev is up
+      "i2c-dev"
+      "ddcci"
     ];
   };
 
