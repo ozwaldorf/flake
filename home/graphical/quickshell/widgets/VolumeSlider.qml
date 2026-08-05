@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Effects
 import ".."
 
 // Level capsule: the fill is the track, with the device glyph inset at the
@@ -41,7 +42,6 @@ Item {
         // in it. The fill above is translucent for the same reason, and only
         // reads as a level because it is lighter than the track behind it.
         color: Qt.alpha(Theme.surface2, 0.28)
-        clip: true
 
         // border brightens on hover, matching the tray entries
         border.width: 1
@@ -55,25 +55,61 @@ Item {
 
         // The fill is the whole left hand portion of the capsule rather than a
         // bar inside it, so the control reads as one object being filled.
+        //
+        // Square cornered and masked to the capsule rather than carrying its
+        // own radius: a rounded fill collapses into itself once it is narrower
+        // than its own corner diameter, and Qt's clip is a rectangular scissor
+        // that would leave the right hand end square against the capsule's
+        // curve. The mask gives it the capsule's shape at every width.
+        // Inset by the border rather than running to the capsule's edge: the
+        // fill's masked curve and the border's own curve are two separate
+        // antialiased edges, and landing them on the same pixels leaves the
+        // rounding looking chewed.
+        Item {
+            anchors.fill: parent
+            anchors.margins: capsule.border.width
+            layer.enabled: true
+            layer.effect: MultiEffect {
+                maskEnabled: true
+                maskSource: capsuleMask
+            }
+
+            Rectangle {
+                width: Math.max(0, parent.width * root.clamped)
+                height: parent.height
+                color: root.muted ? Qt.alpha(Theme.text, 0.18) : Qt.alpha(Theme.text, 0.45)
+
+                Behavior on color {
+                    ColorAnimation {
+                        duration: 200
+                    }
+                }
+
+                Behavior on width {
+                    enabled: !drag.active
+                    NumberAnimation {
+                        duration: 180
+                        easing.type: Easing.OutQuint
+                    }
+                }
+            }
+        }
+    }
+
+    // Shape the fill is masked to: the capsule inset by its border, so the two
+    // curves are concentric and never share an edge.
+    Item {
+        id: capsuleMask
+
+        width: capsule.width - capsule.border.width * 2
+        height: capsule.height - capsule.border.width * 2
+        layer.enabled: true
+        visible: false
+
         Rectangle {
-            width: Math.max(0, capsule.width * root.clamped)
-            height: capsule.height
-            radius: capsule.radius
-            color: root.muted ? Qt.alpha(Theme.text, 0.18) : Qt.alpha(Theme.text, 0.45)
-
-            Behavior on color {
-                ColorAnimation {
-                    duration: 200
-                }
-            }
-
-            Behavior on width {
-                enabled: !drag.active
-                NumberAnimation {
-                    duration: 180
-                    easing.type: Easing.OutQuint
-                }
-            }
+            anchors.fill: parent
+            radius: height / 2
+            color: "black"
         }
     }
 
