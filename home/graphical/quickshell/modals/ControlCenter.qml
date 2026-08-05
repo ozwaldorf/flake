@@ -160,110 +160,121 @@ ModalPanel {
                 }
             }
 
-            RecorderTile {
+            // ---- recorder and tray, sharing one row ----
+
+            Row {
+                id: utility
+
                 width: parent.width
-                onHoverChanged: hovered => root.setChildHovered(hovered)
-            }
+                spacing: Theme.spaceXs
 
-            // ---- tray, only when something is registered ----
+                // a quarter of the row, leaving the rest for the tray to flow
+                // into alongside it
+                readonly property real cell: (width - spacing) / 4
 
-            Flow {
-                width: parent.width
-                spacing: Theme.spaceSm
-                visible: SystemTray.items.values.length > 0
+                RecorderTile {
+                    width: utility.cell
+                    onHoverChanged: hovered => root.setChildHovered(hovered)
+                }
 
-                Repeater {
-                    model: SystemTray.items
+                Flow {
+                    width: utility.width - utility.cell - utility.spacing
+                    spacing: Theme.spaceXs
+                    visible: SystemTray.items.values.length > 0
 
-                    Rectangle {
-                        id: trayEntry
+                    Repeater {
+                        model: SystemTray.items
 
-                        required property var modelData
+                        Rectangle {
+                            id: trayEntry
 
-                        implicitWidth: 38
-                        implicitHeight: 38
-                        radius: 9
+                            required property var modelData
 
-                        // same surface as the tiles and the level cards: half
-                        // alpha at rest, lifting to solid under the pointer
-                        color: trayHover.hovered ? Theme.surface0 : Qt.alpha(Theme.surface0, 0.5)
+                            implicitWidth: 38
+                            implicitHeight: 38
+                            radius: 9
 
-                        Behavior on color {
-                            ColorAnimation {
-                                duration: 160
+                            // same surface as the tiles and the level cards: half
+                            // alpha at rest, lifting to solid under the pointer
+                            color: trayHover.hovered ? Theme.surface0 : Qt.alpha(Theme.surface0, 0.5)
+
+                            Behavior on color {
+                                ColorAnimation {
+                                    duration: 160
+                                }
                             }
-                        }
 
-                        // Decoded at device resolution rather than at the 16
-                        // logical pixels it draws into. Without a sourceSize
-                        // Qt renders the icon at whatever size the source
-                        // happens to be and rescales, which on a fractional
-                        // scale display is a resample either way; asking for
-                        // the real pixel count gets a crisp icon instead.
-                        //
-                        // Quickshell's tray icons carry a size hint in the
-                        // URL, so the request has to reach the provider rather
-                        // than only the painter.
-                        Image {
-                            id: trayIcon
+                            // Decoded at device resolution rather than at the 16
+                            // logical pixels it draws into. Without a sourceSize
+                            // Qt renders the icon at whatever size the source
+                            // happens to be and rescales, which on a fractional
+                            // scale display is a resample either way; asking for
+                            // the real pixel count gets a crisp icon instead.
+                            //
+                            // Quickshell's tray icons carry a size hint in the
+                            // URL, so the request has to reach the provider rather
+                            // than only the painter.
+                            Image {
+                                id: trayIcon
 
-                            readonly property int px: Math.ceil(18 * Screen.devicePixelRatio)
+                                readonly property int px: Math.ceil(18 * Screen.devicePixelRatio)
 
-                            anchors.centerIn: parent
-                            width: 18
-                            height: 18
-                            sourceSize.width: px
-                            sourceSize.height: px
-                            source: trayEntry.modelData.icon
-                            fillMode: Image.PreserveAspectFit
-                            smooth: true
-                            mipmap: true
-                            asynchronous: true
-                        }
-
-                        HoverHandler {
-                            id: trayHover
-                            cursorShape: Qt.PointingHandCursor
-                            onHoveredChanged: root.setChildHovered(hovered)
-                        }
-
-                        // Rendered from the DBusMenu tree rather than handed to
-                        // QsMenuAnchor, which opens Qt's native widget menu and
-                        // ignores the shell's styling.
-                        TrayMenu {
-                            id: trayMenu
-
-                            screenData: root.modelData
-                            handle: trayEntry.modelData.menu
-                            anchorItem: trayEntry
-                            anchorRight: root.anchorRight
-                            // this panel is right anchored on the right hand
-                            // monitor, so its window origin is not screen zero
-                            anchorWindowX: root.anchorRight ? root.screen.width - root.width : 0
-
-                            // The menu is its own window, so the panel's hover
-                            // surface cannot see the pointer once it moves onto
-                            // it. Hold the panel open for as long as the menu
-                            // is, and release that hold if the tray item goes
-                            // away while its menu is still up: the panel would
-                            // otherwise stay open with nothing holding it.
-                            onVisibleChanged: root.setChildHovered(visible)
-
-                            Component.onDestruction: {
-                                if (visible)
-                                    root.setChildHovered(false);
+                                anchors.centerIn: parent
+                                width: 18
+                                height: 18
+                                sourceSize.width: px
+                                sourceSize.height: px
+                                source: trayEntry.modelData.icon
+                                fillMode: Image.PreserveAspectFit
+                                smooth: true
+                                mipmap: true
+                                asynchronous: true
                             }
-                        }
 
-                        TapHandler {
-                            acceptedButtons: Qt.LeftButton | Qt.RightButton
-                            gesturePolicy: TapHandler.ReleaseWithinBounds
-                            onSingleTapped: (eventPoint, button) => {
-                                // items flagged onlyMenu have no activate action
-                                if (button === Qt.RightButton || trayEntry.modelData.onlyMenu)
-                                    trayMenu.visible = !trayMenu.visible;
-                                else
-                                    trayEntry.modelData.activate();
+                            HoverHandler {
+                                id: trayHover
+                                cursorShape: Qt.PointingHandCursor
+                                onHoveredChanged: root.setChildHovered(hovered)
+                            }
+
+                            // Rendered from the DBusMenu tree rather than handed to
+                            // QsMenuAnchor, which opens Qt's native widget menu and
+                            // ignores the shell's styling.
+                            TrayMenu {
+                                id: trayMenu
+
+                                screenData: root.modelData
+                                handle: trayEntry.modelData.menu
+                                anchorItem: trayEntry
+                                anchorRight: root.anchorRight
+                                // this panel is right anchored on the right hand
+                                // monitor, so its window origin is not screen zero
+                                anchorWindowX: root.anchorRight ? root.screen.width - root.width : 0
+
+                                // The menu is its own window, so the panel's hover
+                                // surface cannot see the pointer once it moves onto
+                                // it. Hold the panel open for as long as the menu
+                                // is, and release that hold if the tray item goes
+                                // away while its menu is still up: the panel would
+                                // otherwise stay open with nothing holding it.
+                                onVisibleChanged: root.setChildHovered(visible)
+
+                                Component.onDestruction: {
+                                    if (visible)
+                                        root.setChildHovered(false);
+                                }
+                            }
+
+                            TapHandler {
+                                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                gesturePolicy: TapHandler.ReleaseWithinBounds
+                                onSingleTapped: (eventPoint, button) => {
+                                    // items flagged onlyMenu have no activate action
+                                    if (button === Qt.RightButton || trayEntry.modelData.onlyMenu)
+                                        trayMenu.visible = !trayMenu.visible;
+                                    else
+                                        trayEntry.modelData.activate();
+                                }
                             }
                         }
                     }
