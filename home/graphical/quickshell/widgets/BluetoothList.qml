@@ -4,33 +4,24 @@ import QtQuick
 import ".."
 import "../services"
 
-// Bluetooth toggle and device picker.
-ToggleTile {
+// Paired and discovered devices, scrolling if there are more than fit.
+Flickable {
     id: root
 
-    label: "Bluetooth"
-    on: Bluetooth.enabled
-    status: Bluetooth.summary
-    visible: Bluetooth.available
+    signal hoverChanged(bool hovered)
 
-    onToggled: Bluetooth.toggle()
+    // what the list wants to be, for the container that caps and animates it
+    readonly property real wantedHeight: list.implicitHeight
 
-    // Discovery runs only while the list is on screen; paired devices are
-    // listed either way, since BlueZ knows them without scanning.
-    onExpandedChanged: Bluetooth.scan(expanded)
+    contentHeight: list.implicitHeight
+    contentWidth: width
+    interactive: contentHeight > height
+    boundsBehavior: Flickable.StopAtBounds
+    clip: true
 
-    Component.onDestruction: {
-        if (expanded)
-            Bluetooth.scan(false);
-    }
+    Column {
+        id: list
 
-    glyph: BluetoothGlyph {
-        anchors.centerIn: parent
-        off: !Bluetooth.enabled
-        fill: Bluetooth.enabled ? Theme.crust : Theme.overlay1
-    }
-
-    list: Column {
         width: parent.width
         spacing: 1
 
