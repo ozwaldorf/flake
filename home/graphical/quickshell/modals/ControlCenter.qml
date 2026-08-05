@@ -43,19 +43,20 @@ ModalPanel {
             width: parent.width
             spacing: Theme.space
 
-            // Connectivity first, matching where the system panel puts it: it
-            // is the control you reach for when something is wrong, and the
-            // only one whose state you read without touching it.
-            ConnectivityTiles {
-                width: parent.width
-                onHoverChanged: hovered => root.setChildHovered(hovered)
-            }
-
-            // The two levels are one group, so they sit closer to each other
-            // than to whatever is above and below them.
+            // Connectivity and the levels are all cards of the same kind, so
+            // they sit at one spacing rather than the panel's wider gap, which
+            // read as padding hanging under the tiles.
             Column {
                 width: parent.width
                 spacing: Theme.spaceXs
+
+                // Connectivity first, matching where the system panel puts it:
+                // it is the control you reach for when something is wrong, and
+                // the only one whose state you read without touching it.
+                ConnectivityTiles {
+                    width: parent.width
+                    onHoverChanged: hovered => root.setChildHovered(hovered)
+                }
 
                 VolumeSlider {
                     width: parent.width
