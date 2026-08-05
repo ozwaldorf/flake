@@ -12,7 +12,25 @@ Rectangle {
 
     required property var device
 
+    // Counted and released on destruction: discovery rebuilds the list, so a
+    // row can be torn down while the pointer is over it. Its unhover would
+    // never arrive and the panel's counter would stay raised, holding the
+    // modal open for good.
     signal hoverChanged(bool hovered)
+
+    property int hoverRaises: 0
+
+    function raiseHover(on) {
+        hoverRaises += on ? 1 : -1;
+        hoverChanged(on);
+    }
+
+    Component.onDestruction: {
+        while (hoverRaises > 0) {
+            hoverRaises--;
+            hoverChanged(false);
+        }
+    }
 
     readonly property bool busy: Bluetooth.inFlight(device)
 
@@ -130,7 +148,7 @@ Rectangle {
             HoverHandler {
                 id: forgetHover
                 cursorShape: Qt.PointingHandCursor
-                onHoveredChanged: root.hoverChanged(hovered)
+                onHoveredChanged: root.raiseHover(hovered)
             }
 
             TapHandler {
@@ -165,7 +183,7 @@ Rectangle {
     HoverHandler {
         id: hover
         cursorShape: Qt.PointingHandCursor
-        onHoveredChanged: root.hoverChanged(hovered)
+        onHoveredChanged: root.raiseHover(hovered)
     }
 
     TapHandler {

@@ -238,8 +238,16 @@ ModalPanel {
 
                             // The menu is its own window, so the panel's hover
                             // surface cannot see the pointer once it moves onto
-                            // it. Hold the panel open for as long as the menu is.
+                            // it. Hold the panel open for as long as the menu
+                            // is, and release that hold if the tray item goes
+                            // away while its menu is still up: the panel would
+                            // otherwise stay open with nothing holding it.
                             onVisibleChanged: root.setChildHovered(visible)
+
+                            Component.onDestruction: {
+                                if (visible)
+                                    root.setChildHovered(false);
+                            }
                         }
 
                         TapHandler {

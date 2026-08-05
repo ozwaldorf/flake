@@ -15,9 +15,27 @@ Item {
     // only one row in the list holds an open key field at a time
     property bool asking: false
 
+    // Counted and released on destruction: the list is rebuilt as scan results
+    // arrive, so a row can be torn down while the pointer is over it. Its
+    // unhover would never arrive and the panel's counter would stay raised,
+    // holding the modal open for good.
     signal hoverChanged(bool hovered)
     signal askRequested
     signal askDismissed
+
+    property int hoverRaises: 0
+
+    function raiseHover(on) {
+        hoverRaises += on ? 1 : -1;
+        hoverChanged(on);
+    }
+
+    Component.onDestruction: {
+        while (hoverRaises > 0) {
+            hoverRaises--;
+            hoverChanged(false);
+        }
+    }
 
     readonly property bool connected: network.connected
     readonly property bool busy: network.stateChanging
@@ -172,7 +190,7 @@ Item {
         HoverHandler {
             id: hover
             cursorShape: Qt.PointingHandCursor
-            onHoveredChanged: root.hoverChanged(hovered)
+            onHoveredChanged: root.raiseHover(hovered)
         }
 
         TapHandler {
@@ -268,7 +286,7 @@ Item {
 
                 HoverHandler {
                     cursorShape: field.text.length > 0 ? Qt.PointingHandCursor : Qt.ArrowCursor
-                    onHoveredChanged: root.hoverChanged(hovered)
+                    onHoveredChanged: root.raiseHover(hovered)
                 }
 
                 TapHandler {
@@ -278,7 +296,7 @@ Item {
         }
 
         HoverHandler {
-            onHoveredChanged: root.hoverChanged(hovered)
+            onHoveredChanged: root.raiseHover(hovered)
         }
     }
 
