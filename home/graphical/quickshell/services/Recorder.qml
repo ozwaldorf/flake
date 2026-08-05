@@ -96,7 +96,13 @@ Singleton {
     Process {
         id: slurp
 
-        command: ["slurp"]
+        // slurp reads stdin for a list of predefined regions, so an open pipe
+        // that is never written to leaves it blocked on that read instead of
+        // ever drawing the selection. stdinEnabled only governs whether the
+        // shell may write to the pipe; the child is handed one either way, so
+        // stdin has to be redirected for slurp to see an end of file and take
+        // its region from the pointer.
+        command: ["sh", "-c", "exec slurp </dev/null"]
 
         stdout: StdioCollector {
             id: region
@@ -155,6 +161,9 @@ Singleton {
 
     Process {
         id: recorder
+
+        // nothing is ever written to it, and a recorder has no use for one
+        stdinEnabled: false
 
         stderr: StdioCollector {
             id: recorderError
