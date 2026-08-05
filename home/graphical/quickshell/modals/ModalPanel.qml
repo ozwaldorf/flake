@@ -311,47 +311,10 @@ PanelWindow {
 
     onPointerInsideChanged: root.hoverChanged(pointerInside)
 
-    // Every raise is paired with a release by the child that made it, but a
-    // child destroyed mid hover cannot release what it never got the chance
-    // to, and one missed release holds the panel open with no way back.
-    //
-    // A watchdog rather than more bookkeeping, so a leak anywhere recovers
-    // rather than needing the same fix in every new child. The panel's own
-    // hover surface cannot answer this: it sits behind the content and goes
-    // unhovered whenever a child takes the pointer, which is the whole reason
-    // the count exists. The pointer's position in the window does answer it,
-    // since that is true no matter which item is holding the hover.
-    // Watches where the pointer is without taking it: a HoverHandler on an item
-    // covering the whole window still reports position while children keep
-    // their own hover, since hover is delivered to every handler under the
-    // pointer rather than consumed by the topmost one.
-    Item {
-        id: probe
-
-        anchors.fill: parent
-
-        HoverHandler {
-            id: probeHover
-            // no cursorShape and no grab: this only observes
-        }
-    }
-
-    Timer {
-        id: staleHover
-
-        interval: 1000
-        repeat: true
-        running: root.shown && root.childHovered
-
-        onTriggered: {
-            if (resizeGrace.running)
-                return;
-            // Nothing under the pointer anywhere in this window means no child
-            // can legitimately be holding a raise.
-            if (!probeHover.hovered)
-                root.childHoverCount = 0;
-        }
-    }
+    // Children release their own raises on destruction, which is what keeps
+    // this count honest; there is deliberately no watchdog second-guessing it,
+    // since nothing here can tell a stale raise from a stationary pointer
+    // resting on a row.
 
     // Client side blur matching the panel exactly, including its corner radius,
     // so the blur does not square off outside the rounded edge.
