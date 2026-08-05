@@ -68,25 +68,42 @@ ModalPanel {
                 visible: Wifi.available || Bluetooth.available
             }
 
-            VolumeSlider {
+            // The two levels are one group, so they sit closer to each other
+            // than to whatever is above and below them.
+            Column {
                 width: parent.width
-                label: "Volume"
-                value: Pipewire.defaultAudioSink?.audio?.volume ?? 0
-                muted: Pipewire.defaultAudioSink?.audio?.muted ?? false
-                onMoved: v => {
-                    if (Pipewire.defaultAudioSink?.audio)
-                        Pipewire.defaultAudioSink.audio.volume = v;
-                }
-            }
+                spacing: Theme.spaceXs
 
-            VolumeSlider {
-                width: parent.width
-                label: "Microphone"
-                value: Pipewire.defaultAudioSource?.audio?.volume ?? 0
-                muted: Pipewire.defaultAudioSource?.audio?.muted ?? false
-                onMoved: v => {
-                    if (Pipewire.defaultAudioSource?.audio)
-                        Pipewire.defaultAudioSource.audio.volume = v;
+                VolumeSlider {
+                    width: parent.width
+                    device: "speaker"
+                    value: Pipewire.defaultAudioSink?.audio?.volume ?? 0
+                    muted: Pipewire.defaultAudioSink?.audio?.muted ?? false
+                    onMoved: v => {
+                        if (Pipewire.defaultAudioSink?.audio)
+                            Pipewire.defaultAudioSink.audio.volume = v;
+                    }
+                    onMuteToggled: {
+                        if (Pipewire.defaultAudioSink?.audio)
+                            Pipewire.defaultAudioSink.audio.muted = !Pipewire.defaultAudioSink.audio.muted;
+                    }
+                    onHoverChanged: hovered => root.setChildHovered(hovered)
+                }
+
+                VolumeSlider {
+                    width: parent.width
+                    device: "mic"
+                    value: Pipewire.defaultAudioSource?.audio?.volume ?? 0
+                    muted: Pipewire.defaultAudioSource?.audio?.muted ?? false
+                    onMoved: v => {
+                        if (Pipewire.defaultAudioSource?.audio)
+                            Pipewire.defaultAudioSource.audio.volume = v;
+                    }
+                    onMuteToggled: {
+                        if (Pipewire.defaultAudioSource?.audio)
+                            Pipewire.defaultAudioSource.audio.muted = !Pipewire.defaultAudioSource.audio.muted;
+                    }
+                    onHoverChanged: hovered => root.setChildHovered(hovered)
                 }
             }
 
