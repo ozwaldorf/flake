@@ -6,7 +6,8 @@ import "../services"
 
 // Opens the control centre. Collapsed it is a solid block coloured by
 // notification state; expanded it is that block, bare when idle and carrying
-// the notification count when anything is waiting.
+// the notification count when anything is waiting. A recording pulses a red
+// outline around it, independent of what the fill is saying.
 Rectangle {
     id: root
 
@@ -20,9 +21,34 @@ Rectangle {
     readonly property bool has: Notifications.count > 0
     readonly property bool urgent: Notifications.hasUrgent
 
+    // Drawn as an outline around the block rather than folded into its colour,
+    // so a recording and a waiting notification can both be visible at once.
+    readonly property bool recording: Recorder.recording
+
     // red for urgent, yellow when anything is waiting, otherwise the same grey
     // an empty slot would draw
     readonly property color hue: urgent ? Theme.red : has ? Theme.yellow : Theme.surface1
+
+    // Pulsed rather than held, so a recording reads as live at a glance and is
+    // not mistaken for an urgent notification sitting there.
+    property real pulse: 1
+
+    SequentialAnimation on pulse {
+        running: root.recording
+        loops: Animation.Infinite
+        alwaysRunToEnd: true
+
+        NumberAnimation {
+            to: 0.35
+            duration: 600
+            easing.type: Easing.InOutQuad
+        }
+        NumberAnimation {
+            to: 1
+            duration: 600
+            easing.type: Easing.InOutQuad
+        }
+    }
 
     implicitWidth: expanded ? 32 : Theme.sliver
     implicitHeight: 32
@@ -89,6 +115,18 @@ Rectangle {
         // brightens it, dropped instantly on collapse so a fading blue over the
         // state colour never blends through blue grey.
         color: Qt.tint(root.hue, Qt.alpha(Theme.text, 0.25 * (root.expanded ? root.highlight : 0)))
+
+        // Recording rides an outline around the block rather than its fill, so
+        // it can run at the same time as the notification state without either
+        // one hiding the other. Pulsed to read as live.
+        border.width: root.recording ? 1.5 : 0
+        border.color: Qt.alpha(Theme.red, root.pulse)
+
+        Behavior on border.width {
+            NumberAnimation {
+                duration: Theme.fadeDuration
+            }
+        }
     }
 
     // The count sits directly on the block, which is already the right size
