@@ -41,7 +41,13 @@ Singleton {
             id: scanOut
         }
 
-        onExited: {
+        onExited: (exitCode, exitStatus) => {
+            // Killed part way through, or overtaken by a write that started
+            // after this scan did: either way the reading is not the truth any
+            // more and applying it would undo what was just set.
+            if (exitCode !== 0 || settling.running || apply.running)
+                return;
+
             const out = [];
             for (const line of scanOut.text.trim().split("\n")) {
                 if (line === "")
@@ -66,6 +72,12 @@ Singleton {
 
 
     function rescan() {
+        // A scan that overlaps a write reads a level that is on its way to
+        // being replaced, and ddcci reports the old one for a moment after the
+        // write lands. Either way the answer is stale, and applying it drags
+        // the slider back to where it just came from.
+        if (settling.running || apply.running)
+            return;
         scan.running = true;
     }
 
@@ -78,6 +90,14 @@ Singleton {
 
     function watch(on) {
         watchers = Math.max(0, watchers + (on ? 1 : -1));
+    }
+
+    // Held after a write for long enough that the panels have caught up. DDC
+    // is the slow one: the internal panel reports back immediately, an
+    // external monitor takes a moment.
+    Timer {
+        id: settling
+        interval: 1200
     }
 
     Timer {
@@ -124,5 +144,11 @@ Singleton {
         apply.running = false;
         apply.command = ["sh", "-c", "exec </dev/null; " + calls.join("; ")];
         apply.running = true;
+
+        // A scan already in flight was started against the old level, so its
+        // answer is worthless now: drop it rather than letting it land on top
+        // of what was just set.
+        scan.running = false;
+        settling.restart();
     }
 }
