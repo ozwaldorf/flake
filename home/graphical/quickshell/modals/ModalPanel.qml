@@ -84,8 +84,10 @@ PanelWindow {
 
     // Bounds of the detached viewport in window coordinates, so detached items
     // can clip their own blur regions to what is actually on screen.
-    readonly property real detachedLeft: detachedView.x
-    readonly property real detachedTop: detachedView.y
+    // The cards' own origin, not the viewport's: that reaches past them on
+    // every side to give their shadows room, and the column is inset back.
+    readonly property real detachedLeft: detachedView.x + detachedColumn.x
+    readonly property real detachedTop: detachedView.y + detachedColumn.y
     readonly property real detachedBottom: detachedView.y + detachedView.height
 
     // how far the stack is scrolled, so detached items can offset their own
@@ -170,7 +172,9 @@ PanelWindow {
 
         Rectangle {
             anchors.fill: parent
-            radius: Theme.rounding
+            // Square: the viewport reaches past the cards to give their
+            // shadows room, so a rounded edge here would cut a curve through
+            // empty space rather than following anything.
             color: "black"
         }
     }
@@ -181,12 +185,15 @@ PanelWindow {
     Flickable {
         id: detachedView
 
-        x: panel.x
-        y: panel.y + panel.height + Theme.spaceSm
-        width: panel.width
-        height: Math.min(detachedColumn.height, root.height - y - 10)
+        // Reaches past the cards on every side, and the column inside is inset
+        // back by the same: the mask clips to these bounds, so a viewport the
+        // width of the cards cuts the shadows they cast.
+        x: panel.x - Theme.spaceSm
+        y: panel.y + panel.height + Theme.spaceSm - Theme.spaceSm
+        width: panel.width + Theme.spaceSm * 2
+        height: Math.min(detachedColumn.height + Theme.spaceSm * 2, root.height - y - 10)
 
-        contentHeight: detachedColumn.height
+        contentHeight: detachedColumn.height + Theme.spaceSm * 2
         contentWidth: width
         interactive: contentHeight > height
         boundsBehavior: Flickable.StopAtBounds
@@ -206,7 +213,11 @@ PanelWindow {
         Column {
             id: detachedColumn
 
-            width: parent.width
+            // inset back to the cards' own width inside a viewport grown to
+            // give their shadows room
+            x: Theme.spaceSm
+            y: Theme.spaceSm
+            width: parent.width - Theme.spaceSm * 2
             spacing: Theme.spaceSm
 
             // Not bound to panel.opacity: the cards fade individually on a stagger
