@@ -128,6 +128,7 @@ PanelWindow {
     // up instead of freezing at whatever it was when the pointer arrived.
     readonly property string tipText: tipMark ? tipMark.label : ""
     readonly property string tipDetail: tipMark ? tipMark.detail : ""
+    readonly property string tipIcon: tipMark ? tipMark.icon : ""
 
     property real tipY: 0
 
@@ -255,6 +256,7 @@ PanelWindow {
                     value: SysMeters.cpu
                     fill: Theme.sapphire
                     label: "CPU"
+                    icon: Theme.iconCpu
                     detail: SysMeters.cpu + "%"
                     onHoverChanged: hovered => bar.showTip(hovered, cpuMeter)
                 }
@@ -267,6 +269,7 @@ PanelWindow {
                     value: SysMeters.memory
                     fill: Theme.mauve
                     label: "Memory"
+                    icon: Theme.iconMemory
                     detail: SysMeters.formatBytes(SysMeters.memoryUsed) + " / " + SysMeters.formatBytes(SysMeters.memoryTotal)
                     onHoverChanged: hovered => bar.showTip(hovered, memMeter)
                 }
@@ -281,6 +284,7 @@ PanelWindow {
                     // the rate itself rather than the percentage, which is of a
                     // fixed ceiling and not of the link's actual capacity
                     label: "Network"
+                    icon: Theme.iconNetwork
                     detail: SysMeters.formatBytes(SysMeters.networkRate) + "/s"
                     onHoverChanged: hovered => bar.showTip(hovered, netMeter)
                 }
@@ -300,6 +304,7 @@ PanelWindow {
         anchorRight: bar.anchorRight
         text: bar.tipText
         detail: bar.tipDetail
+        icon: bar.tipIcon
         markY: bar.tipY
         shown: bar.tipMark !== null && bar.expanded
     }

@@ -24,6 +24,9 @@ PanelWindow {
     required property string text
     property string detail: ""
 
+    // nerd font glyph beside them, or empty for none
+    property string icon: ""
+
     // vertical centre of the mark this is labelling, in screen coordinates
     property real markY: 0
 
@@ -60,7 +63,7 @@ PanelWindow {
 
         // padded like the cards, which inset their content by spaceSm on every
         // side rather than only across
-        implicitWidth: lines.implicitWidth + Theme.spaceSm * 2
+        implicitWidth: lines.implicitWidth + Theme.spaceSm * 2 + (icon.visible ? icon.width + Theme.spaceSm : 0)
         implicitHeight: lines.implicitHeight + Theme.spaceSm * 2
 
         // Same surface as the cards in the control centre. Those sit on the
@@ -84,12 +87,30 @@ PanelWindow {
             }
         }
 
+        // Spans both rows rather than sitting on one, the way the connectivity
+        // tiles put their puck beside a name over a status line.
+        Text {
+            id: icon
+
+            anchors.left: parent.left
+            anchors.leftMargin: Theme.spaceSm
+            anchors.verticalCenter: parent.verticalCenter
+
+            text: root.icon
+            font.family: Theme.iconFont
+            font.pixelSize: Theme.iconSize
+            color: Theme.overlay2
+            visible: root.icon !== ""
+        }
+
         // Name over reading, so the reading can be as long as it needs without
         // the name being pushed off or the tip running the width of the screen.
         Column {
             id: lines
 
-            anchors.centerIn: parent
+            anchors.left: icon.visible ? icon.right : parent.left
+            anchors.leftMargin: Theme.spaceSm
+            anchors.verticalCenter: parent.verticalCenter
             spacing: Theme.spaceXs
 
             Text {

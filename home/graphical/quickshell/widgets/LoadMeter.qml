@@ -19,6 +19,7 @@ Rectangle {
     // pointer is on it
     property string label: ""
     property string detail: ""
+    property string icon: ""
 
     signal hoverChanged(bool hovered)
 
