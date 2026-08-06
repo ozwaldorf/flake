@@ -153,6 +153,7 @@ PanelWindow {
                         values: entry.modelData.history
                         stroke: entry.modelData.fill
                         format: entry.modelData.format
+                        limit: entry.modelData.limit ?? Infinity
                     }
                 }
             }

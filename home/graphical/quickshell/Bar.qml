@@ -130,6 +130,8 @@ PanelWindow {
             detail: SysMeters.cpu + "%",
             history: SysMeters.cpuHistory,
             fill: Theme.sapphire,
+            // a percentage cannot pass a hundred, so the axis must not either
+            limit: 100,
             format: v => Math.round(v) + "%"
         },
         {
@@ -138,7 +140,8 @@ PanelWindow {
             detail: SysMeters.formatBytes(SysMeters.memoryUsed) + " / " + SysMeters.formatBytes(SysMeters.memoryTotal),
             history: SysMeters.memoryHistory,
             fill: Theme.mauve,
-            format: v => Math.round(v) + "%"
+            limit: SysMeters.memoryTotal,
+            format: (v, ceiling) => SysMeters.formatBytesAt(v, SysMeters.byteScale(ceiling))
         },
         {
             icon: Theme.iconNetwork,
@@ -146,7 +149,7 @@ PanelWindow {
             detail: SysMeters.formatBytes(SysMeters.networkRate) + "/s",
             history: SysMeters.networkHistory,
             fill: Theme.teal,
-            format: v => Math.round(v) + "%"
+            format: (v, ceiling) => SysMeters.formatBytesAt(v, SysMeters.byteScale(ceiling)) + "/s"
         }
     ]
 

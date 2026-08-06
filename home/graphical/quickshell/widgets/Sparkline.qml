@@ -13,8 +13,10 @@ Item {
 
     property color stroke: Theme.overlay1
 
-    // formats an axis value; percentages and byte rates want different words
-    property var format: v => Math.round(v) + ""
+    // Formats an axis value. Given the window's own ceiling too, so a
+    // formatter working in scaled units can pick one for the whole axis rather
+    // than letting each label choose its own and reading in mixed units.
+    property var format: (v, ceiling) => Math.round(v) + ""
 
     implicitWidth: 132
     implicitHeight: 54
@@ -26,14 +28,18 @@ Item {
     readonly property real rawMax: count > 0 ? Math.max.apply(null, values) : 0
     readonly property real rawMin: count > 0 ? Math.min.apply(null, values) : 0
 
-    readonly property real pad: Math.max((rawMax - rawMin) * 0.1, rawMax * 0.05, 1)
+    // Nothing above this is meaningful for the reading; a percentage stops at
+    // a hundred and would otherwise be padded past it. Bytes have no such
+    // ceiling, so they leave it alone.
+    property real limit: Infinity
 
-    // Nothing above this is meaningful for the reading; percentages stop at a
-    // hundred and would otherwise be padded past it.
-    property real limit: 100
+    // A tenth of the range above the peak, so the line has room to breathe
+    // rather than running along the top edge. A flat window has no range of
+    // its own, so it is given one and centred in it.
+    readonly property real headroom: Math.max((rawMax - rawMin) * 0.1, rawMax * 0.1, 1)
 
-    readonly property real ceiling: Math.min(limit, rawMax + pad)
-    readonly property real floor: Math.max(0, rawMin - pad)
+    readonly property real ceiling: Math.min(limit, rawMax + headroom)
+    readonly property real floor: Math.max(0, rawMin - (rawMax > rawMin ? 0 : headroom))
     readonly property real midpoint: (ceiling + floor) / 2
 
     // total slots the line is spaced for, so a filling buffer grows leftward
@@ -69,7 +75,7 @@ Item {
 
             width: parent.width
             horizontalAlignment: Text.AlignRight
-            text: root.format(root.ceiling)
+            text: root.format(root.ceiling, root.ceiling)
             font.family: Theme.font
             font.pixelSize: 8
             font.features: {
@@ -87,7 +93,7 @@ Item {
 
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                text: root.format(root.midpoint)
+                text: root.format(root.midpoint, root.ceiling)
                 font.family: Theme.font
                 font.pixelSize: 8
                 font.features: {
@@ -102,7 +108,7 @@ Item {
 
             width: parent.width
             horizontalAlignment: Text.AlignRight
-            text: root.format(root.floor)
+            text: root.format(root.floor, root.ceiling)
             font.family: Theme.font
             font.pixelSize: 8
             font.features: {

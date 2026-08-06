@@ -42,9 +42,12 @@ Singleton {
         triggeredOnStart: true
 
         onTriggered: {
+            // In their own units where they have one, so a graph can be read
+            // against the reading beside it rather than against a percentage
+            // of something the axis does not name.
             root.cpuHistory = root.push(root.cpuHistory, root.cpu);
-            root.memoryHistory = root.push(root.memoryHistory, root.memory);
-            root.networkHistory = root.push(root.networkHistory, root.network);
+            root.memoryHistory = root.push(root.memoryHistory, root.memoryUsed);
+            root.networkHistory = root.push(root.networkHistory, root.networkRate);
         }
     }
 
@@ -59,15 +62,29 @@ Singleton {
     // Byte counts in the largest unit that leaves a number worth reading, and
     // to one decimal only below a thousand: "2.5 GB" says as much as "2.54 GB"
     // in a tooltip and changes less often.
-    function formatBytes(bytes) {
-        const units = ["B", "KB", "MB", "GB", "TB"];
-        let n = Math.max(0, bytes);
+    readonly property var byteUnits: ["B", "KB", "MB", "GB", "TB"]
+
+    // largest unit that leaves a number at or above one
+    function byteScale(bytes) {
         let i = 0;
-        while (n >= 1024 && i < units.length - 1) {
+        let n = Math.max(0, bytes);
+        while (n >= 1024 && i < byteUnits.length - 1) {
             n /= 1024;
             i++;
         }
-        return (i === 0 || n >= 100 ? Math.round(n) : n.toFixed(1)) + " " + units[i];
+        return i;
+    }
+
+    function formatBytes(bytes) {
+        return formatBytesAt(bytes, byteScale(bytes));
+    }
+
+    // Formatted against a given scale rather than each value picking its own,
+    // so an axis reads in one unit down its whole length instead of switching
+    // partway and inviting the two ends to be compared as if they matched.
+    function formatBytesAt(bytes, scale) {
+        const n = Math.max(0, bytes) / Math.pow(1024, scale);
+        return (scale === 0 || n >= 100 ? Math.round(n) : n.toFixed(1)) + " " + byteUnits[scale];
     }
 
     // Sampled faster while a rail is out, since that is when the meters are
