@@ -124,7 +124,10 @@ Item {
         anchors.bottom: parent.bottom
 
         radius: 4
-        color: Qt.alpha(Theme.crust, 0.25)
+
+        // the wash the control centre's cards carry, here on the chart alone:
+        // it is what sits on a surface rather than being one
+        color: Qt.alpha(Theme.surface0, 0.5)
 
         Shape {
             anchors.fill: parent

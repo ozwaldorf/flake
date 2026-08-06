@@ -66,17 +66,11 @@ PanelWindow {
         implicitWidth: body.implicitWidth + Theme.spaceSm * 2
         implicitHeight: body.implicitHeight + Theme.spaceSm * 2
 
-        // Same surface as the cards in the control centre. Those sit on the
-        // panel and layer a half alpha wash over it; this stands on its own,
-        // so it carries both to arrive at the same colour.
+        // The panel's own fill and nothing more: this is a surface in its own
+        // right rather than a card sitting on one, so the wash the cards add
+        // belongs on the charts inside it instead.
         radius: 9
         color: Theme.surfaceFill
-
-        Rectangle {
-            anchors.fill: parent
-            radius: parent.radius
-            color: Qt.alpha(Theme.surface0, 0.5)
-        }
 
         opacity: root.shown ? 1 : 0
 
