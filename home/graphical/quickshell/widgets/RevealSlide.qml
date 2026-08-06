@@ -21,12 +21,15 @@ Item {
     // true while the panel is up; the reveal follows it
     required property bool shown
 
-    // Which way the row travels in from. Rows come from the edge the panel
-    // opened from, so they arrive alongside it rather than against it.
+    // Mirrored with the rail: a row comes in from the rail's own side, so on
+    // the right hand screen it travels leftward rather than rightward.
     property bool fromRight: false
 
     // how far the row starts from its resting place
     property real distance: 12
+
+    // where the row settles, for anything not resting at its parent's origin
+    property real restX: 0
 
     visible: false
 
@@ -34,20 +37,56 @@ Item {
     // would be destroyed by the first write.
     Component.onCompleted: {
         target.opacity = shown ? 1 : 0;
-        target.x = 0;
+        target.x = restX;
         if (shown)
             reveal.restart();
     }
 
-    onShownChanged: {
-        if (shown)
-            reveal.restart();
-        else
-            dismiss.restart();
+    // Followed while nothing is animating, since a resting place that depends
+    // on the target's own size is not known when it is first placed: a chip
+    // aligned to the far edge of its stack is put at the wrong end until its
+    // width resolves, and a one shot write never revisits it.
+    onRestXChanged: {
+        if (!reveal.running && !dismiss.running)
+            target.x = restX;
     }
+
+    // A reveal opens with a pause of up to its whole stagger before anything
+    // moves, so a pointer crossing the hover boundary twice inside that window
+    // cancels it and re-queues the pause: the row never fades in at all. The
+    // one furthest down the sequence waits longest and is likeliest to be
+    // caught, which shows as only the first of them arriving.
+    //
+    // A reveal already under way is left to finish rather than restarted, and
+    // a dismissal waits for it: whatever the pointer did in the meantime, the
+    // row ends up wherever shown last said it should be.
+    onShownChanged: {
+        if (shown) {
+            if (!reveal.running)
+                reveal.restart();
+        } else if (reveal.running) {
+            pendingDismiss = true;
+        } else {
+            dismiss.restart();
+        }
+    }
+
+    // set when a dismissal arrives mid reveal, run once that reveal is done
+    property bool pendingDismiss: false
 
     SequentialAnimation {
         id: reveal
+
+        onFinished: {
+            // the pointer left while this was still coming in, so see it out
+            // again now rather than having cut the arrival short
+            if (root.pendingDismiss && !root.shown) {
+                root.pendingDismiss = false;
+                dismiss.restart();
+            } else {
+                root.pendingDismiss = false;
+            }
+        }
 
         PauseAnimation {
             duration: Theme.staggerLead + root.index * Theme.staggerStep
@@ -67,8 +106,8 @@ Item {
             NumberAnimation {
                 target: root.target
                 property: "x"
-                from: root.fromRight ? root.distance : -root.distance
-                to: 0
+                from: root.restX + (root.fromRight ? root.distance : -root.distance)
+                to: root.restX
                 duration: Theme.morphDuration
                 easing.type: Easing.OutQuint
             }

@@ -50,7 +50,6 @@ ModalPanel {
             // carry on the same sequence rather than starting a second one
             readonly property int rows: 4
 
-
             // Every section is a card or a row of them, so they all sit at one
             // gap; a wider one between sections read as padding hanging under
             // whatever was above it.

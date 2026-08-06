@@ -123,33 +123,32 @@ PanelWindow {
     //
     // Bound rather than copied, so the readings keep counting while the tip is
     // up instead of freezing at whatever they were when the pointer arrived.
+    // Constant: only which meters there are and how each is drawn, never a
+    // reading. A list rebuilt when a reading changes is a new array every
+    // sample, and a repeater over it tears down and recreates its delegates
+    // each time, restarting whatever animation they were running.
+    //
+    // The readings come through the kind, which the chips resolve themselves.
     readonly property var tipMeters: [
         {
+            kind: "cpu",
             icon: Theme.iconCpu,
             label: "CPU",
-            detail: SysMeters.cpu + "%",
-            history: SysMeters.cpuHistory,
             fill: Theme.sapphire,
             // a percentage cannot pass a hundred, so the axis must not either
-            limit: 100,
-            format: v => Math.round(v) + "%"
+            limit: 100
         },
         {
+            kind: "memory",
             icon: Theme.iconMemory,
             label: "Memory",
-            detail: SysMeters.formatBytes(SysMeters.memoryUsed) + " / " + SysMeters.formatBytes(SysMeters.memoryTotal),
-            history: SysMeters.memoryHistory,
-            fill: Theme.mauve,
-            limit: SysMeters.memoryTotal,
-            format: (v, ceiling) => SysMeters.formatBytesAt(v, SysMeters.byteScale(ceiling))
+            fill: Theme.mauve
         },
         {
+            kind: "network",
             icon: Theme.iconNetwork,
             label: "Network",
-            detail: SysMeters.formatBytes(SysMeters.networkRate) + "/s",
-            history: SysMeters.networkHistory,
-            fill: Theme.teal,
-            format: (v, ceiling) => SysMeters.formatBytesAt(v, SysMeters.byteScale(ceiling)) + "/s"
+            fill: Theme.teal
         }
     ]
 
