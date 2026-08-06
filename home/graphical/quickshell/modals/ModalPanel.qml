@@ -278,13 +278,18 @@ PanelWindow {
     // the gaps between them stay clear.
     property list<Region> cardRegions
 
+    // Switched at the halfway point of the fade, which every surface here
+    // keys off: a region is plain geometry and knows nothing about opacity, so
+    // holding one to the end of the fade leaves a pane where the panel was.
+    readonly property bool blurActive: panel.opacity > 0.5
+
     Region {
         id: panelRegion
 
         // Nothing to blur behind a panel that is not drawing a surface: the
         // cards over it carry their own, and blurring the gaps between them
         // would show as a pane hanging around them.
-        readonly property bool active: panel.opacity > 0.5 && !root.floating
+        readonly property bool active: root.blurActive && !root.floating
 
         x: panel.x
         y: panel.y

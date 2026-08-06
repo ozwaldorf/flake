@@ -18,9 +18,12 @@ Item {
     required property Item target
     required property var host
 
-    // Held false while the card is fading, so the blur is not left up as a
-    // pane around something that is no longer drawn.
-    property bool active: true
+    // Dropped at the halfway point of the panel's fade rather than held to the
+    // end of it. A region is plain geometry and knows nothing about opacity,
+    // so leaving it up through the fade reads as a pane hanging where the card
+    // used to be. The card is translucent enough either side of halfway for
+    // the switch not to register.
+    property bool active: host.blurActive
 
     visible: false
 
