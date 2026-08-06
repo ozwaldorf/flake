@@ -59,7 +59,7 @@ PanelWindow {
         // collected by the window's blurRegion; each toast appends its own
         property list<Region> toastRegions
 
-        x: root.anchorRight ? 0 : root.railOffset
+        x: root.anchorRight ? root.shadowRoom : root.railOffset
         y: 12
         // same width as the control centre cards, so a notification looks
         // identical whether it is a toast or a history entry

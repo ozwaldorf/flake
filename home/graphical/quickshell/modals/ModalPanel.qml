@@ -114,7 +114,11 @@ PanelWindow {
         readonly property real maxHeight: root.height - 20
 
         // opens inward from whichever edge the rail is on
-        x: root.anchorRight ? 0 : Theme.rail + Theme.spaceXs
+        // Inset from whichever edge the window is anchored to, leaving the
+        // shadow room on the outward side: anchored right the window grows
+        // leftward, so sitting at nothing puts the free room behind the rail
+        // rather than where the shadow falls.
+        x: root.anchorRight ? root.shadowRoom : Theme.rail + Theme.spaceXs
         y: 10
         width: Theme.modalWidth
         // sized to content when the panel reports one, capped to the screen

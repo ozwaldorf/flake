@@ -48,9 +48,10 @@ PanelWindow {
         bottom: true
     }
 
-    // room for the rail, the gap the panel also uses, and the widest a chip is
-    // likely to want
-    implicitWidth: Theme.rail + Theme.spaceXs + 280
+    // room past the chips for the shadows they cast
+    readonly property real shadowRoom: 16
+
+    implicitWidth: Theme.rail + Theme.spaceXs + 280 + shadowRoom
     exclusiveZone: 0
 
     // Purely a label: it never takes the pointer, which would otherwise steal
@@ -107,8 +108,8 @@ PanelWindow {
         // on the right hand screen its position is measured back from that
         // width: the travel cancels itself out and what is left reads as
         // arriving from the wrong side.
-        x: root.anchorRight ? 0 : Theme.rail + Theme.spaceXs
-        width: root.width - Theme.rail - Theme.spaceXs
+        x: root.anchorRight ? root.shadowRoom : Theme.rail + Theme.spaceXs
+        width: root.width - Theme.rail - Theme.spaceXs - root.shadowRoom
         spacing: Theme.spaceXs
 
         Repeater {
