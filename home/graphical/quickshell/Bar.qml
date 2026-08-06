@@ -150,8 +150,10 @@ PanelWindow {
         }
     ]
 
-    // centre of the meter group, so the tip opens level with what it describes
-    property real tipY: 0
+    // Centre of the meter group, so the tip opens level with what it describes.
+    // Summed from the items' own geometry rather than mapped: a mapToItem call
+    // does not re-evaluate when they move.
+    readonly property real tipY: railContent.y + bottom.y + meters.y + meters.height / 2
 
     // widened catch area so the pointer does not have to hit 6px exactly
     HoverHandler {
@@ -213,6 +215,8 @@ PanelWindow {
     // follows the rail, not the fixed surface, so the marks stay centred on the
     // visible strip as it widens
     Item {
+        id: railContent
+
         x: bar.railX
         y: Theme.railPad
         width: bar.railWidth
@@ -278,14 +282,9 @@ PanelWindow {
                     value: SysMeters.network
                     fill: Theme.teal
                 }
-
             }
 
-            // One target over the whole group rather than one per meter: the
-            // tip shows all three, so which one the pointer is on does not
-            // matter, and travelling between them never drops it. Spans the
-            // rail so the marks are not what has to be hit, and sits beside
-            // the column rather than in it, which would lay it out as a row.
+
             Clock {
                 anchors.horizontalCenter: parent.horizontalCenter
                 expanded: bar.expanded
@@ -295,23 +294,22 @@ PanelWindow {
         // One target over the whole meter group rather than one per meter: the
         // tip shows all three, so which one the pointer is on does not matter,
         // and travelling between them never drops it. Spans the rail so the
-        // marks are not what has to be hit, and sits outside the columns, which
-        // would otherwise lay it out as another row.
+        // marks are not what has to be hit.
+        //
+        // Placed by summing the group's offsets rather than by mapToItem,
+        // which is a one shot call with no dependency tracking: it answered
+        // while the column was still at the origin and left the target
+        // stranded in the corner. A Column refuses vertical anchors on its
+        // children besides, so this sits outside the columns entirely.
         Item {
-            readonly property point origin: meters.mapToItem(parent, 0, 0)
-
-            x: origin.x + (meters.width - width) / 2
-            y: origin.y
+            x: (railContent.width - width) / 2
+            y: bottom.y + meters.y
             width: Theme.rail
             height: meters.height
 
             HoverHandler {
                 id: meterHover
             }
-
-            onYChanged: bar.tipY = mapToItem(bar.contentItem, 0, height / 2).y
-            onHeightChanged: bar.tipY = mapToItem(bar.contentItem, 0, height / 2).y
-            Component.onCompleted: bar.tipY = mapToItem(bar.contentItem, 0, height / 2).y
         }
     }
 

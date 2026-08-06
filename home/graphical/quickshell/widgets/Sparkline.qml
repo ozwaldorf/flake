@@ -17,7 +17,7 @@ Item {
     property var format: v => Math.round(v) + ""
 
     implicitWidth: 132
-    implicitHeight: 34
+    implicitHeight: 54
 
     readonly property int count: values ? values.length : 0
 

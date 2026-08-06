@@ -155,7 +155,7 @@ PanelWindow {
                         id: graph
 
                         width: 200
-                        implicitHeight: 34
+                        implicitHeight: 54
                         values: entry.modelData.history
                         stroke: entry.modelData.fill
                         format: entry.modelData.format
