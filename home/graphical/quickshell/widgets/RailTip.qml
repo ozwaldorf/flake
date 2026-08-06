@@ -40,7 +40,9 @@ PanelWindow {
         bottom: true
     }
 
-    implicitWidth: Theme.rail + Theme.spaceXs + 140
+    // room for the rail, the gap the panel also uses, and the widest reading a
+    // meter is likely to produce; the tip itself sizes to its own content
+    implicitWidth: Theme.rail + 8 + 160
     exclusiveZone: 0
 
     // Purely a label: it never takes the pointer, which would otherwise steal
@@ -53,11 +55,13 @@ PanelWindow {
         id: tip
 
         // just past the rail, on whichever side it is anchored to
-        x: root.anchorRight ? root.width - Theme.rail - Theme.spaceXs - width : Theme.rail + Theme.spaceXs
+        x: root.anchorRight ? root.width - Theme.rail - 8 - width : Theme.rail + 8
         y: Math.round(root.markY - height / 2)
 
+        // padded like the cards, which inset their content by spaceSm on every
+        // side rather than only across
         implicitWidth: lines.implicitWidth + Theme.spaceSm * 2
-        implicitHeight: lines.implicitHeight + Theme.spaceSm
+        implicitHeight: lines.implicitHeight + Theme.spaceSm * 2
 
         // Same surface as the cards in the control centre. Those sit on the
         // panel and layer a half alpha wash over it; this stands on its own,
@@ -86,7 +90,7 @@ PanelWindow {
             id: lines
 
             anchors.centerIn: parent
-            spacing: 1
+            spacing: Theme.spaceXs
 
             Text {
                 text: root.text
