@@ -359,14 +359,18 @@ ModalPanel {
                 Rectangle {
                     id: clearAll
 
+                    // Present whether or not there is anything to clear: an
+                    // empty stack is worth stating, and a tile that came and
+                    // went would reflow the row under the pointer.
+                    readonly property bool has: Notifications.count > 0
+
                     // finishes whatever line the tray left off on, or takes one
                     // of its own when the tray filled the last one exactly
                     width: utility.clearCell
                     implicitHeight: utility.entry
                     radius: 9
-                    visible: Notifications.count > 0
 
-                    color: clearHover.hovered ? Qt.tint(Theme.surfaceFill, Qt.alpha(Theme.text, 0.06)) : Theme.surfaceFill
+                    color: clearAll.has && clearHover.hovered ? Qt.tint(Theme.surfaceFill, Qt.alpha(Theme.text, 0.06)) : Theme.surfaceFill
 
                     Behavior on color {
                         ColorAnimation {
@@ -381,10 +385,14 @@ ModalPanel {
 
                     Text {
                         anchors.centerIn: parent
-                        text: "Clear " + Notifications.count + " notification" + (Notifications.count === 1 ? "" : "s")
+
+                        text: clearAll.has ? "Clear " + Notifications.count + " notification" + (Notifications.count === 1 ? "" : "s") : "No new notifications"
                         font.family: Theme.font
                         font.pixelSize: 10
-                        color: clearHover.hovered ? Theme.red : Theme.overlay1
+
+                        // dimmer with nothing to say, and only red when there
+                        // is something a click would actually discard
+                        color: !clearAll.has ? Theme.surface2 : clearHover.hovered ? Theme.red : Theme.overlay1
 
                         Behavior on color {
                             ColorAnimation {
@@ -395,11 +403,12 @@ ModalPanel {
 
                     HoverHandler {
                         id: clearHover
-                        cursorShape: Qt.PointingHandCursor
+                        cursorShape: clearAll.has ? Qt.PointingHandCursor : Qt.ArrowCursor
                         onHoveredChanged: root.setChildHovered(hovered)
                     }
 
                     TapHandler {
+                        enabled: clearAll.has
                         onTapped: Notifications.clear()
                     }
                 }
