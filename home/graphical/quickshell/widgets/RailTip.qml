@@ -30,6 +30,21 @@ PanelWindow {
     // vertical centre of the group this is labelling, in window coordinates
     property real markY: 0
 
+    // Widest axis any of the charts needs, which they all then reserve so
+    // their plots line up. A percentage is half the width of a byte rate, so
+    // left to themselves the three would each end somewhere different.
+    //
+    // Raised rather than recomputed: the delegates are not addressable from
+    // here, and a unit only ever grows the gutter as the readings move. It is
+    // reset when the tip closes so a spell of heavy traffic does not leave the
+    // axis padded for it forever.
+    property real gutter: 0
+
+    onShownChanged: {
+        if (!shown)
+            gutter = 0;
+    }
+
     property bool shown: false
 
     screen: screenData
@@ -154,6 +169,10 @@ PanelWindow {
                         stroke: entry.modelData.fill
                         format: entry.modelData.format
                         limit: entry.modelData.limit ?? Infinity
+
+                        gutter: root.gutter
+                        onAxisWidthChanged: root.gutter = Math.max(root.gutter, axisWidth)
+                        Component.onCompleted: root.gutter = Math.max(root.gutter, axisWidth)
                     }
                 }
             }

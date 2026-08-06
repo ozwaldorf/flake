@@ -46,6 +46,14 @@ Item {
     // into the space instead of the line rescaling under itself each tick
     property int slots: 60
 
+    // What this chart's own axis needs, and what it is actually given. A stack
+    // of charts sets the second from the widest of the first, so their plots
+    // start and end together rather than each ending wherever its own labels
+    // happened to leave off.
+    readonly property real axisWidth: Math.max(maxLabel.implicitWidth, midLabel.implicitWidth, minLabel.implicitWidth)
+
+    property real gutter: axisWidth
+
     function pointX(i) {
         // right aligned: the newest sample sits at the right edge and older
         // ones trail off to the left, so the line does not jump sideways as
@@ -68,7 +76,7 @@ Item {
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        width: Math.max(maxLabel.implicitWidth, midLabel.implicitWidth, minLabel.implicitWidth)
+        width: root.gutter
 
         Text {
             id: maxLabel
