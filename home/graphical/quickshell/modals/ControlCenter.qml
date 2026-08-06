@@ -68,6 +68,24 @@ ModalPanel {
                 openList = name;
             }
 
+            // Closed with the panel, so it comes back as it was left rather
+            // than holding a list open from whenever it was last up.
+            Connections {
+                target: root
+
+                function onShownChanged() {
+                    if (root.shown)
+                        return;
+
+                    layout.openIn(null, "");
+
+                    // a tray menu is its own window and would otherwise be
+                    // left standing over the desktop with nothing behind it
+                    if (utility.openMenu)
+                        utility.openMenu.visible = false;
+                }
+            }
+
             // Connectivity first, matching where the system panel puts it: it
             // is the control you reach for when something is wrong, and the
             // only one whose state you read without touching it.
