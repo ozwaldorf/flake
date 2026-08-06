@@ -130,22 +130,28 @@ PanelWindow {
                 // destroyed by the first frame it writes.
                 Component.onCompleted: stack.toastRegions.push(toastRegion)
 
+                // Whether the card is being cleared rather than left to expire:
+                // a tap is the user acting on the notification, so it goes from
+                // history too, while a timeout only takes the toast away.
+                property bool clearing: false
+
                 // Leaving the same way it arrived rather than vanishing.
                 //
                 // Run here rather than from a remove transition, which a
                 // Column does not have: it is a positioner, not a view. The
                 // entry is taken out of the model once the card has gone, so
                 // the delegate lives long enough to animate.
-                function dismiss() {
+                function dismiss(clear) {
                     if (leaving.running)
                         return;
+                    toast.clearing = clear ?? false;
                     leaving.start();
                 }
 
                 ParallelAnimation {
                     id: leaving
 
-                    onFinished: Notifications.dismiss(toast.model.id)
+                    onFinished: toast.clearing ? Notifications.remove(toast.model.id) : Notifications.dismiss(toast.model.id)
 
                     NumberAnimation {
                         target: toast
@@ -196,7 +202,7 @@ PanelWindow {
                 }
 
                 TapHandler {
-                    onTapped: toast.dismiss()
+                    onTapped: toast.dismiss(true)
                 }
             }
         }
