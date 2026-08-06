@@ -55,12 +55,19 @@ PanelWindow {
         y: Math.round(root.markY - height / 2)
 
         implicitWidth: label.implicitWidth + Theme.spaceSm * 2
-        implicitHeight: label.implicitHeight + Theme.spaceXs * 2
-        radius: 6
+        implicitHeight: label.implicitHeight + Theme.spaceSm
 
+        // Same surface as the cards in the control centre. Those sit on the
+        // panel and layer a half alpha wash over it; this stands on its own,
+        // so it carries both to arrive at the same colour.
+        radius: 9
         color: Theme.surfaceFill
-        border.width: 1
-        border.color: Theme.surface1
+
+        Rectangle {
+            anchors.fill: parent
+            radius: parent.radius
+            color: Qt.alpha(Theme.surface0, 0.5)
+        }
 
         opacity: root.shown ? 1 : 0
 
@@ -78,7 +85,7 @@ PanelWindow {
             text: root.text
             font.family: Theme.font
             font.pixelSize: 10
-            color: Theme.subtext0
+            color: Theme.text
         }
     }
 

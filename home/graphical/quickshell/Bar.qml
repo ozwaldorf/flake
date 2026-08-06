@@ -264,7 +264,7 @@ PanelWindow {
                     expanded: bar.expanded
                     value: SysMeters.memory
                     fill: Theme.mauve
-                    label: "Memory " + SysMeters.memory + "%"
+                    label: "Memory " + SysMeters.formatBytes(SysMeters.memoryUsed) + " / " + SysMeters.formatBytes(SysMeters.memoryTotal)
                     onHoverChanged: hovered => bar.showTip(hovered, memMeter)
                 }
 
@@ -275,9 +275,9 @@ PanelWindow {
                     expanded: bar.expanded
                     value: SysMeters.network
                     fill: Theme.teal
-                    // scaled against a fixed ceiling, so the percentage is of
-                    // that rather than of the link's actual rate
-                    label: "Network " + SysMeters.network + "%"
+                    // the rate itself rather than the percentage, which is of a
+                    // fixed ceiling and not of the link's actual capacity
+                    label: "Network " + SysMeters.formatBytes(SysMeters.networkRate) + "/s"
                     onHoverChanged: hovered => bar.showTip(hovered, netMeter)
                 }
             }

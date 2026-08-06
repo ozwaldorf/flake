@@ -13,6 +13,27 @@ Singleton {
     property int cpu: 0
     property int memory: 0
 
+    // The same readings in their own units, for anything that wants to say
+    // what the percentage is of. Bytes throughout; the meters themselves only
+    // ever need the percentage.
+    property real memoryUsed: 0
+    property real memoryTotal: 0
+    property real networkRate: 0
+
+    // Byte counts in the largest unit that leaves a number worth reading, and
+    // to one decimal only below a thousand: "2.5 GB" says as much as "2.54 GB"
+    // in a tooltip and changes less often.
+    function formatBytes(bytes) {
+        const units = ["B", "KB", "MB", "GB", "TB"];
+        let n = Math.max(0, bytes);
+        let i = 0;
+        while (n >= 1024 && i < units.length - 1) {
+            n /= 1024;
+            i++;
+        }
+        return (i === 0 || n >= 100 ? Math.round(n) : n.toFixed(1)) + " " + units[i];
+    }
+
     // Sampled faster while a rail is out, since that is when the meters are
     // actually readable. These are deltas over the sample window, so nothing
     // here can be event driven: /proc carries cumulative counters, and a rate
@@ -117,8 +138,13 @@ Singleton {
                 break;
         }
 
-        if (total > 0)
+        if (total > 0) {
             memory = Math.max(0, Math.min(100, Math.round(100 * (1 - available / total))));
+            // kept in bytes so whatever displays them picks its own unit;
+            // /proc/meminfo counts kibibytes
+            memoryTotal = total * 1024;
+            memoryUsed = (total - available) * 1024;
+        }
     }
 
     function readNetwork() {
@@ -142,6 +168,7 @@ Singleton {
             if (elapsed > 0) {
                 const rate = Math.max(0, (bytes - prevNetBytes) / elapsed);
                 network = Math.max(0, Math.min(100, Math.round(100 * rate / netCeiling)));
+                networkRate = rate;
             }
         }
 
