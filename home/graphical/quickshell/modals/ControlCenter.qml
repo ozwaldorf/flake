@@ -446,10 +446,7 @@ ModalPanel {
                     implicitHeight: utility.entry
                     radius: 9
 
-                    // With nothing to clear it takes the unfilled track's own
-                    // fill rather than a card's: it is stating a level of
-                    // nothing, not offering something to press.
-                    color: !clearAll.has ? Qt.alpha(Theme.surface2, 0.55) : clearHover.hovered ? Qt.tint(Theme.surfaceFill, Qt.alpha(Theme.text, 0.06)) : Theme.surfaceFill
+                    color: clearAll.has && clearHover.hovered ? Qt.tint(Theme.surfaceFill, Qt.alpha(Theme.text, 0.06)) : Theme.surfaceFill
 
                     Behavior on color {
                         ColorAnimation {
@@ -457,21 +454,15 @@ ModalPanel {
                         }
                     }
 
-                    // Both drop with the fill: an unfilled track is a well in
-                    // the surface rather than a card standing on it, so it
-                    // neither frosts what is behind nor casts anything.
-                    Loader {
-                        active: clearAll.has
-                        sourceComponent: CardBlur {
-                            target: clearAll
-                            host: root
-                        }
+                    CardBlur {
+                        target: clearAll
+                        host: root
                     }
 
                     DropShadow {
                         target: clearAll
-                        elevation: clearHover.hovered ? 9 : 6
-                        strength: clearAll.has ? (clearHover.hovered ? 0.45 : 0.35) : 0
+                        elevation: clearAll.has && clearHover.hovered ? 9 : 6
+                        strength: clearAll.has && clearHover.hovered ? 0.45 : 0.35
                     }
 
                     Text {
