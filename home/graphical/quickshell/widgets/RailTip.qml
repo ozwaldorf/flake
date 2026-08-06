@@ -20,7 +20,9 @@ PanelWindow {
     // which edge the rail is on, so the tip opens inward
     required property bool anchorRight
 
+    // what the mark is, over what it currently reads
     required property string text
+    property string detail: ""
 
     // vertical centre of the mark this is labelling, in screen coordinates
     property real markY: 0
@@ -54,8 +56,8 @@ PanelWindow {
         x: root.anchorRight ? root.width - Theme.rail - Theme.spaceXs - width : Theme.rail + Theme.spaceXs
         y: Math.round(root.markY - height / 2)
 
-        implicitWidth: label.implicitWidth + Theme.spaceSm * 2
-        implicitHeight: label.implicitHeight + Theme.spaceSm
+        implicitWidth: lines.implicitWidth + Theme.spaceSm * 2
+        implicitHeight: lines.implicitHeight + Theme.spaceSm
 
         // Same surface as the cards in the control centre. Those sit on the
         // panel and layer a half alpha wash over it; this stands on its own,
@@ -78,14 +80,31 @@ PanelWindow {
             }
         }
 
-        Text {
-            id: label
+        // Name over reading, so the reading can be as long as it needs without
+        // the name being pushed off or the tip running the width of the screen.
+        Column {
+            id: lines
 
             anchors.centerIn: parent
-            text: root.text
-            font.family: Theme.font
-            font.pixelSize: 10
-            color: Theme.text
+            spacing: 1
+
+            Text {
+                text: root.text
+                font.family: Theme.font
+                font.pixelSize: 10
+                color: Theme.text
+            }
+
+            Text {
+                text: root.detail
+                font.family: Theme.font
+                font.pixelSize: 10
+                font.features: {
+                    "tnum": 1
+                }
+                color: Theme.overlay1
+                visible: root.detail.length > 0
+            }
         }
     }
 

@@ -127,6 +127,7 @@ PanelWindow {
     // Bound rather than copied, so the reading keeps counting while the tip is
     // up instead of freezing at whatever it was when the pointer arrived.
     readonly property string tipText: tipMark ? tipMark.label : ""
+    readonly property string tipDetail: tipMark ? tipMark.detail : ""
 
     property real tipY: 0
 
@@ -253,7 +254,8 @@ PanelWindow {
                     expanded: bar.expanded
                     value: SysMeters.cpu
                     fill: Theme.sapphire
-                    label: "CPU " + SysMeters.cpu + "%"
+                    label: "CPU"
+                    detail: SysMeters.cpu + "%"
                     onHoverChanged: hovered => bar.showTip(hovered, cpuMeter)
                 }
 
@@ -264,7 +266,8 @@ PanelWindow {
                     expanded: bar.expanded
                     value: SysMeters.memory
                     fill: Theme.mauve
-                    label: "Memory " + SysMeters.formatBytes(SysMeters.memoryUsed) + " / " + SysMeters.formatBytes(SysMeters.memoryTotal)
+                    label: "Memory"
+                    detail: SysMeters.formatBytes(SysMeters.memoryUsed) + " / " + SysMeters.formatBytes(SysMeters.memoryTotal)
                     onHoverChanged: hovered => bar.showTip(hovered, memMeter)
                 }
 
@@ -277,7 +280,8 @@ PanelWindow {
                     fill: Theme.teal
                     // the rate itself rather than the percentage, which is of a
                     // fixed ceiling and not of the link's actual capacity
-                    label: "Network " + SysMeters.formatBytes(SysMeters.networkRate) + "/s"
+                    label: "Network"
+                    detail: SysMeters.formatBytes(SysMeters.networkRate) + "/s"
                     onHoverChanged: hovered => bar.showTip(hovered, netMeter)
                 }
             }
@@ -295,6 +299,7 @@ PanelWindow {
         screenData: bar.modelData
         anchorRight: bar.anchorRight
         text: bar.tipText
+        detail: bar.tipDetail
         markY: bar.tipY
         shown: bar.tipMark !== null && bar.expanded
     }

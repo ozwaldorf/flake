@@ -15,8 +15,10 @@ Rectangle {
     property color fill: Theme.overlay0
     property int warnAt: 72
 
-    // what a tooltip calls this meter, and whether the pointer is on it
+    // what a tooltip calls this meter and what it reads, and whether the
+    // pointer is on it
     property string label: ""
+    property string detail: ""
 
     signal hoverChanged(bool hovered)
 
