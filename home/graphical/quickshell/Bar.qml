@@ -114,41 +114,44 @@ PanelWindow {
         }
     }
 
-    // ---- tooltips ----
+    // ---- meter tooltip ----
     //
     // The meters say how loaded things are but not what they are, and the rail
-    // has no room to label them. Tracked here rather than in the marks so only
-    // one is ever up, and so the tip can be given the mark's position in this
-    // window's coordinates.
-
-    // whichever mark the pointer is on, or null
-    property var tipMark: null
-
-    // Bound rather than copied, so the reading keeps counting while the tip is
-    // up instead of freezing at whatever it was when the pointer arrived.
-    readonly property string tipText: tipMark ? tipMark.label : ""
-    readonly property string tipDetail: tipMark ? tipMark.detail : ""
-    readonly property string tipIcon: tipMark ? tipMark.icon : ""
-    readonly property var tipHistory: tipMark ? tipMark.history : []
-
-    // the graph takes the meter's own colour, so the tip reads as belonging to
-    // the mark it opened from
-    readonly property color tipFill: tipMark ? tipMark.fill : Theme.overlay1
-
-    property real tipY: 0
-
-    function showTip(on, mark) {
-        if (on) {
-            tipMark = mark;
-            // mapToItem rather than reading y directly: the mark is several
-            // items deep, and its own y is relative to the column it sits in
-            tipY = mark.mapToItem(bar.contentItem, 0, mark.height / 2).y;
-        } else if (tipMark === mark) {
-            // only the mark that raised it can lower it, or moving between two
-            // adjacent meters would blank the tip the second one just set
-            tipMark = null;
+    // has no room to label them. Hovering anywhere in the group opens all
+    // three: they are read against each other more often than alone, and
+    // moving between them to compare meant losing the one just looked at.
+    //
+    // Bound rather than copied, so the readings keep counting while the tip is
+    // up instead of freezing at whatever they were when the pointer arrived.
+    readonly property var tipMeters: [
+        {
+            icon: Theme.iconCpu,
+            label: "CPU",
+            detail: SysMeters.cpu + "%",
+            history: SysMeters.cpuHistory,
+            fill: Theme.sapphire,
+            format: v => Math.round(v) + "%"
+        },
+        {
+            icon: Theme.iconMemory,
+            label: "Memory",
+            detail: SysMeters.formatBytes(SysMeters.memoryUsed) + " / " + SysMeters.formatBytes(SysMeters.memoryTotal),
+            history: SysMeters.memoryHistory,
+            fill: Theme.mauve,
+            format: v => Math.round(v) + "%"
+        },
+        {
+            icon: Theme.iconNetwork,
+            label: "Network",
+            detail: SysMeters.formatBytes(SysMeters.networkRate) + "/s",
+            history: SysMeters.networkHistory,
+            fill: Theme.teal,
+            format: v => Math.round(v) + "%"
         }
-    }
+    ]
+
+    // centre of the meter group, so the tip opens level with what it describes
+    property real tipY: 0
 
     // widened catch area so the pointer does not have to hit 6px exactly
     HoverHandler {
@@ -250,72 +253,75 @@ PanelWindow {
             // cpu, memory, network stacked down the rail, each as wide as a
             // workspace block so the two groups line up
             Column {
+                id: meters
+
                 anchors.horizontalCenter: parent.horizontalCenter
                 spacing: Theme.meterGap
 
                 LoadMeter {
-                    id: cpuMeter
-
                     anchors.horizontalCenter: parent.horizontalCenter
                     expanded: bar.expanded
                     value: SysMeters.cpu
                     fill: Theme.sapphire
-                    label: "CPU"
-                    icon: Theme.iconCpu
-                    history: SysMeters.cpuHistory
-                    detail: SysMeters.cpu + "%"
-                    onHoverChanged: hovered => bar.showTip(hovered, cpuMeter)
                 }
 
                 LoadMeter {
-                    id: memMeter
-
                     anchors.horizontalCenter: parent.horizontalCenter
                     expanded: bar.expanded
                     value: SysMeters.memory
                     fill: Theme.mauve
-                    label: "Memory"
-                    icon: Theme.iconMemory
-                    history: SysMeters.memoryHistory
-                    detail: SysMeters.formatBytes(SysMeters.memoryUsed) + " / " + SysMeters.formatBytes(SysMeters.memoryTotal)
-                    onHoverChanged: hovered => bar.showTip(hovered, memMeter)
                 }
 
                 LoadMeter {
-                    id: netMeter
-
                     anchors.horizontalCenter: parent.horizontalCenter
                     expanded: bar.expanded
                     value: SysMeters.network
                     fill: Theme.teal
-                    // the rate itself rather than the percentage, which is of a
-                    // fixed ceiling and not of the link's actual capacity
-                    label: "Network"
-                    icon: Theme.iconNetwork
-                    history: SysMeters.networkHistory
-                    detail: SysMeters.formatBytes(SysMeters.networkRate) + "/s"
-                    onHoverChanged: hovered => bar.showTip(hovered, netMeter)
                 }
+
             }
 
+            // One target over the whole group rather than one per meter: the
+            // tip shows all three, so which one the pointer is on does not
+            // matter, and travelling between them never drops it. Spans the
+            // rail so the marks are not what has to be hit, and sits beside
+            // the column rather than in it, which would lay it out as a row.
             Clock {
                 anchors.horizontalCenter: parent.horizontalCenter
                 expanded: bar.expanded
             }
         }
+
+        // One target over the whole meter group rather than one per meter: the
+        // tip shows all three, so which one the pointer is on does not matter,
+        // and travelling between them never drops it. Spans the rail so the
+        // marks are not what has to be hit, and sits outside the columns, which
+        // would otherwise lay it out as another row.
+        Item {
+            readonly property point origin: meters.mapToItem(parent, 0, 0)
+
+            x: origin.x + (meters.width - width) / 2
+            y: origin.y
+            width: Theme.rail
+            height: meters.height
+
+            HoverHandler {
+                id: meterHover
+            }
+
+            onYChanged: bar.tipY = mapToItem(bar.contentItem, 0, height / 2).y
+            onHeightChanged: bar.tipY = mapToItem(bar.contentItem, 0, height / 2).y
+            Component.onCompleted: bar.tipY = mapToItem(bar.contentItem, 0, height / 2).y
+        }
     }
 
     // Only while the rail is out: in the sliver the meters are six pixels wide
-    // and a label beside them would be most of what is on screen.
+    // and a panel beside them would be most of what is on screen.
     RailTip {
         screenData: bar.modelData
         anchorRight: bar.anchorRight
-        text: bar.tipText
-        detail: bar.tipDetail
-        icon: bar.tipIcon
-        history: bar.tipHistory
-        historyFill: bar.tipFill
+        meters: bar.tipMeters
         markY: bar.tipY
-        shown: bar.tipMark !== null && bar.expanded
+        shown: meterHover.hovered && bar.expanded
     }
 }
