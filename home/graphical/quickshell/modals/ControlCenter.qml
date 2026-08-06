@@ -167,7 +167,10 @@ ModalPanel {
 
             // ---- recorder and tray, sharing one row ----
 
-            Row {
+            // One flow rather than a tile beside a tray: with the recorder as
+            // its first item, wrapping packs every line as full as it goes
+            // instead of the tray having to fit whatever the tile left over.
+            Flow {
                 id: utility
 
                 width: parent.width
@@ -175,18 +178,25 @@ ModalPanel {
 
                 readonly property int trayCount: SystemTray.items.values.length
 
-                // Entries are square and as tall as the row, so what the tray
-                // needs is known before laying anything out. Fixed rather than
-                // derived from the tile, which now derives from this.
+                // Entries are square and as tall as the row, so what they need
+                // is known before laying anything out.
                 readonly property real entry: 54
 
-                readonly property real trayWidth: trayCount > 0 ? trayCount * entry + (trayCount - 1) * spacing : 0
+                // Entries sharing the recorder's line: whatever fits once the
+                // tile has taken its half, and never more than there are.
+                readonly property int fits: Math.min(trayCount, Math.max(1, Math.floor(((width - spacing) / 2 + spacing) / (entry + spacing))))
 
-                // The recorder takes whatever the tray does not, so an uneven
-                // remainder ends up in the tile rather than as a gap at the end
-                // of the row. Floored at half so a crowded tray cannot squeeze
-                // the status line out.
-                readonly property real cell: Math.max((width - spacing) / 2, trayCount > 0 ? width - trayWidth - spacing : width)
+                // Taking every entry that fits can leave one alone on the line
+                // below, which reads as a stray rather than a row. Giving one
+                // back pairs it up, and only helps when exactly one was
+                // stranded: with more than that the line below is a row
+                // already, and with none there is nothing to fix.
+                readonly property int beside: trayCount - fits === 1 && fits > 1 ? fits - 1 : fits
+
+                // The tile takes the line's leftover, so an uneven remainder
+                // ends up in it rather than as a gap at the end of the row.
+                // With no tray at all it takes the whole width.
+                readonly property real cell: trayCount > 0 ? width - beside * (entry + spacing) : width
 
                 RecorderTile {
                     id: recorder
@@ -195,111 +205,105 @@ ModalPanel {
                     onHoverChanged: hovered => root.setChildHovered(hovered)
                 }
 
-                Flow {
-                    width: utility.trayWidth
-                    spacing: Theme.spaceXs
-                    visible: utility.trayCount > 0
+                Repeater {
+                    model: SystemTray.items
 
-                    Repeater {
-                        model: SystemTray.items
+                    Rectangle {
+                        id: trayEntry
 
-                        Rectangle {
-                            id: trayEntry
+                        required property var modelData
 
-                            required property var modelData
+                        // Square, and as tall as the tile beside it so the
+                        // row reads as one band rather than icons floating
+                        // against a taller card.
+                        implicitWidth: utility.entry
+                        implicitHeight: utility.entry
+                        radius: 9
 
-                            // Square, and as tall as the tile beside it so the
-                            // row reads as one band rather than icons floating
-                            // against a taller card.
-                            implicitWidth: utility.entry
-                            implicitHeight: utility.entry
-                            radius: 9
+                        // same surface as the tiles and the level cards: half
+                        // alpha at rest, lifting to solid under the pointer
+                        color: trayHover.hovered ? Theme.surface0 : Qt.alpha(Theme.surface0, 0.5)
 
-                            // same surface as the tiles and the level cards: half
-                            // alpha at rest, lifting to solid under the pointer
-                            color: trayHover.hovered ? Theme.surface0 : Qt.alpha(Theme.surface0, 0.5)
-
-                            Behavior on color {
-                                ColorAnimation {
-                                    duration: 160
-                                }
+                        Behavior on color {
+                            ColorAnimation {
+                                duration: 160
                             }
+                        }
 
-                            // Decoded at device resolution rather than at the 16
-                            // logical pixels it draws into. Without a sourceSize
-                            // Qt renders the icon at whatever size the source
-                            // happens to be and rescales, which on a fractional
-                            // scale display is a resample either way; asking for
-                            // the real pixel count gets a crisp icon instead.
-                            //
-                            // Quickshell's tray icons carry a size hint in the
-                            // URL, so the request has to reach the provider rather
-                            // than only the painter.
-                            Image {
-                                id: trayIcon
+                        // Decoded at device resolution rather than at the 16
+                        // logical pixels it draws into. Without a sourceSize
+                        // Qt renders the icon at whatever size the source
+                        // happens to be and rescales, which on a fractional
+                        // scale display is a resample either way; asking for
+                        // the real pixel count gets a crisp icon instead.
+                        //
+                        // Quickshell's tray icons carry a size hint in the
+                        // URL, so the request has to reach the provider rather
+                        // than only the painter.
+                        Image {
+                            id: trayIcon
 
-                                // Sized off the entry so it keeps its inset as
-                                // the entry follows the tile's height, rather
-                                // than a fixed size floating in a bigger box.
-                                readonly property real side: Math.round(trayEntry.height * 0.44)
-                                readonly property int px: Math.ceil(side * Screen.devicePixelRatio)
+                            // Sized off the entry so it keeps its inset as
+                            // the entry follows the tile's height, rather
+                            // than a fixed size floating in a bigger box.
+                            readonly property real side: Math.round(trayEntry.height * 0.44)
+                            readonly property int px: Math.ceil(side * Screen.devicePixelRatio)
 
-                                anchors.centerIn: parent
-                                width: side
-                                height: side
-                                sourceSize.width: px
-                                sourceSize.height: px
-                                source: trayEntry.modelData.icon
-                                fillMode: Image.PreserveAspectFit
-                                smooth: true
-                                mipmap: true
-                                asynchronous: true
+                            anchors.centerIn: parent
+                            width: side
+                            height: side
+                            sourceSize.width: px
+                            sourceSize.height: px
+                            source: trayEntry.modelData.icon
+                            fillMode: Image.PreserveAspectFit
+                            smooth: true
+                            mipmap: true
+                            asynchronous: true
+                        }
+
+                        HoverHandler {
+                            id: trayHover
+                            cursorShape: Qt.PointingHandCursor
+                            onHoveredChanged: root.setChildHovered(hovered)
+                        }
+
+                        // Rendered from the DBusMenu tree rather than handed to
+                        // QsMenuAnchor, which opens Qt's native widget menu and
+                        // ignores the shell's styling.
+                        TrayMenu {
+                            id: trayMenu
+
+                            screenData: root.modelData
+                            handle: trayEntry.modelData.menu
+                            anchorItem: trayEntry
+                            anchorRight: root.anchorRight
+                            // this panel is right anchored on the right hand
+                            // monitor, so its window origin is not screen zero
+                            anchorWindowX: root.anchorRight ? root.screen.width - root.width : 0
+
+                            // The menu is its own window, so the panel's hover
+                            // surface cannot see the pointer once it moves onto
+                            // it. Hold the panel open for as long as the menu
+                            // is, and release that hold if the tray item goes
+                            // away while its menu is still up: the panel would
+                            // otherwise stay open with nothing holding it.
+                            onVisibleChanged: root.setChildHovered(visible)
+
+                            Component.onDestruction: {
+                                if (visible)
+                                    root.setChildHovered(false);
                             }
+                        }
 
-                            HoverHandler {
-                                id: trayHover
-                                cursorShape: Qt.PointingHandCursor
-                                onHoveredChanged: root.setChildHovered(hovered)
-                            }
-
-                            // Rendered from the DBusMenu tree rather than handed to
-                            // QsMenuAnchor, which opens Qt's native widget menu and
-                            // ignores the shell's styling.
-                            TrayMenu {
-                                id: trayMenu
-
-                                screenData: root.modelData
-                                handle: trayEntry.modelData.menu
-                                anchorItem: trayEntry
-                                anchorRight: root.anchorRight
-                                // this panel is right anchored on the right hand
-                                // monitor, so its window origin is not screen zero
-                                anchorWindowX: root.anchorRight ? root.screen.width - root.width : 0
-
-                                // The menu is its own window, so the panel's hover
-                                // surface cannot see the pointer once it moves onto
-                                // it. Hold the panel open for as long as the menu
-                                // is, and release that hold if the tray item goes
-                                // away while its menu is still up: the panel would
-                                // otherwise stay open with nothing holding it.
-                                onVisibleChanged: root.setChildHovered(visible)
-
-                                Component.onDestruction: {
-                                    if (visible)
-                                        root.setChildHovered(false);
-                                }
-                            }
-
-                            TapHandler {
-                                acceptedButtons: Qt.LeftButton | Qt.RightButton
-                                gesturePolicy: TapHandler.ReleaseWithinBounds
-                                onSingleTapped: (eventPoint, button) => {
-                                    // items flagged onlyMenu have no activate action
-                                    if (button === Qt.RightButton || trayEntry.modelData.onlyMenu)
-                                        trayMenu.visible = !trayMenu.visible;
-                                    else
-                                        trayEntry.modelData.activate();
-                                }
+                        TapHandler {
+                            acceptedButtons: Qt.LeftButton | Qt.RightButton
+                            gesturePolicy: TapHandler.ReleaseWithinBounds
+                            onSingleTapped: (eventPoint, button) => {
+                                // items flagged onlyMenu have no activate action
+                                if (button === Qt.RightButton || trayEntry.modelData.onlyMenu)
+                                    trayMenu.visible = !trayMenu.visible;
+                                else
+                                    trayEntry.modelData.activate();
                             }
                         }
                     }
