@@ -96,6 +96,7 @@ Rectangle {
             // clears the close affordance, which overlays the top right
             width: parent.width - closeButton.width - Theme.spaceXs
             text: root.entry.appName.toUpperCase()
+            textFormat: Text.PlainText
             font.family: Theme.font
             font.pixelSize: 9
             font.letterSpacing: 0.9
@@ -106,6 +107,8 @@ Rectangle {
         Text {
             width: parent.width - closeButton.width - Theme.spaceXs
             text: root.entry.summary
+            // plain per the spec: only the body carries markup
+            textFormat: Text.PlainText
             font.family: Theme.font
             font.pixelSize: 12
             color: Theme.text
@@ -117,6 +120,12 @@ Rectangle {
         Text {
             width: parent.width
             text: root.entry.body
+            // StyledText, not AutoText: the spec's body markup is a small tag
+            // subset, and AutoText sniffs any tag and switches to RichText.
+            // That lays an <img> out at its natural size, which maximumLineCount
+            // does not bound, and fetches it over the network. GitHub sends
+            // exactly that, and it inflated the card past its blur region.
+            textFormat: Text.StyledText
             font.family: Theme.font
             font.pixelSize: 11
             color: Theme.overlay2

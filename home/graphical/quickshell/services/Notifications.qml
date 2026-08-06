@@ -85,6 +85,18 @@ Singleton {
         refreshUrgent();
     }
 
+    // Drops <img> tags from a body before it ever reaches a Text.
+    //
+    // The spec lists <img> among the body's markup, but Qt lays one out at the
+    // image's natural size, which no maximumLineCount bounds: a card carrying
+    // one grows past the blur region computed for it and spills over the
+    // desktop. It would also fetch the URL, so a notification body could phone
+    // home. GitHub sends exactly this. StyledText is not a way out; it renders
+    // <img> too.
+    function stripImages(body) {
+        return body.replace(/<img\b[^>]*>/gi, "").trim();
+    }
+
     NotificationServer {
         id: server
 
@@ -104,7 +116,7 @@ Singleton {
                 id: notif.id,
                 appName: notif.appName || "system",
                 summary: notif.summary,
-                body: notif.body,
+                body: root.stripImages(notif.body),
                 image: notif.image,
                 appIcon: notif.appIcon,
                 urgency: notif.urgency,
