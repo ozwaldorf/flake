@@ -43,6 +43,9 @@ Singleton {
     readonly property string iconCpu: String.fromCodePoint(0xf4bc)
     readonly property string iconMemory: String.fromCodePoint(0xefc5)
     readonly property string iconNetwork: String.fromCodePoint(0xf06f3)
+    readonly property string iconDisk: String.fromCodePoint(0xf02ca)
+    readonly property string iconGpu: String.fromCodePoint(0xe266)
+    readonly property string iconHost: String.fromCodePoint(0xf313)
 
     // matches hyprland decoration.rounding
     readonly property int rounding: 10

@@ -13,20 +13,34 @@ Item {
 
     property color stroke: Theme.overlay1
 
+    // A second series over the same axis, for two halves of one reading. Both
+    // are scaled to whichever runs higher, so the lines are read against each
+    // other rather than each filling the plot on a scale of its own.
+    property var secondValues: []
+    property color secondStroke: Theme.overlay0
+
+    readonly property int secondCount: secondValues ? secondValues.length : 0
+    readonly property bool split: secondCount > 1
+
     // Formats an axis value. Given the range's ceiling too, so a formatter
     // working in scaled units can pick one for the whole axis rather than
     // letting each label choose its own and reading in mixed units.
     property var format: (v, ceiling) => Math.round(v) + ""
 
+    // Shared by the three axis labels, which are one legend and have no reason
+    // to be set apart.
+    property int axisSize: 9
+
     implicitWidth: 132
-    implicitHeight: 54
+    implicitHeight: 72
 
     readonly property int count: values ? values.length : 0
 
     // Range of the window. A flat line has no range of its own, so it is given
     // one and centred in it rather than drawn along an edge.
-    readonly property real rawMax: count > 0 ? Math.max.apply(null, values) : 0
-    readonly property real rawMin: count > 0 ? Math.min.apply(null, values) : 0
+    // Across both series where there are two, so one axis carries them both.
+    readonly property real rawMax: Math.max(count > 0 ? Math.max.apply(null, values) : 0, secondCount > 0 ? Math.max.apply(null, secondValues) : 0)
+    readonly property real rawMin: count > 0 ? Math.min(Math.min.apply(null, values), secondCount > 0 ? Math.min.apply(null, secondValues) : Infinity) : 0
 
     // Nothing above this is meaningful for the reading; a percentage stops at
     // a hundred and would otherwise be padded past it. Bytes have no such
@@ -56,6 +70,12 @@ Item {
         return plot.width - (count - 1 - i) * step;
     }
 
+    // The second series against its own length, so two buffers that have
+    // filled to different depths still end level at the newest sample.
+    function secondPointX(i) {
+        return plot.width - (secondCount - 1 - i) * step;
+    }
+
     readonly property real step: count > 1 ? plot.width / (slots - 1) : plot.width
 
     function pointY(v) {
@@ -80,7 +100,7 @@ Item {
             horizontalAlignment: Text.AlignRight
             text: root.format(root.ceiling, root.ceiling)
             font.family: Theme.font
-            font.pixelSize: 8
+            font.pixelSize: root.axisSize
             font.features: {
                 "tnum": 1
             }
@@ -98,7 +118,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 text: root.format(root.midpoint, root.ceiling)
                 font.family: Theme.font
-                font.pixelSize: 8
+                font.pixelSize: root.axisSize
                 font.features: {
                     "tnum": 1
                 }
@@ -113,7 +133,7 @@ Item {
             horizontalAlignment: Text.AlignRight
             text: root.format(root.floor, root.ceiling)
             font.family: Theme.font
-            font.pixelSize: 8
+            font.pixelSize: root.axisSize
             font.features: {
                 "tnum": 1
             }
@@ -176,6 +196,45 @@ Item {
                         // over the line
                         pts.push(Qt.point(root.pointX(root.count - 1), plot.height));
                         pts.push(Qt.point(root.pointX(0), plot.height));
+                        return pts;
+                    }
+                }
+            }
+        }
+
+        // The second series, over the first. A line only, where the first
+        // carries a filled area: two washes over one another read as a third
+        // colour where they cross, and neither line stays legible through it.
+        Shape {
+            anchors.fill: parent
+            preferredRendererType: Shape.CurveRenderer
+            visible: root.split
+
+            ShapePath {
+                fillColor: "transparent"
+                strokeColor: root.secondStroke
+                strokeWidth: 1.2
+                joinStyle: ShapePath.RoundJoin
+                capStyle: ShapePath.RoundCap
+
+                Behavior on strokeColor {
+                    ColorAnimation {
+                        duration: 200
+                    }
+                }
+
+                startX: root.split ? root.secondPointX(0) : 0
+                startY: root.split ? root.pointY(root.secondValues[0]) : 0
+
+                PathPolyline {
+                    path: {
+                        const pts = [];
+                        if (!root.split)
+                            return pts;
+
+                        for (let i = 0; i < root.secondCount; i++)
+                            pts.push(Qt.point(root.secondPointX(i), root.pointY(root.secondValues[i])));
+
                         return pts;
                     }
                 }

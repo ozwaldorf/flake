@@ -179,26 +179,91 @@ PanelWindow {
     // each time, restarting whatever animation they were running.
     //
     // The readings come through the kind, which the chips resolve themselves.
-    readonly property var tipMeters: [
+    // Without the driver there is no reading to show, so those entries are
+    // dropped rather than left as chips that never fill.
+    // Rows are numbered from the bottom, where the wide end sits against the
+    // meters. Widths shape the wedge: each row is narrower than the one below
+    // it, and the sizes vary within a row so the stack does not read as a grid.
+    //
+    // Without the driver there is no GPU reading to show, so those entries drop
+    // out. That empties the top row rather than leaving a gap in it, since the
+    // pair sharing that row are both the card's.
+    readonly property var tipMeters: allMeters.filter(m => SysMeters.gpuAvailable || (m.kind !== "gpu" && m.kind !== "vram"))
+
+    readonly property var allMeters: [
+        // row 0, against the meters: the widest, at 480
+        {
+            kind: "memory",
+            icon: Theme.iconMemory,
+            label: "Memory",
+            fill: Theme.mauve,
+            row: 0,
+            width: 150
+        },
+        {
+            kind: "io",
+            icon: Theme.iconDisk,
+            label: "Disk I/O",
+            fill: Theme.yellow,
+            row: 0,
+            width: 180
+        },
+        {
+            kind: "disk",
+            icon: Theme.iconDisk,
+            label: "Disk",
+            fill: Theme.yellow,
+            row: 0,
+            width: 134,
+            dial: true
+        },
+        // row 1, at 410
+        {
+            kind: "network",
+            icon: Theme.iconNetwork,
+            label: "Network",
+            fill: Theme.teal,
+            row: 1,
+            width: 250
+        },
         {
             kind: "cpu",
             icon: Theme.iconCpu,
             label: "CPU",
             fill: Theme.sapphire,
             // a percentage cannot pass a hundred, so the axis must not either
-            limit: 100
+            limit: 100,
+            row: 1,
+            width: 152
+        },
+        // row 2, the narrow end at 318
+        {
+            kind: "gpu",
+            icon: Theme.iconGpu,
+            label: "GPU",
+            fill: Theme.green,
+            limit: 100,
+            row: 2,
+            width: 176
         },
         {
-            kind: "memory",
-            icon: Theme.iconMemory,
-            label: "Memory",
-            fill: Theme.mauve
+            kind: "vram",
+            icon: Theme.iconGpu,
+            label: "VRAM",
+            fill: Theme.green,
+            row: 2,
+            width: 134,
+            dial: true
         },
+        // The apex: what the machine is rather than what it is doing, which is
+        // read once on the way past rather than watched.
         {
-            kind: "network",
-            icon: Theme.iconNetwork,
-            label: "Network",
-            fill: Theme.teal
+            kind: "summary",
+            icon: Theme.iconHost,
+            label: "System",
+            fill: Theme.overlay2,
+            row: 3,
+            width: 225
         }
     ]
 
@@ -328,14 +393,33 @@ PanelWindow {
                     fill: Theme.mauve
                 }
 
+                // Down from the base and up stacked on it, so the mark says
+                // which direction the traffic is in rather than only that
+                // there is some.
                 LoadMeter {
                     anchors.horizontalCenter: parent.horizontalCenter
                     expanded: bar.expanded
-                    value: SysMeters.network
+                    value: SysMeters.networkDown
                     fill: Theme.teal
+                    secondValue: SysMeters.networkUp
+                    secondFill: Theme.sky
+                }
+
+                LoadMeter {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    expanded: bar.expanded
+                    value: SysMeters.gpu
+                    fill: Theme.green
+                    visible: SysMeters.gpuAvailable
+                }
+
+                LoadMeter {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    expanded: bar.expanded
+                    value: SysMeters.disk
+                    fill: Theme.yellow
                 }
             }
-
 
             Clock {
                 anchors.horizontalCenter: parent.horizontalCenter

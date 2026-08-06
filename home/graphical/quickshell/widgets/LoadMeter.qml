@@ -15,6 +15,13 @@ Rectangle {
     property color fill: Theme.overlay0
     property int warnAt: 72
 
+    // A second reading stacked on the first, for a meter carrying two halves
+    // of one figure: the mark then says which half it is rather than only how
+    // much there is of both. Off unless a colour is given.
+    property int secondValue: 0
+    property color secondFill: "transparent"
+    readonly property bool split: secondFill.a > 0
+
     // what a tooltip calls this meter and what it reads, and whether the
     // pointer is on it
     property string label: ""
@@ -40,11 +47,17 @@ Rectangle {
     }
 
     Rectangle {
+        id: primary
+
         anchors.bottom: parent.bottom
         width: parent.width
         height: parent.height * root.value / 100
         radius: 0
-        color: root.value > root.warnAt ? Theme.peach : root.fill
+
+        // A split mark keeps its colours: they are what say which half is
+        // which, and swapping one for the warning colour would read as the
+        // other half having grown.
+        color: !root.split && root.value > root.warnAt ? Theme.peach : root.fill
 
         Behavior on height {
             NumberAnimation {
@@ -55,6 +68,23 @@ Rectangle {
         Behavior on color {
             ColorAnimation {
                 duration: 700
+            }
+        }
+    }
+
+    // Stacked on the first rather than beside it: side by side halves the
+    // width of each, and in the sliver that is three pixels apiece.
+    Rectangle {
+        anchors.bottom: primary.top
+        width: parent.width
+        height: root.split ? parent.height * root.secondValue / 100 : 0
+        radius: 0
+        color: root.secondFill
+
+        Behavior on height {
+            NumberAnimation {
+                duration: 700
+                easing.type: Easing.OutQuint
             }
         }
     }
