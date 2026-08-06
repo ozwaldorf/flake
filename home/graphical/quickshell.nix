@@ -1,9 +1,11 @@
 { config, pkgs, ... }:
 {
-  # socat reads hyprcapture's recording status socket for the recorder tile
+  # socat reads hyprcapture's recording status socket for the recorder tile,
+  # curl fetches site icons for players that publish no cover art
   home.packages = [
     pkgs.quickshell
     pkgs.socat
+    pkgs.curl
   ];
 
   # symlinked out of the store so quickshell's live reload sees edits to the
