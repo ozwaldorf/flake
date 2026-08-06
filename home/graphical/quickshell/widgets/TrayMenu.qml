@@ -156,6 +156,8 @@ PanelWindow {
     }
 
     Rectangle {
+        id: surface
+
         x: root.menuX
         y: root.menuY
         width: root.menuWidth
@@ -165,6 +167,14 @@ PanelWindow {
         color: Theme.surfaceFill
         border.width: 1
         border.color: Theme.surface1
+
+        // Deeper than the panel's own cards: a menu stands above whatever it
+        // was opened from rather than sitting in a stack with it.
+        DropShadow {
+            target: surface
+            elevation: 12
+            strength: 0.4
+        }
 
         HoverHandler {
             id: menuHover
