@@ -31,14 +31,18 @@ Singleton {
     readonly property string font: "Berkeley Mono"
 
     // Berkeley Mono carries no icons, so glyphs come from the nerd font.
-    // Codepoints verified present in FiraCodeNerdFont-Regular's cmap.
+    //
+    // Checked by rendering rather than by looking them up: a codepoint can be
+    // in the cmap and still map to an empty glyph, which draws as the notdef
+    // box. The tell is the advance width, which comes out narrower than any
+    // real icon's.
     readonly property string iconFont: "FiraCode Nerd Font"
     readonly property int iconSize: 15
     readonly property string iconGear: String.fromCodePoint(0xf013)
-    readonly property string iconClose: String.fromCodePoint(0xf00d)
+    readonly property string iconClose: String.fromCodePoint(0xf467)
     readonly property string iconCpu: String.fromCodePoint(0xf4bc)
     readonly property string iconMemory: String.fromCodePoint(0xefc5)
-    readonly property string iconNetwork: String.fromCodePoint(0xf6ff)
+    readonly property string iconNetwork: String.fromCodePoint(0xf06f3)
 
     // matches hyprland decoration.rounding
     readonly property int rounding: 10
