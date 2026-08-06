@@ -129,6 +129,11 @@ PanelWindow {
     readonly property string tipText: tipMark ? tipMark.label : ""
     readonly property string tipDetail: tipMark ? tipMark.detail : ""
     readonly property string tipIcon: tipMark ? tipMark.icon : ""
+    readonly property var tipHistory: tipMark ? tipMark.history : []
+
+    // the graph takes the meter's own colour, so the tip reads as belonging to
+    // the mark it opened from
+    readonly property color tipFill: tipMark ? tipMark.fill : Theme.overlay1
 
     property real tipY: 0
 
@@ -257,6 +262,7 @@ PanelWindow {
                     fill: Theme.sapphire
                     label: "CPU"
                     icon: Theme.iconCpu
+                    history: SysMeters.cpuHistory
                     detail: SysMeters.cpu + "%"
                     onHoverChanged: hovered => bar.showTip(hovered, cpuMeter)
                 }
@@ -270,6 +276,7 @@ PanelWindow {
                     fill: Theme.mauve
                     label: "Memory"
                     icon: Theme.iconMemory
+                    history: SysMeters.memoryHistory
                     detail: SysMeters.formatBytes(SysMeters.memoryUsed) + " / " + SysMeters.formatBytes(SysMeters.memoryTotal)
                     onHoverChanged: hovered => bar.showTip(hovered, memMeter)
                 }
@@ -285,6 +292,7 @@ PanelWindow {
                     // fixed ceiling and not of the link's actual capacity
                     label: "Network"
                     icon: Theme.iconNetwork
+                    history: SysMeters.networkHistory
                     detail: SysMeters.formatBytes(SysMeters.networkRate) + "/s"
                     onHoverChanged: hovered => bar.showTip(hovered, netMeter)
                 }
@@ -305,6 +313,8 @@ PanelWindow {
         text: bar.tipText
         detail: bar.tipDetail
         icon: bar.tipIcon
+        history: bar.tipHistory
+        historyFill: bar.tipFill
         markY: bar.tipY
         shown: bar.tipMark !== null && bar.expanded
     }

@@ -20,6 +20,7 @@ Rectangle {
     property string label: ""
     property string detail: ""
     property string icon: ""
+    property var history: []
 
     signal hoverChanged(bool hovered)
 

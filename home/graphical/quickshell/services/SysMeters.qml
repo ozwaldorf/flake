@@ -20,6 +20,42 @@ Singleton {
     property real memoryTotal: 0
     property real networkRate: 0
 
+    // ---- history ----
+    //
+    // A window of past readings for the tooltips to draw. Recorded on its own
+    // timer rather than alongside the sampling, which speeds up while a rail is
+    // out: a buffer filled at two different rates would put an inconsistent
+    // time axis under the graph.
+    //
+    // Oldest first, so a graph reads left to right.
+    property var cpuHistory: []
+    property var memoryHistory: []
+    property var networkHistory: []
+
+    readonly property int historyLength: 60
+    readonly property int historyInterval: 2000
+
+    Timer {
+        interval: root.historyInterval
+        running: true
+        repeat: true
+        triggeredOnStart: true
+
+        onTriggered: {
+            root.cpuHistory = root.push(root.cpuHistory, root.cpu);
+            root.memoryHistory = root.push(root.memoryHistory, root.memory);
+            root.networkHistory = root.push(root.networkHistory, root.network);
+        }
+    }
+
+    // Reassigned rather than mutated: a binding on the list does not re-evaluate
+    // when its contents change, only when the property itself is set.
+    function push(list, value) {
+        const out = list.slice(list.length >= historyLength ? 1 : 0);
+        out.push(value);
+        return out;
+    }
+
     // Byte counts in the largest unit that leaves a number worth reading, and
     // to one decimal only below a thousand: "2.5 GB" says as much as "2.54 GB"
     // in a tooltip and changes less often.

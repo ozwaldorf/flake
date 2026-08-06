@@ -27,6 +27,10 @@ PanelWindow {
     // nerd font glyph beside them, or empty for none
     property string icon: ""
 
+    // past readings to draw under the label, or empty for none
+    property var history: []
+    property color historyFill: Theme.overlay1
+
     // vertical centre of the mark this is labelling, in screen coordinates
     property real markY: 0
 
@@ -61,10 +65,13 @@ PanelWindow {
         x: root.anchorRight ? root.width - Theme.rail - 8 - width : Theme.rail + 8
         y: Math.round(root.markY - height / 2)
 
-        // padded like the cards, which inset their content by spaceSm on every
-        // side rather than only across
-        implicitWidth: lines.implicitWidth + Theme.spaceSm * 2 + (icon.visible ? icon.width + Theme.spaceSm : 0)
-        implicitHeight: lines.implicitHeight + Theme.spaceSm * 2
+        // Padded like the cards, which inset their content by spaceSm on every
+        // side. Wide enough for the graph when there is one, since a sparkline
+        // squeezed to the width of the word "CPU" is not worth drawing.
+        readonly property real headerWidth: lines.implicitWidth + (icon.visible ? icon.width + Theme.spaceSm : 0)
+
+        implicitWidth: Math.max(headerWidth, graph.visible ? 132 : 0) + Theme.spaceSm * 2
+        implicitHeight: body.implicitHeight + Theme.spaceSm * 2
 
         // Same surface as the cards in the control centre. Those sit on the
         // panel and layer a half alpha wash over it; this stands on its own,
@@ -87,48 +94,74 @@ PanelWindow {
             }
         }
 
-        // Spans both rows rather than sitting on one, the way the connectivity
-        // tiles put their puck beside a name over a status line.
-        Text {
-            id: icon
+        Column {
+            id: body
 
             anchors.left: parent.left
-            anchors.leftMargin: Theme.spaceSm
-            anchors.verticalCenter: parent.verticalCenter
-
-            text: root.icon
-            font.family: Theme.iconFont
-            font.pixelSize: Theme.iconSize
-            color: Theme.overlay2
-            visible: root.icon !== ""
-        }
-
-        // Name over reading, so the reading can be as long as it needs without
-        // the name being pushed off or the tip running the width of the screen.
-        Column {
-            id: lines
-
-            anchors.left: icon.visible ? icon.right : parent.left
-            anchors.leftMargin: Theme.spaceSm
-            anchors.verticalCenter: parent.verticalCenter
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.margins: Theme.spaceSm
             spacing: Theme.spaceXs
 
-            Text {
-                text: root.text
-                font.family: Theme.font
-                font.pixelSize: 10
-                color: Theme.text
+            Item {
+                width: parent.width
+                implicitHeight: lines.implicitHeight
+
+                // Spans both rows rather than sitting on one, the way the
+                // connectivity tiles put their puck beside a name over a
+                // status line.
+                Text {
+                    id: icon
+
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    text: root.icon
+                    font.family: Theme.iconFont
+                    font.pixelSize: Theme.iconSize
+                    color: Theme.overlay2
+                    visible: root.icon !== ""
+                }
+
+                // Name over reading, so the reading can be as long as it needs
+                // without the name being pushed off or the tip running the
+                // width of the screen.
+                Column {
+                    id: lines
+
+                    anchors.left: icon.visible ? icon.right : parent.left
+                    anchors.leftMargin: icon.visible ? Theme.spaceSm : 0
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: Theme.spaceXs
+
+                    Text {
+                        text: root.text
+                        font.family: Theme.font
+                        font.pixelSize: 10
+                        color: Theme.text
+                    }
+
+                    Text {
+                        text: root.detail
+                        font.family: Theme.font
+                        font.pixelSize: 10
+                        font.features: {
+                            "tnum": 1
+                        }
+                        color: Theme.overlay1
+                        visible: root.detail.length > 0
+                    }
+                }
             }
 
-            Text {
-                text: root.detail
-                font.family: Theme.font
-                font.pixelSize: 10
-                font.features: {
-                    "tnum": 1
-                }
-                color: Theme.overlay1
-                visible: root.detail.length > 0
+            Sparkline {
+                id: graph
+
+                width: parent.width
+                implicitHeight: 28
+                values: root.history
+                stroke: root.historyFill
+                visible: root.history && root.history.length > 0
             }
         }
     }
