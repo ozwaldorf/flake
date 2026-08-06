@@ -12,11 +12,21 @@ let
     text = ''
       state="''${XDG_RUNTIME_DIR:-/tmp}/idle-dim.state"
 
+      # DDC writes NAK often enough that a single failure is not a real one, so
+      # retry before giving up. A device that stays unreachable must not take
+      # the other panels down with it, hence the non-fatal return.
       set_level() {
-        busctl --system call org.freedesktop.login1 \
-          /org/freedesktop/login1/session/auto \
-          org.freedesktop.login1.Session \
-          SetBrightness ssu backlight "$1" "$2" >/dev/null
+        for _ in 1 2 3; do
+          if busctl --system call org.freedesktop.login1 \
+            /org/freedesktop/login1/session/auto \
+            org.freedesktop.login1.Session \
+            SetBrightness ssu backlight "$1" "$2" >/dev/null 2>&1; then
+            return 0
+          fi
+          sleep 0.3
+        done
+        printf 'idle-dim: %s did not take level %s\n' "$1" "$2" >&2
+        return 0
       }
 
       case "''${1:-}" in
@@ -29,7 +39,9 @@ let
           for d in /sys/class/backlight/*; do
             [ -e "$d/max_brightness" ] || continue
             b="''${d##*/}"
-            cur=$(cat "$d/actual_brightness")
+            # ddcci panels expose no actual_brightness, only the level last
+            # asked for, so brightness is the reading that is always there.
+            cur=$(cat "$d/actual_brightness" 2>/dev/null || cat "$d/brightness")
             max=$(cat "$d/max_brightness")
             printf '%s %s\n' "$b" "$cur" >> "$state"
 
@@ -42,11 +54,14 @@ let
 
         restore)
           [ -e "$state" ] || exit 0
-          while read -r b level; do
+          # Drop the state first: a panel that refuses its level must not leave
+          # a file behind that makes the next dim think it already ran.
+          levels=$(cat "$state")
+          rm -f "$state"
+          printf '%s\n' "$levels" | while read -r b level; do
             [ -n "$b" ] || continue
             set_level "$b" "$level"
-          done < "$state"
-          rm -f "$state"
+          done
           ;;
       esac
     '';
