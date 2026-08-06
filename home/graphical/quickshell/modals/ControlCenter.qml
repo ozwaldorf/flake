@@ -173,6 +173,9 @@ ModalPanel {
 
                 readonly property int trayCount: SystemTray.items.values.length
 
+                // whichever entry has its menu up, or null; one at a time
+                property var openMenu: null
+
                 // Entries are square and as tall as the row, so what they need
                 // is known before laying anything out.
                 readonly property real entry: 54
@@ -282,11 +285,29 @@ ModalPanel {
                             // is, and release that hold if the tray item goes
                             // away while its menu is still up: the panel would
                             // otherwise stay open with nothing holding it.
-                            onVisibleChanged: root.setChildHovered(visible)
+                            //
+                            // Registering as the open one here rather than
+                            // binding visible to the tray's key, since the menu
+                            // writes its own visible when it dismisses itself
+                            // and a binding would be broken by that write.
+                            onVisibleChanged: {
+                                root.setChildHovered(visible);
+
+                                if (visible)
+                                    utility.openMenu = trayMenu;
+                                else if (utility.openMenu === trayMenu)
+                                    utility.openMenu = null;
+                            }
 
                             Component.onDestruction: {
-                                if (visible)
-                                    root.setChildHovered(false);
+                                if (!visible)
+                                    return;
+
+                                // torn down while up: nothing else will emit
+                                // the change that would release these
+                                root.setChildHovered(false);
+                                if (utility.openMenu === trayMenu)
+                                    utility.openMenu = null;
                             }
                         }
 
@@ -295,10 +316,17 @@ ModalPanel {
                             gesturePolicy: TapHandler.ReleaseWithinBounds
                             onSingleTapped: (eventPoint, button) => {
                                 // items flagged onlyMenu have no activate action
-                                if (button === Qt.RightButton || trayEntry.modelData.onlyMenu)
+                                if (button === Qt.RightButton || trayEntry.modelData.onlyMenu) {
+                                    // close whatever else was up first: the
+                                    // menus are separate windows and nothing
+                                    // dismisses one because another opened
+                                    if (utility.openMenu && utility.openMenu !== trayMenu)
+                                        utility.openMenu.visible = false;
+
                                     trayMenu.visible = !trayMenu.visible;
-                                else
+                                } else {
                                     trayEntry.modelData.activate();
+                                }
                             }
                         }
                     }
