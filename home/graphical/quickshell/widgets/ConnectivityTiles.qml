@@ -102,6 +102,7 @@ Column {
             label: "Wi-Fi"
             on: Wifi.enabled
             expanded: root.open === "wifi"
+            joined: listCard.height > 0 && listCard.fromLeft
 
             // One line of state, in priority order: what is wrong, what is
             // happening, or what you are on.
@@ -145,6 +146,7 @@ Column {
             on: Bluetooth.enabled
             status: Bluetooth.summary
             expanded: root.open === "bluetooth"
+            joined: listCard.height > 0 && !listCard.fromLeft
 
             onToggled: Bluetooth.toggle()
             onListToggled: root.toggle("bluetooth")

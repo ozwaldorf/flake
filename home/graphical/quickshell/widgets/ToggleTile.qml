@@ -59,8 +59,13 @@ Rectangle {
 
     // Squared along the bottom while its own list is out, so the tile and the
     // list read as one surface rather than two stacked against each other.
-    bottomLeftRadius: expanded ? 0 : radius
-    bottomRightRadius: expanded ? 0 : radius
+    // Set while a list is joined onto the bottom of this tile, including the
+    // whole of its collapse: rounding the corners the moment it is asked to
+    // close leaves them curved against a list still on its way down.
+    property bool joined: expanded
+
+    bottomLeftRadius: joined ? 0 : radius
+    bottomRightRadius: joined ? 0 : radius
 
     // The panel's own fill, since the cards stand on the desktop rather than
     // on a surface: each frosts its own rectangle.
