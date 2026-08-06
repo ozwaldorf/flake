@@ -15,6 +15,11 @@ Rectangle {
     property color fill: Theme.overlay0
     property int warnAt: 72
 
+    // what a tooltip calls this meter, and whether the pointer is on it
+    property string label: ""
+
+    signal hoverChanged(bool hovered)
+
     // Each meter has its own row, so all three are present in both forms and
     // only the width animates, matching the workspace marks.
     implicitWidth: expanded ? Theme.meterWidth : Theme.sliver
@@ -47,6 +52,18 @@ Rectangle {
             ColorAnimation {
                 duration: 700
             }
+        }
+    }
+
+    // Fixed size target spanning the rail, so expanding does not move it out
+    // from under a stationary pointer and the sliver is not what has to be hit.
+    Item {
+        anchors.centerIn: parent
+        width: Theme.rail
+        height: parent.height
+
+        HoverHandler {
+            onHoveredChanged: root.hoverChanged(hovered)
         }
     }
 }

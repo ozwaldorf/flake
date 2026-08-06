@@ -114,6 +114,35 @@ PanelWindow {
         }
     }
 
+    // ---- tooltips ----
+    //
+    // The meters say how loaded things are but not what they are, and the rail
+    // has no room to label them. Tracked here rather than in the marks so only
+    // one is ever up, and so the tip can be given the mark's position in this
+    // window's coordinates.
+
+    // whichever mark the pointer is on, or null
+    property var tipMark: null
+
+    // Bound rather than copied, so the reading keeps counting while the tip is
+    // up instead of freezing at whatever it was when the pointer arrived.
+    readonly property string tipText: tipMark ? tipMark.label : ""
+
+    property real tipY: 0
+
+    function showTip(on, mark) {
+        if (on) {
+            tipMark = mark;
+            // mapToItem rather than reading y directly: the mark is several
+            // items deep, and its own y is relative to the column it sits in
+            tipY = mark.mapToItem(bar.contentItem, 0, mark.height / 2).y;
+        } else if (tipMark === mark) {
+            // only the mark that raised it can lower it, or moving between two
+            // adjacent meters would blank the tip the second one just set
+            tipMark = null;
+        }
+    }
+
     // widened catch area so the pointer does not have to hit 6px exactly
     HoverHandler {
         id: rawHover
@@ -218,24 +247,38 @@ PanelWindow {
                 spacing: Theme.meterGap
 
                 LoadMeter {
+                    id: cpuMeter
+
                     anchors.horizontalCenter: parent.horizontalCenter
                     expanded: bar.expanded
                     value: SysMeters.cpu
                     fill: Theme.sapphire
+                    label: "CPU " + SysMeters.cpu + "%"
+                    onHoverChanged: hovered => bar.showTip(hovered, cpuMeter)
                 }
 
                 LoadMeter {
+                    id: memMeter
+
                     anchors.horizontalCenter: parent.horizontalCenter
                     expanded: bar.expanded
                     value: SysMeters.memory
                     fill: Theme.mauve
+                    label: "Memory " + SysMeters.memory + "%"
+                    onHoverChanged: hovered => bar.showTip(hovered, memMeter)
                 }
 
                 LoadMeter {
+                    id: netMeter
+
                     anchors.horizontalCenter: parent.horizontalCenter
                     expanded: bar.expanded
                     value: SysMeters.network
                     fill: Theme.teal
+                    // scaled against a fixed ceiling, so the percentage is of
+                    // that rather than of the link's actual rate
+                    label: "Network " + SysMeters.network + "%"
+                    onHoverChanged: hovered => bar.showTip(hovered, netMeter)
                 }
             }
 
@@ -244,5 +287,15 @@ PanelWindow {
                 expanded: bar.expanded
             }
         }
+    }
+
+    // Only while the rail is out: in the sliver the meters are six pixels wide
+    // and a label beside them would be most of what is on screen.
+    RailTip {
+        screenData: bar.modelData
+        anchorRight: bar.anchorRight
+        text: bar.tipText
+        markY: bar.tipY
+        shown: bar.tipMark !== null && bar.expanded
     }
 }
