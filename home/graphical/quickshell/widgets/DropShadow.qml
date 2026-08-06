@@ -33,8 +33,11 @@ Item {
         }
     }
 
-    // Offset downward by a fraction of the spread, so the light reads as
-    // coming from above rather than the shadow sitting evenly around.
+    // How far the shadow is pushed down as a fraction of the spread, so the
+    // light reads as coming from above. Zero spreads it evenly, for something
+    // round enough that a drop below it reads as lopsided rather than lit.
+    property real sink: 0.4
+
     anchors.fill: target
     anchors.margins: -elevation
 
@@ -43,8 +46,8 @@ Item {
     Rectangle {
         anchors.fill: parent
         anchors.margins: root.elevation
-        anchors.topMargin: root.elevation * 0.6
-        anchors.bottomMargin: root.elevation * 1.4
+        anchors.topMargin: root.elevation * (1 - root.sink)
+        anchors.bottomMargin: root.elevation * (1 + root.sink)
 
         radius: root.target.radius ?? 9
         color: "black"
