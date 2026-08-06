@@ -30,6 +30,10 @@ Column {
     // A Column still spaces around a zero height child, so with no list out
     // the gap would hang below the tiles as bare padding. Animated rather
     // than switched so it opens with the list rather than ahead of it.
+    //
+    // The gap stays even with a list open: the card reaches back up through it
+    // on its own tile's side rather than the whole row closing up, so the join
+    // is to that tile alone.
     spacing: open === "" ? 0 : Theme.spaceXs
 
     Behavior on spacing {
@@ -65,6 +69,11 @@ Column {
         Bluetooth.scan(open === "bluetooth");
         if (open !== "wifi")
             wifiList.asking = "";
+
+        // Only on the way open: closing leaves the join where it was so the
+        // card comes down under the tile it belongs to.
+        if (open !== "")
+            listCard.fromLeft = open === "wifi";
     }
 
     Component.onDestruction: {
@@ -153,11 +162,78 @@ Column {
 
     // Height follows whichever list is showing, so the panel above resizes
     // with it and the two lists cross fade rather than both taking space.
-    Item {
-        width: parent.width
-        clip: true
+    //
+    // A surface of its own, rather than a list on the desktop: it is the tile
+    // it came from, opened up. The two top corners on that tile's side stay
+    // square so the list reads as hanging from it rather than as a separate
+    // card that happens to be underneath.
+    Rectangle {
+        id: listCard
 
-        implicitHeight: root.open === "" ? 0 : Math.min(root.open === "wifi" ? wifiList.wantedHeight : bluetoothList.wantedHeight, root.listHeight)
+        width: parent.width
+
+        // Not clipped here: the bridge below reaches up out of these bounds to
+        // meet the tile. The list inside does its own clipping instead.
+
+        // Which half the open tile occupies, and so which corners to square
+        // and which side to bridge.
+        //
+        // Held through a collapse rather than following root.open, which
+        // clears the moment the tile is clicked: the card is still on its way
+        // down, and switching sides then swings the join across to the other
+        // tile for the length of the animation.
+        property bool fromLeft: true
+
+        readonly property bool bothTiles: Wifi.available && Bluetooth.available
+
+        implicitHeight: root.open === "" ? 0 : Math.min(root.open === "wifi" ? wifiList.wantedHeight : bluetoothList.wantedHeight, root.listHeight) + Theme.spaceXs * 2
+
+        radius: 9
+        color: Theme.surfaceFill
+
+        // Squared where the tile above meets it. With only one tile there is
+        // nothing to pick between, so the whole top edge joins.
+        topLeftRadius: bothTiles && !fromLeft ? radius : 0
+        topRightRadius: bothTiles && fromLeft ? radius : 0
+
+
+        // Bridges the gap the column leaves, under the open tile alone: the
+        // list belongs to that tile, so it reaches back to that one and not to
+        // its neighbour. Square at both ends, being the middle of a join.
+        Rectangle {
+            id: bridge
+
+            x: listCard.fromLeft || !listCard.bothTiles ? 0 : listCard.width - width
+            width: listCard.bothTiles ? (listCard.width - Theme.spaceXs) / 2 : listCard.width
+
+            // Exactly the gap, tracking it as it opens rather than fixed at
+            // its final size: the spacing animates from nothing, so a fixed
+            // height laps onto the tile for the length of the animation. The
+            // card's own top edge closes the join, so reaching past it only
+            // doubles the fill and shows as a seam.
+            height: root.spacing
+            y: -height
+            color: listCard.color
+            visible: listCard.height > 0
+        }
+
+        Loader {
+            active: root.host !== null
+            sourceComponent: CardBlur {
+                target: listCard
+                host: root.host
+            }
+        }
+
+        // The bridge is its own rectangle above the card, so it needs its own
+        // blur or it shows as an unfrosted strip across the join.
+        Loader {
+            active: root.host !== null
+            sourceComponent: CardBlur {
+                target: bridge
+                host: root.host
+            }
+        }
 
         Behavior on implicitHeight {
             NumberAnimation {
@@ -169,8 +245,8 @@ Column {
         WifiList {
             id: wifiList
 
-            width: parent.width
-            height: parent.height
+            anchors.fill: parent
+            anchors.margins: Theme.spaceXs
             opacity: root.open === "wifi" ? 1 : 0
             visible: opacity > 0
 
@@ -186,8 +262,8 @@ Column {
         BluetoothList {
             id: bluetoothList
 
-            width: parent.width
-            height: parent.height
+            anchors.fill: parent
+            anchors.margins: Theme.spaceXs
             opacity: root.open === "bluetooth" ? 1 : 0
             visible: opacity > 0
 

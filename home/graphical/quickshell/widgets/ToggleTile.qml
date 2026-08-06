@@ -57,11 +57,18 @@ Rectangle {
     implicitHeight: Theme.spaceSm * 2 + Math.max(puck.implicitHeight, rows.implicitHeight)
     radius: 9
 
+    // Squared along the bottom while its own list is out, so the tile and the
+    // list read as one surface rather than two stacked against each other.
+    bottomLeftRadius: expanded ? 0 : radius
+    bottomRightRadius: expanded ? 0 : radius
+
     // The panel's own fill, since the cards stand on the desktop rather than
-    // on a surface: each frosts its own rectangle. Hover and an open list lift
-    // it from there, in alpha only rather than to "transparent", which is
-    // transparent black and drags the fade through black at both ends.
-    color: tileHover.hovered || expanded ? Qt.tint(Theme.surfaceFill, Qt.alpha(Theme.text, 0.06)) : Theme.surfaceFill
+    // on a surface: each frosts its own rectangle.
+    //
+    // Lifted on hover alone. An open list joins onto the tile as one surface,
+    // so holding the lift while it is out would make the tile the brighter
+    // half of something that should read as a single card.
+    color: tileHover.hovered ? Qt.tint(Theme.surfaceFill, Qt.alpha(Theme.text, 0.06)) : Theme.surfaceFill
 
     Behavior on color {
         ColorAnimation {
