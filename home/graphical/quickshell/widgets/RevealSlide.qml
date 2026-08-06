@@ -114,15 +114,30 @@ Item {
         }
     }
 
-    // Closing is not staggered: the rows go together with the panel so
-    // dismissal stays crisp, and only the opacity moves so nothing is caught
-    // mid travel.
-    NumberAnimation {
+    // Whether leaving is staggered like arriving. Off by default: the rows go
+    // together with the panel so its dismissal stays crisp, and a sequence
+    // there would only hold the panel on screen after it was asked to close.
+    // A set being cleared while the panel stays up is the other case, where
+    // the sequence is the point.
+    property bool staggerExit: false
+
+    // Counted the other way to the reveal, so a set clears from the end it
+    // built toward rather than unwinding in the order it arrived.
+    property int exitIndex: index
+
+    SequentialAnimation {
         id: dismiss
 
-        target: root.target
-        property: "opacity"
-        to: 0
-        duration: Theme.fadeDuration
+        PauseAnimation {
+            duration: root.staggerExit ? root.exitIndex * Theme.staggerStep : 0
+        }
+
+        // Opacity alone, so nothing is caught mid travel.
+        NumberAnimation {
+            target: root.target
+            property: "opacity"
+            to: 0
+            duration: Theme.fadeDuration
+        }
     }
 }

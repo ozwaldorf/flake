@@ -18,6 +18,31 @@ ModalPanel {
 
     contentHeight: layout.implicitHeight
 
+    // Set while the notification stack is on its way out, so the cards run
+    // their own dismissal before the model is emptied: clearing it outright
+    // takes the delegates with it and they simply disappear.
+    property bool clearing: false
+
+    function clearNotifications() {
+        if (clearing || Notifications.count === 0)
+            return;
+        clearing = true;
+        clearTimer.restart();
+    }
+
+    Timer {
+        id: clearTimer
+
+        // The whole sequence: the last card's wait plus its own fade, and a
+        // little past that so the final frame has landed before the entries go.
+        interval: Math.max(0, Notifications.count - 1) * Theme.staggerStep + Theme.fadeDuration + 40
+
+        onTriggered: {
+            Notifications.clear();
+            root.clearing = false;
+        }
+    }
+
     // Room around the rows for what falls outside them: the distance they
     // travel on the way in, and the shadow they cast.
     //
@@ -466,7 +491,7 @@ ModalPanel {
 
                     TapHandler {
                         enabled: clearAll.has
-                        onTapped: Notifications.clear()
+                        onTapped: root.clearNotifications()
                     }
                 }
             }
@@ -525,11 +550,21 @@ ModalPanel {
             // one: the stack reads as one set coming in.
             opacity: 0
 
+            // Driven low while the stack is being cleared as well as when the
+            // panel closes, so the cards leave the way they arrived rather
+            // than the model emptying out from under them.
             RevealSlide {
                 target: card
                 index: layout.rows + card.index
-                shown: root.shown
+                shown: root.shown && !root.clearing
                 fromRight: root.anchorRight
+
+                // Sequenced only when the stack is being cleared, and from the
+                // bottom up: the panel's own dismissal takes them together, but
+                // clearing happens with the panel still open and reads better
+                // as the stack emptying than as everything going at once.
+                staggerExit: root.clearing
+                exitIndex: Notifications.count - 1 - card.index
             }
 
             onChildHoverChanged: hovered => root.setChildHovered(hovered)
