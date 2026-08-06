@@ -123,10 +123,18 @@ PanelWindow {
         border.width: root.floating ? 0 : 1
         border.color: Theme.surface1
 
-        // fade only: no scale, no position or size animation
-        opacity: root.shown ? 1 : 0
+        // Fade only: no scale, no position or size animation.
+        //
+        // While floating the panel draws nothing of its own, and its rows fade
+        // themselves on a stagger, so applying this to them as well would
+        // compound the two. It stays as the timing signal the blur and the
+        // window's own visibility key off.
+        opacity: root.floating ? 1 : fade
 
-        Behavior on opacity {
+        // not readonly: a Behavior writes to what it animates
+        property real fade: root.shown ? 1 : 0
+
+        Behavior on fade {
             NumberAnimation {
                 id: slide
                 duration: Theme.fadeDuration
@@ -281,7 +289,7 @@ PanelWindow {
     // Switched at the halfway point of the fade, which every surface here
     // keys off: a region is plain geometry and knows nothing about opacity, so
     // holding one to the end of the fade leaves a pane where the panel was.
-    readonly property bool blurActive: panel.opacity > 0.5
+    readonly property bool blurActive: panel.fade > 0.5
 
     Region {
         id: panelRegion

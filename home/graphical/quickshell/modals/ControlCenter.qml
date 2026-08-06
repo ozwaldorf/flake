@@ -34,6 +34,10 @@ ModalPanel {
 
             readonly property var player: Mpris.players.values.length > 0 ? Mpris.players.values[0] : null
 
+            // how many rows the controls take, so the notification cards below
+            // carry on the same sequence rather than starting a second one
+            readonly property int rows: 4
+
             width: parent.width
 
             // Every section is a card or a row of them, so they all sit at one
@@ -71,6 +75,8 @@ ModalPanel {
             }
 
             BrightnessCard {
+                id: brightness
+
                 host: root
                 width: parent.width
                 onHoverChanged: hovered => root.setChildHovered(hovered)
@@ -416,6 +422,38 @@ ModalPanel {
         }
     }
 
+    // Each row arrives a step behind the one above it, sliding in from the
+    // edge the panel opened from. Declared out here rather than inside the
+    // rows: a Column lays out every child it has, and these would each take a
+    // slot of their own.
+    RevealSlide {
+        target: connectivity
+        index: 0
+        shown: root.shown
+        fromRight: root.anchorRight
+    }
+
+    RevealSlide {
+        target: brightness
+        index: 1
+        shown: root.shown
+        fromRight: root.anchorRight
+    }
+
+    RevealSlide {
+        target: audio
+        index: 2
+        shown: root.shown
+        fromRight: root.anchorRight
+    }
+
+    RevealSlide {
+        target: utility
+        index: 3
+        shown: root.shown
+        fromRight: root.anchorRight
+    }
+
     // Notification cards live below the panel as their own surfaces rather than
     // inside it, so each keeps its own fill, rounding and blur.
     detached: Repeater {
@@ -431,45 +469,16 @@ ModalPanel {
             anchorRight: root.anchorRight
             entry: model
 
-            // Each card starts while the panel is still fading and one stagger
-            // step behind the card above it, so the fades overlap and the whole
-            // set lands quickly. Closing is not staggered: they all drop with
-            // the panel so dismissal stays crisp.
+            // Each card arrives a step behind the one above it, continuing the
+            // sequence the control rows started rather than beginning a second
+            // one: the stack reads as one set coming in.
             opacity: 0
 
-            Connections {
-                target: root
-
-                function onShownChanged() {
-                    if (root.shown)
-                        revealIn.restart();
-                    else
-                        fadeOut.restart();
-                }
-            }
-
-            SequentialAnimation {
-                id: revealIn
-
-                PauseAnimation {
-                    duration: Theme.staggerLead + card.index * Theme.staggerStep
-                }
-                NumberAnimation {
-                    target: card
-                    property: "opacity"
-                    to: 1
-                    duration: Theme.fadeDuration
-                    easing.type: Easing.OutQuad
-                }
-            }
-
-            NumberAnimation {
-                id: fadeOut
-
+            RevealSlide {
                 target: card
-                property: "opacity"
-                to: 0
-                duration: Theme.fadeDuration
+                index: layout.rows + card.index
+                shown: root.shown
+                fromRight: root.anchorRight
             }
 
             onChildHoverChanged: hovered => root.setChildHovered(hovered)
