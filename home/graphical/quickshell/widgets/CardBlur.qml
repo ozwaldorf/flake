@@ -18,30 +18,45 @@ Item {
     required property Item target
     required property var host
 
-    // Dropped at the halfway point of the panel's fade rather than held to the
-    // end of it. A region is plain geometry and knows nothing about opacity,
-    // so leaving it up through the fade reads as a pane hanging where the card
-    // used to be. The card is translucent enough either side of halfway for
-    // the switch not to register.
-    property bool active: host.blurActive
+    // Switched at the halfway point of the card's own fade, not the panel's:
+    // the rows arrive on a stagger, so a row still waiting its turn would have
+    // its blur snap on at full size while it was invisible.
+    //
+    // A region is plain geometry and knows nothing about opacity, so it cannot
+    // fade with the card; the card is translucent enough either side of
+    // halfway for the switch not to register.
+    //
+    // Compounded up the chain rather than read off the target: a card inside a
+    // row that fades as a whole has an opacity of its own that never moves, so
+    // the fade it is actually subject to belongs to something above it.
+    property bool active: chain.opacity > 0.5
 
     visible: false
 
-    readonly property point origin: {
+    // One walk for both: the offset from the window's origin and the opacity
+    // the card is actually drawn at. Every step's x, y and opacity is read, so
+    // each is a dependency and the region follows the card as it slides in.
+    readonly property var chain: {
         let x = 0;
         let y = 0;
+        let o = 1;
         let item = target;
         while (item && item !== host.contentItem) {
             x += item.x;
             y += item.y;
+            o *= item.opacity;
             item = item.parent;
         }
-        return Qt.point(x, y);
+        return {
+            x: x,
+            y: y,
+            opacity: o
+        };
     }
 
     readonly property Region region: Region {
-        x: root.origin.x
-        y: root.origin.y
+        x: root.chain.x
+        y: root.chain.y
         width: root.active && root.target.visible ? root.target.width : 0
         height: root.active && root.target.visible ? root.target.height : 0
         radius: root.target.radius ?? 9
