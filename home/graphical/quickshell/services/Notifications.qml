@@ -23,7 +23,20 @@ Singleton {
     // Counted rather than a flag because there is one panel per monitor, and
     // closing one must not unsuppress while another is still open.
     property int toastHolders: 0
-    readonly property bool toastsSuppressed: toastHolders > 0
+
+    // Held for a moment after the shell starts as well. Anything already
+    // queued arrives the instant the server takes the name, and a shell that
+    // has just restarted popping a stack of notifications from before it was
+    // running is noise: they are in the history either way.
+    property bool starting: true
+
+    Timer {
+        running: true
+        interval: 10000
+        onTriggered: root.starting = false
+    }
+
+    readonly property bool toastsSuppressed: toastHolders > 0 || starting
 
     function holdToasts(on) {
         toastHolders = Math.max(0, toastHolders + (on ? 1 : -1));

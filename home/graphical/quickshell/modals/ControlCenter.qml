@@ -601,11 +601,8 @@ ModalPanel {
                 radius: card.radius
             }
 
-            Component.onCompleted: {
-                root.detachedRegions.push(cardRegion);
-                if (root.shown)
-                    revealIn.restart();
-            }
+            // the reveal starts itself; only the blur needs registering
+            Component.onCompleted: root.detachedRegions.push(cardRegion)
             Component.onDestruction: {
                 // NotificationCard releases its own outstanding hover raises,
                 // so nothing to undo here beyond the blur region
