@@ -39,12 +39,15 @@ ShellRoot {
             property string hoveredMark: ""
             property bool modalHovered: false
 
-            // Opening waits out a dwell so crossing a mark on the way to another
-            // does not flash it open. Closing waits longer so the pointer can
-            // travel the gap from mark to panel.
+            // Opening waits out a short dwell so a pointer passing through the
+            // corner on its way somewhere else does not flash the panel open.
+            // Kept brief: there is only the one zone to cross now, so it is
+            // guarding against a passing pointer rather than a mark being
+            // crossed on the way to another. Closing waits longer so the
+            // pointer can travel the gap from the zone to the panel.
             Timer {
                 id: openTimer
-                interval: 180
+                interval: 50
                 onTriggered: {
                     if (scope.hoveredMark !== "") {
                         scope.openModal = scope.hoveredMark;
