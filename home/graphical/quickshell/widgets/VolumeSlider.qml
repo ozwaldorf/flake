@@ -4,9 +4,12 @@ import QtQuick
 import ".."
 import "../services"
 
-// One audio level as a card: a label row carrying the device name and a
-// chevron, the level under it as a glyph beside a thin track, and the device
-// picker expanding inside the same card. Tapping the glyph mutes.
+// One audio level as a card: a label row carrying the current device and a
+// chevron, the level under it as a glyph beside a thin track. Tapping the glyph
+// mutes.
+//
+// The device picker lives outside, in whatever lays these out: the two cards
+// sit side by side and share one expanding list, so only one is ever open.
 Rectangle {
     id: root
 
@@ -26,6 +29,7 @@ Rectangle {
 
     // exposed so the panel can tell the pointer is still inside it
     signal hoverChanged(bool hovered)
+    signal listToggled
 
     readonly property bool isSink: device === "speaker"
     readonly property real clamped: Math.max(0, Math.min(1, value))
@@ -33,7 +37,6 @@ Rectangle {
     // one wheel notch, matching the increment the media keys use
     readonly property real step: 0.05
 
-    readonly property var devices: isSink ? Audio.sinks : Audio.sources
     readonly property var current: isSink ? Audio.sink : Audio.source
 
     implicitHeight: body.implicitHeight + Theme.spaceSm * 2
@@ -55,54 +58,56 @@ Rectangle {
         id: cardHover
     }
 
-    Behavior on implicitHeight {
-        NumberAnimation {
-            duration: Theme.morphDuration
-            easing.type: Easing.OutQuint
-        }
-    }
-
     Column {
         id: body
 
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.top: parent.top
-        anchors.margins: Theme.spaceSm
+        anchors.leftMargin: Theme.spaceSm
+        anchors.rightMargin: Theme.spaceSm
+
+        // Centred rather than pinned to the top: a card held to a taller
+        // neighbour's height would otherwise leave its content sitting high.
+        anchors.verticalCenter: parent.verticalCenter
+
         spacing: Theme.spaceXs
 
-        // ---- label row ----
+        // ---- name and device ----
 
         Item {
             width: parent.width
-            implicitHeight: 16
+            implicitHeight: 30
 
-            Text {
+            Column {
                 anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
-                text: root.label
-                font.family: Theme.font
-                font.pixelSize: 11
-                color: Theme.text
-            }
-
-            // Current device, sharing the row with the label so the card says
-            // what it is driving without being opened.
-            Text {
                 anchors.right: chevron.left
                 anchors.rightMargin: Theme.spaceXs
                 anchors.verticalCenter: parent.verticalCenter
-                width: Math.max(0, parent.width - 90)
-                horizontalAlignment: Text.AlignRight
-                text: Audio.label(root.current)
-                font.family: Theme.font
-                font.pixelSize: 10
-                color: pickHover.hovered ? Theme.subtext0 : Theme.overlay0
-                elide: Text.ElideRight
+                spacing: 1
 
-                Behavior on color {
-                    ColorAnimation {
-                        duration: 160
+                Text {
+                    width: parent.width
+                    text: root.label
+                    font.family: Theme.font
+                    font.pixelSize: 11
+                    color: Theme.text
+                    elide: Text.ElideRight
+                }
+
+                // What the level is driving, under the name rather than beside
+                // it: at half a panel wide there is no room across for both.
+                Text {
+                    width: parent.width
+                    text: Audio.label(root.current)
+                    font.family: Theme.font
+                    font.pixelSize: 10
+                    color: pickHover.hovered ? Theme.subtext0 : Theme.overlay0
+                    elide: Text.ElideRight
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: 160
+                        }
                     }
                 }
             }
@@ -127,7 +132,7 @@ Rectangle {
             }
 
             TapHandler {
-                onTapped: root.expanded = !root.expanded
+                onTapped: root.listToggled()
             }
         }
 
@@ -250,118 +255,6 @@ Rectangle {
                 HoverHandler {
                     id: hover
                     onHoveredChanged: root.hoverChanged(hovered)
-                }
-            }
-        }
-
-        // ---- device picker ----
-
-        Item {
-            width: parent.width
-            clip: true
-
-            implicitHeight: root.expanded ? Math.min(picker.implicitHeight, 150) : 0
-            opacity: root.expanded ? 1 : 0
-
-            Behavior on implicitHeight {
-                NumberAnimation {
-                    duration: Theme.morphDuration
-                    easing.type: Easing.OutQuint
-                }
-            }
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: Theme.fadeDuration
-                }
-            }
-
-            Flickable {
-                anchors.fill: parent
-                contentHeight: picker.implicitHeight
-                contentWidth: width
-                interactive: contentHeight > height
-                boundsBehavior: Flickable.StopAtBounds
-                clip: true
-
-                Column {
-                    id: picker
-
-                    width: parent.width
-                    spacing: 1
-                    topPadding: Theme.spaceXs
-
-                    Repeater {
-                        model: root.devices
-
-                        Rectangle {
-                            id: entry
-
-                            required property var modelData
-
-                            readonly property bool active: Audio.isDefault(modelData, root.isSink)
-
-                            width: picker.width
-                            implicitHeight: 26
-                            radius: 6
-                            // a step above the card, which is already surface0
-                            // once the pointer is over it
-                            color: entryHover.hovered ? Theme.surface1 : Qt.alpha(Theme.surface1, 0)
-
-                            Behavior on color {
-                                ColorAnimation {
-                                    duration: 160
-                                }
-                            }
-
-                            // filled dot on the device currently in use
-                            Rectangle {
-                                id: marker
-
-                                anchors.left: parent.left
-                                anchors.leftMargin: Theme.spaceSm
-                                anchors.verticalCenter: parent.verticalCenter
-                                implicitWidth: 5
-                                implicitHeight: 5
-                                radius: 2.5
-                                color: entry.active ? Theme.blue : Qt.alpha(Theme.blue, 0)
-
-                                Behavior on color {
-                                    ColorAnimation {
-                                        duration: 160
-                                    }
-                                }
-                            }
-
-                            Text {
-                                anchors.left: marker.right
-                                anchors.leftMargin: Theme.spaceSm
-                                anchors.right: parent.right
-                                anchors.rightMargin: Theme.spaceSm
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: Audio.label(entry.modelData)
-                                font.family: Theme.font
-                                font.pixelSize: 10
-                                color: entry.active ? Theme.text : Theme.subtext0
-                                elide: Text.ElideRight
-                            }
-
-                            HoverHandler {
-                                id: entryHover
-                                cursorShape: Qt.PointingHandCursor
-                                onHoveredChanged: root.hoverChanged(hovered)
-                            }
-
-                            TapHandler {
-                                onTapped: {
-                                    if (root.isSink)
-                                        Audio.setSink(entry.modelData);
-                                    else
-                                        Audio.setSource(entry.modelData);
-                                    root.expanded = false;
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }

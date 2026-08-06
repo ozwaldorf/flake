@@ -3,7 +3,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import Quickshell
-import Quickshell.Services.Pipewire
 import Quickshell.Services.SystemTray
 import Quickshell.Services.Mpris
 import Quickshell.Services.Notifications
@@ -60,37 +59,8 @@ ModalPanel {
                 onHoverChanged: hovered => root.setChildHovered(hovered)
             }
 
-            VolumeSlider {
+            AudioTiles {
                 width: parent.width
-                device: "speaker"
-                label: "Volume"
-                value: Pipewire.defaultAudioSink?.audio?.volume ?? 0
-                muted: Pipewire.defaultAudioSink?.audio?.muted ?? false
-                onMoved: v => {
-                    if (Pipewire.defaultAudioSink?.audio)
-                        Pipewire.defaultAudioSink.audio.volume = v;
-                }
-                onMuteToggled: {
-                    if (Pipewire.defaultAudioSink?.audio)
-                        Pipewire.defaultAudioSink.audio.muted = !Pipewire.defaultAudioSink.audio.muted;
-                }
-                onHoverChanged: hovered => root.setChildHovered(hovered)
-            }
-
-            VolumeSlider {
-                width: parent.width
-                device: "mic"
-                label: "Microphone"
-                value: Pipewire.defaultAudioSource?.audio?.volume ?? 0
-                muted: Pipewire.defaultAudioSource?.audio?.muted ?? false
-                onMoved: v => {
-                    if (Pipewire.defaultAudioSource?.audio)
-                        Pipewire.defaultAudioSource.audio.volume = v;
-                }
-                onMuteToggled: {
-                    if (Pipewire.defaultAudioSource?.audio)
-                        Pipewire.defaultAudioSource.audio.muted = !Pipewire.defaultAudioSource.audio.muted;
-                }
                 onHoverChanged: hovered => root.setChildHovered(hovered)
             }
 
