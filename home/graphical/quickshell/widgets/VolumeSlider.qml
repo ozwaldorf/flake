@@ -53,9 +53,12 @@ Rectangle {
     }
 
     // Behind the content so the children keep their own hover states; this
-    // only reports whether the pointer is over the card at all.
+    // only reports whether the pointer is over the card at all. Reported
+    // upward too, since the panel dismisses on losing the pointer and the
+    // card's own body is neither the track nor the label row.
     HoverHandler {
         id: cardHover
+        onHoveredChanged: root.hoverChanged(hovered)
     }
 
     Column {

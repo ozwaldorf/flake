@@ -34,8 +34,12 @@ Rectangle {
     Component.onCompleted: Backlight.watch(true)
     Component.onDestruction: Backlight.watch(false)
 
+    // Reported upward as well as driving the fill: the panel dismisses on
+    // losing the pointer, and the card's own body is not the track, so without
+    // this the modal closed the moment you were over anything but the slider.
     HoverHandler {
         id: cardHover
+        onHoveredChanged: root.hoverChanged(hovered)
     }
 
     Column {
