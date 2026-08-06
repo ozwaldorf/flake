@@ -18,9 +18,16 @@ ModalPanel {
 
     contentHeight: layout.implicitHeight
 
+    // Room either side for the rows to slide in through. The clip is here for
+    // vertical scrolling, but it cuts the horizontal travel too, so the rows
+    // are inset by the distance they move and arrive within it rather than
+    // from outside the viewport.
+    readonly property real slideRoom: 12
+
     Flickable {
         anchors.fill: parent
-        // no inset: the cards run to the container edges
+        anchors.leftMargin: -root.slideRoom
+        anchors.rightMargin: -root.slideRoom
         contentHeight: layout.implicitHeight
         clip: true
 
@@ -32,13 +39,17 @@ ModalPanel {
         Column {
             id: layout
 
+            // Inset back to the panel's own width inside a viewport widened to
+            // give the slide somewhere to come from.
+            x: root.slideRoom
+            width: parent.width - root.slideRoom * 2
+
             readonly property var player: Mpris.players.values.length > 0 ? Mpris.players.values[0] : null
 
             // how many rows the controls take, so the notification cards below
             // carry on the same sequence rather than starting a second one
             readonly property int rows: 4
 
-            width: parent.width
 
             // Every section is a card or a row of them, so they all sit at one
             // gap; a wider one between sections read as padding hanging under
