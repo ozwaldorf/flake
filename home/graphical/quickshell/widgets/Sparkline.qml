@@ -13,9 +13,9 @@ Item {
 
     property color stroke: Theme.overlay1
 
-    // Formats an axis value. Given the window's own ceiling too, so a
-    // formatter working in scaled units can pick one for the whole axis rather
-    // than letting each label choose its own and reading in mixed units.
+    // Formats an axis value. Given the range's ceiling too, so a formatter
+    // working in scaled units can pick one for the whole axis rather than
+    // letting each label choose its own and reading in mixed units.
     property var format: (v, ceiling) => Math.round(v) + ""
 
     implicitWidth: 132
@@ -46,13 +46,8 @@ Item {
     // into the space instead of the line rescaling under itself each tick
     property int slots: 60
 
-    // What this chart's own axis needs, and what it is actually given. A stack
-    // of charts sets the second from the widest of the first, so their plots
-    // start and end together rather than each ending wherever its own labels
-    // happened to leave off.
+    // what the axis down the side needs, which is whatever its widest label is
     readonly property real axisWidth: Math.max(maxLabel.implicitWidth, midLabel.implicitWidth, minLabel.implicitWidth)
-
-    property real gutter: axisWidth
 
     function pointX(i) {
         // right aligned: the newest sample sits at the right edge and older
@@ -76,7 +71,7 @@ Item {
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        width: root.gutter
+        width: root.axisWidth
 
         Text {
             id: maxLabel
