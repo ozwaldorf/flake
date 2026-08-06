@@ -16,8 +16,12 @@ Column {
 
     signal hoverChanged(bool hovered)
 
-    // which card's list is showing: "speaker", "mic", or empty
+    // Which card's list is showing: "speaker", "mic", or empty. Held by
+    // whatever lays these out rather than here, so opening a list anywhere in
+    // the panel closes whichever one was already out.
     property string open: ""
+
+    signal requestOpen(string name)
 
     readonly property int listHeight: 150
 
@@ -35,7 +39,7 @@ Column {
     }
 
     function toggle(name) {
-        open = open === name ? "" : name;
+        requestOpen(open === name ? "" : name);
     }
 
     Row {

@@ -46,11 +46,30 @@ ModalPanel {
             // whatever was above it.
             spacing: Theme.spaceXs
 
+            // Which group holds the open list, and which entry within it. Kept
+            // here rather than in each group so opening a list closes whichever
+            // was already out: two at once push the rest of the panel down past
+            // what it can show, and the second is rarely wanted while the first
+            // is still up.
+            property var openGroup: null
+            property string openList: ""
+
+            function openIn(group, name) {
+                openGroup = name === "" ? null : group;
+                openList = name;
+            }
+
             // Connectivity first, matching where the system panel puts it: it
             // is the control you reach for when something is wrong, and the
             // only one whose state you read without touching it.
             ConnectivityTiles {
+                id: connectivity
+
                 width: parent.width
+
+                open: layout.openGroup === connectivity ? layout.openList : ""
+                onRequestOpen: name => layout.openIn(connectivity, name)
+
                 onHoverChanged: hovered => root.setChildHovered(hovered)
             }
 
@@ -60,7 +79,13 @@ ModalPanel {
             }
 
             AudioTiles {
+                id: audio
+
                 width: parent.width
+
+                open: layout.openGroup === audio ? layout.openList : ""
+                onRequestOpen: name => layout.openIn(audio, name)
+
                 onHoverChanged: hovered => root.setChildHovered(hovered)
             }
 

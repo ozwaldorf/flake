@@ -12,8 +12,12 @@ Column {
 
     signal hoverChanged(bool hovered)
 
-    // which tile's list is showing: "wifi", "bluetooth", or empty
+    // Which tile's list is showing: "wifi", "bluetooth", or empty. Held by
+    // whatever lays these out rather than here, so opening a list anywhere in
+    // the panel closes whichever one was already out.
     property string open: ""
+
+    signal requestOpen(string name)
 
     // cap on the list, past which it scrolls
     readonly property int listHeight: 200
@@ -33,7 +37,7 @@ Column {
     }
 
     function toggle(name) {
-        open = open === name ? "" : name;
+        requestOpen(open === name ? "" : name);
     }
 
     // A radio going off takes its own list down with it, but must not close
@@ -43,12 +47,12 @@ Column {
 
     onWifiOnChanged: {
         if (!wifiOn && open === "wifi")
-            open = "";
+            requestOpen("");
     }
 
     onBluetoothOnChanged: {
         if (!bluetoothOn && open === "bluetooth")
-            open = "";
+            requestOpen("");
     }
 
     // Scanning is driven from here rather than the tiles: it should follow
