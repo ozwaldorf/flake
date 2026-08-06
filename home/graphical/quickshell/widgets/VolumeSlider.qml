@@ -31,6 +31,17 @@ Rectangle {
     signal hoverChanged(bool hovered)
     signal listToggled
 
+    // window collecting the blur regions; null leaves the card unfrosted
+    property var host: null
+
+    Loader {
+        active: root.host !== null
+        sourceComponent: CardBlur {
+            target: root
+            host: root.host
+        }
+    }
+
     readonly property bool isSink: device === "speaker"
     readonly property real clamped: Math.max(0, Math.min(1, value))
 
@@ -44,7 +55,7 @@ Rectangle {
 
     // Same resting fill and the same lift on hover as the toggle tiles, so
     // every card in the panel is one kind of surface.
-    color: cardHover.hovered || expanded ? Theme.surface0 : Qt.alpha(Theme.surface0, 0.5)
+    color: cardHover.hovered || expanded ? Qt.tint(Theme.surfaceFill, Qt.alpha(Theme.text, 0.06)) : Theme.surfaceFill
 
     Behavior on color {
         ColorAnimation {

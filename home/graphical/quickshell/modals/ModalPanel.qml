@@ -6,19 +6,22 @@ import Quickshell.Wayland
 import ".."
 
 // Shared chrome for the popup modals: blurred panel that slides out from the
-// rail, with a header and a content area filled by whatever extends it.
+// rail, holding whatever extends it.
 PanelWindow {
     id: root
 
     required property var modelData
-    required property string title
 
     // matches the bar: when the rail is on the right edge, the panel opens
     // leftward so it stays on screen
     required property bool anchorRight
 
-    property string headerAction: ""
     property bool shown: false
+
+    // Cards over the desktop rather than on a surface of their own. Each one
+    // already carries a fill, so the panel behind them is mostly a container;
+    // dropping it leaves them floating.
+    property bool floating: true
 
     // Set by interactive children while the pointer is over them. The panel's
     // own hover surface goes unhovered in that case, so without this the modal
@@ -56,7 +59,6 @@ PanelWindow {
     // it, so they are not bounded by the panel's fill or rounding.
     property alias detached: detachedColumn.data
 
-    signal headerActionTriggered
     signal dismissed
     signal hoverChanged(bool hovered)
 
@@ -112,11 +114,13 @@ PanelWindow {
         y: 10
         width: Theme.modalWidth
         // sized to content when the panel reports one, capped to the screen
-        height: root.contentHeight > 0 ? Math.min(header.implicitHeight + root.contentHeight + Theme.padPanel * 2, maxHeight) : maxHeight
+        height: root.contentHeight > 0 ? Math.min(root.contentHeight, maxHeight) : maxHeight
 
+        // Without a surface of its own the panel is just a column of cards
+        // over the desktop, each carrying its own fill and blur.
         radius: Theme.rounding
-        color: Theme.surfaceFill
-        border.width: 1
+        color: root.floating ? "transparent" : Theme.surfaceFill
+        border.width: root.floating ? 0 : 1
         border.color: Theme.surface1
 
         // fade only: no scale, no position or size animation
@@ -130,74 +134,11 @@ PanelWindow {
             }
         }
 
-        Item {
-            id: header
-
-            anchors.top: parent.top
-            anchors.left: parent.left
-            anchors.right: parent.right
-
-            // Inset above the title, then only what the title itself needs:
-            // the body carries its own top padding, so centring the title in a
-            // taller box would pad below it twice over.
-            implicitHeight: Theme.padPanel + title.implicitHeight
-
-            Text {
-                id: title
-
-                anchors.left: parent.left
-                anchors.leftMargin: Theme.padPanel
-                anchors.bottom: parent.bottom
-                text: root.title.toUpperCase()
-                font.family: Theme.font
-                font.pixelSize: 10
-                font.letterSpacing: 1.4
-                color: Theme.overlay1
-            }
-
-            Rectangle {
-                anchors.right: parent.right
-                anchors.rightMargin: Theme.spaceSm
-                anchors.verticalCenter: title.verticalCenter
-
-                implicitWidth: actionLabel.implicitWidth + Theme.space
-                implicitHeight: 24
-                radius: 5
-                // alpha zero rather than "transparent", which is transparent
-                // black and drags the fade through black at both ends
-                color: actionHover.hovered ? Theme.surface0 : Qt.alpha(Theme.surface0, 0)
-                visible: root.headerAction.length > 0
-
-                Text {
-                    id: actionLabel
-
-                    anchors.centerIn: parent
-                    text: root.headerAction
-                    font.family: Theme.font
-                    font.pixelSize: 10
-                    color: Theme.blue
-                }
-
-                HoverHandler {
-                    id: actionHover
-                    cursorShape: Qt.PointingHandCursor
-                    onHoveredChanged: root.setChildHovered(hovered)
-                }
-
-                TapHandler {
-                    onTapped: root.headerActionTriggered()
-                }
-            }
-
-        }
 
         Item {
             id: body
 
-            anchors.top: header.bottom
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
+            anchors.fill: parent
         }
 
     }
@@ -326,16 +267,24 @@ PanelWindow {
     // Union of the panel and any detached surfaces, so each keeps its own
     // rounding rather than one box blurring the gaps between them.
     BackgroundEffect.blurRegion: Region {
-        regions: [panelRegion].concat(detachedRegions)
+        regions: [panelRegion].concat(detachedRegions).concat(cardRegions)
     }
 
     // populated by detached items that want their own blur
     property list<Region> detachedRegions
 
+    // Populated by the cards inside the panel. With no surface of its own the
+    // panel blurs nothing, so each card frosts its own rectangle instead and
+    // the gaps between them stay clear.
+    property list<Region> cardRegions
+
     Region {
         id: panelRegion
 
-        readonly property bool active: panel.opacity > 0.5
+        // Nothing to blur behind a panel that is not drawing a surface: the
+        // cards over it carry their own, and blurring the gaps between them
+        // would show as a pane hanging around them.
+        readonly property bool active: panel.opacity > 0.5 && !root.floating
 
         x: panel.x
         y: panel.y

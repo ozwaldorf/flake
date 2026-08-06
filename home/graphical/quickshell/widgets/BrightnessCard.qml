@@ -12,6 +12,17 @@ Rectangle {
 
     signal hoverChanged(bool hovered)
 
+    // window collecting the blur regions; null leaves the card unfrosted
+    property var host: null
+
+    Loader {
+        active: root.host !== null
+        sourceComponent: CardBlur {
+            target: root
+            host: root.host
+        }
+    }
+
     // one wheel notch
     readonly property real step: 0.05
 
@@ -21,7 +32,7 @@ Rectangle {
     radius: 9
     visible: Backlight.available
 
-    color: cardHover.hovered ? Theme.surface0 : Qt.alpha(Theme.surface0, 0.5)
+    color: cardHover.hovered ? Qt.tint(Theme.surfaceFill, Qt.alpha(Theme.text, 0.06)) : Theme.surfaceFill
 
     Behavior on color {
         ColorAnimation {

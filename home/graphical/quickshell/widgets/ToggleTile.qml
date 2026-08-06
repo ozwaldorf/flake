@@ -42,15 +42,26 @@ Rectangle {
     signal toggled
     signal listToggled
 
+    // window collecting the blur regions; null leaves the card unfrosted
+    property var host: null
+
+    Loader {
+        active: root.host !== null
+        sourceComponent: CardBlur {
+            target: root
+            host: root.host
+        }
+    }
+
     // whichever is taller, the puck or the two text rows, plus padding
     implicitHeight: Theme.spaceSm * 2 + Math.max(puck.implicitHeight, rows.implicitHeight)
     radius: 9
 
-    // Resting fill matches the level cards so every tile in the panel reads as
-    // the same kind of surface; hover and an open list lift it from there.
-    // Alpha only, never "transparent", which is transparent black and would
-    // drag the fade through black at both ends.
-    color: tileHover.hovered || expanded ? Theme.surface0 : Qt.alpha(Theme.surface0, 0.5)
+    // The panel's own fill, since the cards stand on the desktop rather than
+    // on a surface: each frosts its own rectangle. Hover and an open list lift
+    // it from there, in alpha only rather than to "transparent", which is
+    // transparent black and drags the fade through black at both ends.
+    color: tileHover.hovered || expanded ? Qt.tint(Theme.surfaceFill, Qt.alpha(Theme.text, 0.06)) : Theme.surfaceFill
 
     Behavior on color {
         ColorAnimation {

@@ -12,6 +12,9 @@ Column {
 
     signal hoverChanged(bool hovered)
 
+    // passed down to the cards, which each frost their own rectangle
+    property var host: null
+
     // Which tile's list is showing: "wifi", "bluetooth", or empty. Held by
     // whatever lays these out rather than here, so opening a list anywhere in
     // the panel closes whichever one was already out.
@@ -84,6 +87,7 @@ Column {
 
         ToggleTile {
             width: parent.cell
+            host: root.host
             visible: Wifi.available
 
             label: "Wi-Fi"
@@ -125,6 +129,7 @@ Column {
 
         ToggleTile {
             width: parent.cell
+            host: root.host
             visible: Bluetooth.available
 
             label: "Bluetooth"

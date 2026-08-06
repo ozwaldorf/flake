@@ -16,6 +16,9 @@ Column {
 
     signal hoverChanged(bool hovered)
 
+    // passed down to the cards, which each frost their own rectangle
+    property var host: null
+
     // Which card's list is showing: "speaker", "mic", or empty. Held by
     // whatever lays these out rather than here, so opening a list anywhere in
     // the panel closes whichever one was already out.
@@ -50,6 +53,7 @@ Column {
 
         VolumeSlider {
             width: parent.unit * 2
+            host: root.host
             device: "speaker"
             label: "Volume"
             expanded: root.open === "speaker"
@@ -71,6 +75,7 @@ Column {
 
         VolumeSlider {
             width: parent.unit
+            host: root.host
             device: "mic"
             label: "Mic"
             expanded: root.open === "mic"
