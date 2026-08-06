@@ -72,15 +72,42 @@ PanelWindow {
             }
         }
 
+        // Arriving toasts fade up while sliding in from the rail's side, the
+        // way the control centre's rows do. Staggered by position so a burst
+        // arrives as a sequence rather than all at once, and overlapping since
+        // the step is well inside the fade.
         add: Transition {
-            NumberAnimation {
-                property: "opacity"
-                from: 0
-                to: 1
-                duration: 380
-                easing.type: Easing.OutQuint
+            SequentialAnimation {
+                // Staggered by position within the batch, so several arriving
+                // together come in as a sequence rather than at once. The step
+                // is well inside the fade, which keeps them overlapping.
+                PauseAnimation {
+                    // clamped: the index is -1 while the transition is not
+                    // running against an item, which is not a valid duration
+                    duration: Math.max(0, ViewTransition.index) * Theme.staggerStep
+                }
+
+                ParallelAnimation {
+                    NumberAnimation {
+                        property: "opacity"
+                        from: 0
+                        to: 1
+                        duration: Theme.fadeDuration
+                        easing.type: Easing.OutQuad
+                    }
+
+                    // in from the rail's own side, like the panel's rows
+                    NumberAnimation {
+                        property: "x"
+                        from: root.anchorRight ? Theme.spaceSm : -Theme.spaceSm
+                        to: 0
+                        duration: Theme.morphDuration
+                        easing.type: Easing.OutQuint
+                    }
+                }
             }
         }
+
 
         Repeater {
             model: Notifications.toasts
@@ -94,25 +121,47 @@ PanelWindow {
                 anchorRight: root.anchorRight
                 entry: model
 
-                // fades in via the Column's add transition
-                opacity: 0
+                // The column's own transition drives both opacity and x on the
+                // way in, so neither is bound here: a binding would be
+                // destroyed by the first frame it writes.
+                Component.onCompleted: stack.toastRegions.push(toastRegion)
 
-                Component.onCompleted: {
-                    opacity = 1;
-                    stack.toastRegions.push(toastRegion);
+                // Leaving the same way it arrived rather than vanishing.
+                //
+                // Run here rather than from a remove transition, which a
+                // Column does not have: it is a positioner, not a view. The
+                // entry is taken out of the model once the card has gone, so
+                // the delegate lives long enough to animate.
+                function dismiss() {
+                    if (leaving.running)
+                        return;
+                    leaving.start();
+                }
+
+                ParallelAnimation {
+                    id: leaving
+
+                    onFinished: Notifications.dismiss(toast.model.id)
+
+                    NumberAnimation {
+                        target: toast
+                        property: "opacity"
+                        to: 0
+                        duration: Theme.fadeDuration
+                    }
+                    NumberAnimation {
+                        target: toast
+                        property: "x"
+                        to: root.anchorRight ? Theme.spaceSm : -Theme.spaceSm
+                        duration: Theme.morphDuration
+                        easing.type: Easing.OutQuint
+                    }
                 }
 
                 Component.onDestruction: {
                     const i = stack.toastRegions.indexOf(toastRegion);
                     if (i >= 0)
                         stack.toastRegions.splice(i, 1);
-                }
-
-                Behavior on opacity {
-                    NumberAnimation {
-                        duration: 380
-                        easing.type: Easing.OutQuint
-                    }
                 }
 
                 // Blur switched at the halfway point of the fade rather than
@@ -139,11 +188,11 @@ PanelWindow {
                 Timer {
                     interval: toast.lifetime
                     running: !toast.persists
-                    onTriggered: Notifications.dismiss(toast.model.id)
+                    onTriggered: toast.dismiss()
                 }
 
                 TapHandler {
-                    onTapped: Notifications.dismiss(toast.model.id)
+                    onTapped: toast.dismiss()
                 }
             }
         }
