@@ -123,16 +123,26 @@ PanelWindow {
             anchors.right: bar.anchorRight ? parent.left : undefined
             width: spread
 
+            // Falls away quickly rather than evenly across its width: a linear
+            // ramp is still visibly dark where it ends, which reads as a band
+            // with an edge rather than a shadow fading out. A midpoint well
+            // under half the peak puts most of the falloff near the rail.
+            readonly property real peak: 0.14 + 0.16 * bar.reveal
+
             gradient: Gradient {
                 orientation: Gradient.Horizontal
 
                 GradientStop {
                     position: 0
-                    color: Qt.alpha("black", bar.anchorRight ? 0 : 0.18 + 0.32 * bar.reveal)
+                    color: Qt.alpha("black", bar.anchorRight ? 0 : railShadow.peak)
+                }
+                GradientStop {
+                    position: bar.anchorRight ? 0.65 : 0.35
+                    color: Qt.alpha("black", railShadow.peak * 0.22)
                 }
                 GradientStop {
                     position: 1
-                    color: Qt.alpha("black", bar.anchorRight ? 0.18 + 0.32 * bar.reveal : 0)
+                    color: Qt.alpha("black", bar.anchorRight ? railShadow.peak : 0)
                 }
             }
         }
