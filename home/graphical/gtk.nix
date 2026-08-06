@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 {
   imports = [ ./modules/pointer.nix ];
 
@@ -21,6 +21,7 @@
     ];
 
     pointerCursor = {
+      enable = true;
       package = pkgs.bibata-cursors;
       name = "Bibata-Modern-Classic";
       size = 24;
@@ -33,7 +34,11 @@
     };
   };
 
-  gtk.enable = true;
+  gtk = {
+    enable = true;
+    # Keep the pre-26.05 default; gtk4 apps follow the same theme as gtk3
+    gtk4.theme = config.gtk.theme;
+  };
 
   carburetor.themes.gtk = {
     enable = true;

@@ -1,7 +1,7 @@
 { inputs, pkgs }:
 
 # Standalone neovim package
-inputs.nixvim.legacyPackages.${pkgs.system}.makeNixvimWithModule {
+inputs.nixvim.legacyPackages.${pkgs.stdenv.hostPlatform.system}.makeNixvimWithModule {
   inherit pkgs;
   module = {
     config = {
