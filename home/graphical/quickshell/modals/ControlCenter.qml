@@ -196,6 +196,15 @@ ModalPanel {
                 // With no tray at all it takes the whole width.
                 readonly property real cell: trayCount > 0 ? width - beside * (entry + spacing) : width
 
+                // How many entries land on the line under the recorder, and so
+                // what is left of it for the clear tile to finish. A full line
+                // leaves nothing, in which case the tile takes a line of its
+                // own and fills it.
+                readonly property int wrapped: trayCount - beside
+                readonly property int onLastLine: wrapped === 0 ? 0 : wrapped % Math.max(1, Math.floor((width + spacing) / (entry + spacing)))
+
+                readonly property real clearCell: onLastLine === 0 ? width : width - onLastLine * (entry + spacing)
+
                 RecorderTile {
                     id: recorder
 
@@ -338,198 +347,167 @@ ModalPanel {
                         }
                     }
                 }
+
+                // Clearing every notification, with the settings rather than on
+                // the stack it acts on: the stack is a list of things to read, and
+                // a control among them reads as one of them.
+                Rectangle {
+                    id: clearAll
+
+                    // finishes whatever line the tray left off on, or takes one
+                    // of its own when the tray filled the last one exactly
+                    width: utility.clearCell
+                    implicitHeight: utility.entry
+                    radius: 9
+                    visible: Notifications.count > 0
+
+                    color: clearHover.hovered ? Qt.tint(Theme.surfaceFill, Qt.alpha(Theme.text, 0.06)) : Theme.surfaceFill
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: 160
+                        }
+                    }
+
+                    CardBlur {
+                        target: clearAll
+                        host: root
+                    }
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "Clear " + Notifications.count + " notification" + (Notifications.count === 1 ? "" : "s")
+                        font.family: Theme.font
+                        font.pixelSize: 10
+                        color: clearHover.hovered ? Theme.red : Theme.overlay1
+
+                        Behavior on color {
+                            ColorAnimation {
+                                duration: 160
+                            }
+                        }
+                    }
+
+                    HoverHandler {
+                        id: clearHover
+                        cursorShape: Qt.PointingHandCursor
+                        onHoveredChanged: root.setChildHovered(hovered)
+                    }
+
+                    TapHandler {
+                        onTapped: Notifications.clear()
+                    }
+                }
             }
         }
     }
 
     // Notification cards live below the panel as their own surfaces rather than
     // inside it, so each keeps its own fill, rounding and blur.
-    detached: [
-        Repeater {
-            model: Notifications.history
+    detached: Repeater {
+        model: Notifications.history
 
-            NotificationCard {
-                id: card
+        NotificationCard {
+            id: card
 
-                required property var model
-                required property int index
+            required property var model
+            required property int index
 
-                width: parent.width
-                anchorRight: root.anchorRight
-                entry: model
+            width: parent.width
+            anchorRight: root.anchorRight
+            entry: model
 
-                // Each card starts while the panel is still fading and one stagger
-                // step behind the card above it, so the fades overlap and the whole
-                // set lands quickly. Closing is not staggered: they all drop with
-                // the panel so dismissal stays crisp.
-                opacity: 0
+            // Each card starts while the panel is still fading and one stagger
+            // step behind the card above it, so the fades overlap and the whole
+            // set lands quickly. Closing is not staggered: they all drop with
+            // the panel so dismissal stays crisp.
+            opacity: 0
 
-                Connections {
-                    target: root
+            Connections {
+                target: root
 
-                    function onShownChanged() {
-                        if (root.shown)
-                            revealIn.restart();
-                        else
-                            fadeOut.restart();
-                    }
-                }
-
-                SequentialAnimation {
-                    id: revealIn
-
-                    PauseAnimation {
-                        duration: Theme.staggerLead + card.index * Theme.staggerStep
-                    }
-                    NumberAnimation {
-                        target: card
-                        property: "opacity"
-                        to: 1
-                        duration: Theme.fadeDuration
-                        easing.type: Easing.OutQuad
-                    }
-                }
-
-                NumberAnimation {
-                    id: fadeOut
-
-                    target: card
-                    property: "opacity"
-                    to: 0
-                    duration: Theme.fadeDuration
-                }
-
-                onChildHoverChanged: hovered => root.setChildHovered(hovered)
-
-                // Blur switched at the halfway point of the fade like every other
-                // surface. The fade lives on the containing column, not the card.
-                //
-                // parent is guarded throughout: on dismissal the delegate is
-                // reparented to null before its bindings are torn down, so an
-                // unguarded card.parent.x throws for a frame.
-                Region {
-                    id: cardRegion
-
-                    // the fade now lives on the card itself, not the column
-                    readonly property bool active: card.opacity > 0.5
-
-                    // Window coordinates, summed from properties rather than via
-                    // mapToItem: that is a one shot call with no dependency
-                    // tracking, so the binding would never re-evaluate when the
-                    // card moves or the stack scrolls.
-                    readonly property real originX: root.detachedLeft
-                    readonly property real originY: root.detachedTop + card.y - root.detachedScroll
-
-                    // clipped to the viewport so a scrolled out card does not blur
-                    // a strip outside it
-                    readonly property real top: Math.max(originY, root.detachedTop)
-                    readonly property real bottom: Math.min(originY + card.height, root.detachedBottom)
-                    readonly property bool inView: bottom > top
-
-                    x: originX
-                    y: top
-                    width: active && inView ? card.width : 0
-                    height: active && inView ? bottom - top : 0
-                    radius: card.radius
-                }
-
-                Component.onCompleted: {
-                    root.detachedRegions.push(cardRegion);
+                function onShownChanged() {
                     if (root.shown)
                         revealIn.restart();
-                }
-                Component.onDestruction: {
-                    // NotificationCard releases its own outstanding hover raises,
-                    // so nothing to undo here beyond the blur region
-                    const i = root.detachedRegions.indexOf(cardRegion);
-                    if (i >= 0)
-                        root.detachedRegions.splice(i, 1);
-                }
-
-                TapHandler {
-                    onTapped: Notifications.remove(card.model.id)
-                }
-            }
-        },
-
-        // Clearing the lot, at the end of the stack rather than in a header: it
-        // acts on the notifications, so it belongs where they are and goes away
-        // with them.
-        Rectangle {
-            id: clearAll
-
-            width: parent ? parent.width : 0
-            implicitHeight: 30
-            radius: 9
-            visible: Notifications.count > 0
-
-            color: clearHover.hovered ? Qt.tint(Theme.surfaceFill, Qt.alpha(Theme.text, 0.06)) : Theme.surfaceFill
-
-            Behavior on color {
-                ColorAnimation {
-                    duration: 160
+                    else
+                        fadeOut.restart();
                 }
             }
 
-            // matches the cards above it, which fade in on their own stagger
-            opacity: root.shown ? 1 : 0
+            SequentialAnimation {
+                id: revealIn
 
-            Behavior on opacity {
+                PauseAnimation {
+                    duration: Theme.staggerLead + card.index * Theme.staggerStep
+                }
                 NumberAnimation {
+                    target: card
+                    property: "opacity"
+                    to: 1
                     duration: Theme.fadeDuration
+                    easing.type: Easing.OutQuad
                 }
             }
 
-            Text {
-                anchors.centerIn: parent
-                text: "Clear all"
-                font.family: Theme.font
-                font.pixelSize: 10
-                color: clearHover.hovered ? Theme.red : Theme.overlay1
+            NumberAnimation {
+                id: fadeOut
 
-                Behavior on color {
-                    ColorAnimation {
-                        duration: 160
-                    }
-                }
+                target: card
+                property: "opacity"
+                to: 0
+                duration: Theme.fadeDuration
             }
 
-            HoverHandler {
-                id: clearHover
-                cursorShape: Qt.PointingHandCursor
-                onHoveredChanged: root.setChildHovered(hovered)
-            }
+            onChildHoverChanged: hovered => root.setChildHovered(hovered)
 
-            TapHandler {
-                onTapped: Notifications.clear()
-            }
-
-            // Its own blur, clipped to the viewport like the cards above it, since
-            // the panel behind draws nothing to blur through.
+            // Blur switched at the halfway point of the fade like every other
+            // surface. The fade lives on the containing column, not the card.
+            //
+            // parent is guarded throughout: on dismissal the delegate is
+            // reparented to null before its bindings are torn down, so an
+            // unguarded card.parent.x throws for a frame.
             Region {
-                id: clearRegion
+                id: cardRegion
 
-                readonly property bool active: clearAll.opacity > 0.5 && clearAll.visible
+                // the fade now lives on the card itself, not the column
+                readonly property bool active: card.opacity > 0.5
 
-                readonly property real originY: root.detachedTop + clearAll.y - root.detachedScroll
+                // Window coordinates, summed from properties rather than via
+                // mapToItem: that is a one shot call with no dependency
+                // tracking, so the binding would never re-evaluate when the
+                // card moves or the stack scrolls.
+                readonly property real originX: root.detachedLeft
+                readonly property real originY: root.detachedTop + card.y - root.detachedScroll
+
+                // clipped to the viewport so a scrolled out card does not blur
+                // a strip outside it
                 readonly property real top: Math.max(originY, root.detachedTop)
-                readonly property real bottom: Math.min(originY + clearAll.height, root.detachedBottom)
+                readonly property real bottom: Math.min(originY + card.height, root.detachedBottom)
                 readonly property bool inView: bottom > top
 
-                x: root.detachedLeft
+                x: originX
                 y: top
-                width: active && inView ? clearAll.width : 0
+                width: active && inView ? card.width : 0
                 height: active && inView ? bottom - top : 0
-                radius: clearAll.radius
+                radius: card.radius
             }
 
-            Component.onCompleted: root.detachedRegions.push(clearRegion)
-
+            Component.onCompleted: {
+                root.detachedRegions.push(cardRegion);
+                if (root.shown)
+                    revealIn.restart();
+            }
             Component.onDestruction: {
-                const i = root.detachedRegions.indexOf(clearRegion);
+                // NotificationCard releases its own outstanding hover raises,
+                // so nothing to undo here beyond the blur region
+                const i = root.detachedRegions.indexOf(cardRegion);
                 if (i >= 0)
                     root.detachedRegions.splice(i, 1);
             }
+
+            TapHandler {
+                onTapped: Notifications.remove(card.model.id)
+            }
         }
-    ]
+    }
 }
