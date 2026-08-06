@@ -45,6 +45,13 @@ Column {
         requestOpen(open === name ? "" : name);
     }
 
+    // Only on the way open: closing leaves the join where it was so the card
+    // comes down under the one it belongs to.
+    onOpenChanged: {
+        if (open !== "")
+            listCard.fromLeft = open === "speaker";
+    }
+
     Row {
         width: parent.width
         spacing: Theme.spaceXs
@@ -57,6 +64,7 @@ Column {
             device: "speaker"
             label: "Volume"
             expanded: root.open === "speaker"
+            joined: listCard.height > 0 && listCard.fromLeft
 
             value: Pipewire.defaultAudioSink?.audio?.volume ?? 0
             muted: Pipewire.defaultAudioSink?.audio?.muted ?? false
@@ -79,6 +87,7 @@ Column {
             device: "mic"
             label: "Mic"
             expanded: root.open === "mic"
+            joined: listCard.height > 0 && !listCard.fromLeft
 
             value: Pipewire.defaultAudioSource?.audio?.volume ?? 0
             muted: Pipewire.defaultAudioSource?.audio?.muted ?? false
@@ -98,11 +107,96 @@ Column {
 
     // ---- the shared list ----
 
-    Item {
-        width: parent.width
-        clip: true
+    // A surface of its own, joined to the card it came from: the list is that
+    // card opened up rather than something that happens to be underneath.
+    //
+    // Not clipped here: the bridge below reaches up out of these bounds to
+    // meet the card. The list inside does its own clipping instead.
+    Rectangle {
+        id: listCard
 
-        implicitHeight: root.open === "" ? 0 : Math.min(root.open === "speaker" ? sinkList.wantedHeight : sourceList.wantedHeight, root.listHeight)
+        width: parent.width
+
+        // Which card the list belongs to, held through a collapse rather than
+        // following root.open, which clears the moment the card is clicked:
+        // switching then swings the join across while it is still coming down.
+        property bool fromLeft: true
+
+        implicitHeight: root.open === "" ? 0 : Math.min(root.open === "speaker" ? sinkList.wantedHeight : sourceList.wantedHeight, root.listHeight) + Theme.spaceXs * 2
+
+        radius: 9
+        color: Theme.surfaceFill
+
+        // squared where the card above meets it, eased so the two corners
+        // trade shape as the join moves rather than jumping
+        topLeftRadius: fromLeft ? 0 : radius
+        topRightRadius: fromLeft ? radius : 0
+
+        Behavior on topLeftRadius {
+            NumberAnimation {
+                duration: Theme.morphDuration
+                easing.type: Easing.OutQuint
+            }
+        }
+
+        Behavior on topRightRadius {
+            NumberAnimation {
+                duration: Theme.morphDuration
+                easing.type: Easing.OutQuint
+            }
+        }
+
+        // Bridges the gap the column leaves, under the open card alone. The
+        // two are different widths, so it takes whichever one it is joining.
+        Rectangle {
+            id: bridge
+
+            readonly property real unit: (listCard.width - Theme.spaceXs) / 3
+
+            x: listCard.fromLeft ? 0 : listCard.width - width
+            width: listCard.fromLeft ? unit * 2 : unit
+
+            // exactly the gap, tracked as it animates: fixed at its final
+            // height it laps onto the card while the gap is still opening, and
+            // two translucent surfaces overlapping show as a line
+            height: root.spacing
+            y: -height
+
+            color: listCard.color
+            visible: listCard.height > 0
+
+            Behavior on x {
+                NumberAnimation {
+                    duration: Theme.morphDuration
+                    easing.type: Easing.OutQuint
+                }
+            }
+
+            Behavior on width {
+                NumberAnimation {
+                    duration: Theme.morphDuration
+                    easing.type: Easing.OutQuint
+                }
+            }
+        }
+
+        Loader {
+            active: root.host !== null
+            sourceComponent: CardBlur {
+                target: listCard
+                host: root.host
+            }
+        }
+
+        // The bridge is its own rectangle above the card, so it needs its own
+        // blur or it shows as an unfrosted strip across the join.
+        Loader {
+            active: root.host !== null
+            sourceComponent: CardBlur {
+                target: bridge
+                host: root.host
+            }
+        }
 
         Behavior on implicitHeight {
             NumberAnimation {
@@ -114,8 +208,8 @@ Column {
         AudioList {
             id: sinkList
 
-            width: parent.width
-            height: parent.height
+            anchors.fill: parent
+            anchors.margins: Theme.spaceXs
             device: "speaker"
             opacity: root.open === "speaker" ? 1 : 0
             visible: opacity > 0
@@ -132,8 +226,8 @@ Column {
         AudioList {
             id: sourceList
 
-            width: parent.width
-            height: parent.height
+            anchors.fill: parent
+            anchors.margins: Theme.spaceXs
             device: "mic"
             opacity: root.open === "mic" ? 1 : 0
             visible: opacity > 0

@@ -50,12 +50,39 @@ Rectangle {
 
     readonly property var current: isSink ? Audio.sink : Audio.source
 
+    // Set while a list is joined onto the bottom of this card, including the
+    // whole of its collapse: rounding the corners the moment it is asked to
+    // close leaves them curved against a list still on its way down.
+    property bool joined: expanded
+
     implicitHeight: body.implicitHeight + Theme.spaceSm * 2
     radius: 9
 
+    // eased on the same clock as the list's travel, so the corner opens out as
+    // the card comes down rather than snapping once it lands
+    bottomLeftRadius: joined ? 0 : radius
+    bottomRightRadius: joined ? 0 : radius
+
+    Behavior on bottomLeftRadius {
+        NumberAnimation {
+            duration: Theme.morphDuration
+            easing.type: Easing.OutQuint
+        }
+    }
+
+    Behavior on bottomRightRadius {
+        NumberAnimation {
+            duration: Theme.morphDuration
+            easing.type: Easing.OutQuint
+        }
+    }
+
     // Same resting fill and the same lift on hover as the toggle tiles, so
     // every card in the panel is one kind of surface.
-    color: cardHover.hovered || expanded ? Qt.tint(Theme.surfaceFill, Qt.alpha(Theme.text, 0.06)) : Theme.surfaceFill
+    // Lifted on hover alone. An open list joins onto the card as one surface,
+    // so holding the lift while it is out would make the card the brighter
+    // half of something that should read as a single surface.
+    color: cardHover.hovered ? Qt.tint(Theme.surfaceFill, Qt.alpha(Theme.text, 0.06)) : Theme.surfaceFill
 
     Behavior on color {
         ColorAnimation {
