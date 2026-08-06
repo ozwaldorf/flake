@@ -171,6 +171,11 @@ ModalPanel {
                 width: parent.width
                 spacing: Theme.spaceXs
 
+                // Filled from the edge the rail is on, so the recorder leads
+                // the row from whichever side the panel opened from and the
+                // tray trails away toward the middle of the screen.
+                layoutDirection: root.anchorRight ? Qt.RightToLeft : Qt.LeftToRight
+
                 readonly property int trayCount: SystemTray.items.values.length
 
                 // whichever entry has its menu up, or null; one at a time
