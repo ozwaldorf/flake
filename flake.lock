@@ -202,6 +202,22 @@
         "type": "github"
       }
     },
+    "hyprcapture": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1785168912,
+        "narHash": "sha256-hKMP/GBxHU21iUUYCLsXdahhun1uv1FRsou/YAfVK8k=",
+        "owner": "gfhdhytghd",
+        "repo": "HyprCapture",
+        "rev": "393215f26946994984ea612b11ce9b4cadf9cacd",
+        "type": "github"
+      },
+      "original": {
+        "owner": "gfhdhytghd",
+        "repo": "HyprCapture",
+        "type": "github"
+      }
+    },
     "neovim-nightly-overlay": {
       "inputs": {
         "flake-parts": "flake-parts_2",
@@ -366,6 +382,7 @@
         "carburetor": "carburetor",
         "determinate": "determinate",
         "home-manager": "home-manager",
+        "hyprcapture": "hyprcapture",
         "neovim-nightly-overlay": "neovim-nightly-overlay",
         "nixpkgs": "nixpkgs_3",
         "nixvim": "nixvim",

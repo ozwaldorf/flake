@@ -31,6 +31,13 @@
       url = "github:nix-community/neovim-nightly-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # Source only: its own flake pins hyprland git, but plugins are ABI bound
+    # to the compositor they load into, so the package is built below against
+    # the patched nixpkgs hyprland instead.
+    hyprcapture = {
+      url = "github:gfhdhytghd/HyprCapture";
+      flake = false;
+    };
   };
 
   outputs =
@@ -70,6 +77,12 @@
                 ''
                 + old.postPatch;
               });
+              # Built through callPackage rather than the upstream flake output
+              # so it compiles against the hyprland above, matching the ABI of
+              # the compositor it is loaded into.
+              hyprcapture = final.callPackage "${inputs.hyprcapture}/nix/package.nix" {
+                src = inputs.hyprcapture;
+              };
               vimPlugins = prev.vimPlugins // {
                 catppuccin-nvim = prev.vimPlugins.catppuccin-nvim.overrideAttrs {
                   doCheck = false;

@@ -10,8 +10,14 @@ let
   theme = ''require("themes.carburetor-regular")'';
   color = name: mkLuaInline "${theme}.${name}";
 
-  bind = key: dispatcher: { _args = [ key dispatcher ]; };
+  bind = key: dispatcher: {
+    _args = [
+      key
+      dispatcher
+    ];
+  };
   exec = cmd: mkLuaInline "hl.dsp.exec_cmd(${builtins.toJSON cmd})";
+  capture = action: mkLuaInline "function() hl.plugin.hyprcapture.${action} end";
 
   workspaceBinds = builtins.concatMap (
     x:
@@ -25,24 +31,31 @@ let
     ]
   ) (builtins.genList (x: x) 10);
 
-  directionBinds = builtins.concatMap (dir: [
-    (bind "${mod} + ${dir}" (mkLuaInline "hl.dsp.focus({ direction = ${builtins.toJSON dir} })"))
-    (bind "${mod} + SHIFT + ${dir}" (
-      mkLuaInline "hl.dsp.window.move({ direction = ${builtins.toJSON dir}, group_aware = true })"
-    ))
-  ]) [ "left" "right" "up" "down" ];
+  directionBinds =
+    builtins.concatMap
+      (dir: [
+        (bind "${mod} + ${dir}" (mkLuaInline "hl.dsp.focus({ direction = ${builtins.toJSON dir} })"))
+        (bind "${mod} + SHIFT + ${dir}" (
+          mkLuaInline "hl.dsp.window.move({ direction = ${builtins.toJSON dir}, group_aware = true })"
+        ))
+      ])
+      [
+        "left"
+        "right"
+        "up"
+        "down"
+      ];
 in
 {
   home.packages = with pkgs; [
     wl-clipboard
-    wf-recorder
-    # region selection for the shell's screen recorder; grimshot bundles its
-    # own copy, but the widget calls it directly
-    slurp
-    sway-contrib.grimshot
+    # hyprcapture's runtime tools: ffmpeg backs the animated formats, libnotify
+    # its notifications. gpu-screen-recorder comes from the system module
+    # instead, which pairs it with the capability wrapper its kms server needs.
+    ffmpeg
+    libnotify
 
     hyprlock
-    hyprshot
     yad
   ];
 
@@ -61,6 +74,7 @@ in
     configType = "lua";
     # uwsm owns the session; its own units handle the activation environment
     systemd.enable = false;
+    plugins = [ pkgs.hyprcapture ];
     settings = {
       config = {
         debug.disable_logs = false;
@@ -108,6 +122,20 @@ in
           animate_manual_resizes = false;
           animate_mouse_windowdragging = false;
           close_special_on_empty = true;
+        };
+        plugin.hyprcapture = {
+          default_mode = "region";
+          # matches the old hyprshot binds, which only ever copied
+          save = false;
+          clipboard = true;
+          # the result overlay hangs around after every capture; the clipboard
+          # copy still happens without it, and the tile reports what was saved
+          show_thumbnail = false;
+          record_save_dir = "$XDG_VIDEOS_DIR";
+          record_filename_template = "screen-recording-%Y%m%d-%H%M%S.mp4";
+          # notifications go through the shell's daemon rather than hyprland's
+          # own overlay, which draws over fullscreen windows
+          notification_backend = "system";
         };
       };
 
@@ -189,9 +217,14 @@ in
         # Toggle displays
         (bind "${mod} + L" (mkLuaInline "hl.dsp.dpms({ action = \"toggle\" })"))
 
-        # Screenshots
-        (bind "Print" (exec "hyprshot --clipboard-only -zm window"))
-        (bind "SHIFT + Print" (exec "hyprshot --clipboard-only -zm region"))
+        # Screenshots. Lua calls rather than a dispatcher string: the lua config
+        # parser reads "hyprcapture:open" as lua syntax and never reaches the
+        # plugin. Wrapped in functions because home-manager emits the binding
+        # inline, so a bare call would run once at load and bind the key to its
+        # return value.
+        (bind "Print" (capture "open(\"window\")"))
+        (bind "SHIFT + Print" (capture "open(\"region\")"))
+        (bind "CTRL + Print" (capture "record_toggle()"))
 
         # Cycle wallpaper
         (bind "${mod} + W" (

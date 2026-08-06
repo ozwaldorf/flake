@@ -4,30 +4,33 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Screen recording: pick a region, record it, and stop by asking again.
+// Screen recording, owned by hyprcapture's compositor plugin.
 //
-// Two processes in sequence. slurp draws the selection and prints a geometry,
-// exiting non zero if it is cancelled; wf-recorder then runs until it is asked
-// to stop. Nothing here polls.
+// The plugin does the capturing; this only asks it to start or stop and reads
+// back what it reports. Starting opens hyprcapture's own overlay to choose a
+// format and a target, so there is a gap between the click and the recording
+// actually beginning. Stopping is immediate.
 Singleton {
     id: root
 
-    // true from the moment wf-recorder starts until it has written the file
-    readonly property bool recording: recorder.running
+    // Mirrors of the plugin's state, refreshed from the status socket.
+    property bool recording: false
+    property int elapsed: 0
+    property string path: ""
+    property string lastPath: ""
 
-    // Tracked rather than bound to slurp.running: a process that fails to
-    // start never enters the running state and never emits exited, so a
-    // binding would either never light up or, worse, latch on with nothing
-    // left to turn it off.
+    // True while the encoder drains after a stop. The file is not finished yet,
+    // so the tile keeps showing something is happening.
+    property bool finalizing: false
+
+    // True between asking for the overlay and the plugin reporting a recording.
+    // Not derived from the socket: the overlay is open in this window and the
+    // plugin still reports inactive, which is indistinguishable from idle.
     property bool selecting: false
 
-    readonly property bool busy: recording || selecting
+    readonly property bool busy: recording || selecting || finalizing
 
-    // Seconds elapsed, for the widget to display. Counted from a start stamp
-    // rather than incremented, so a late or dropped tick cannot make the
-    // reported duration drift from the file's own.
-    property real startedAt: 0
-    property int elapsed: 0
+    property string error: ""
 
     readonly property string elapsedText: {
         const m = Math.floor(elapsed / 60);
@@ -35,154 +38,149 @@ Singleton {
         return m + ":" + (s < 10 ? "0" : "") + s;
     }
 
-    // path of the file being written, and of the last one finished
-    property string path: ""
-    property string lastPath: ""
-
-    // set when something goes wrong, cleared on the next attempt
-    property string error: ""
-
     signal finished(string file)
 
+    // The plugin serves one newline terminated JSON object per connection and
+    // then closes, so state has to be pulled rather than subscribed to. Polled
+    // quickly while something is happening and slowly when idle, where the only
+    // thing being waited for is a recording started from hyprcapture's own
+    // keybind rather than from the tile.
     Timer {
-        running: root.recording
-        interval: 1000
+        interval: root.busy ? 500 : 4000
+        running: true
         repeat: true
         triggeredOnStart: true
-        onTriggered: root.elapsed = Math.floor((Date.now() - root.startedAt) / 1000)
+        onTriggered: {
+            if (!status.running)
+                status.running = true;
+        }
+    }
+
+    // XDG_RUNTIME_DIR is the plugin's primary location; it falls back to
+    // /dev/shm and then /tmp when that is unavailable, so try them in the same
+    // order and take the first that answers.
+    Process {
+        id: status
+
+        command: ["sh", "-c", "for s in \"${XDG_RUNTIME_DIR:-/nonexistent}/hyprcapture/recording.sock\" \"/dev/shm/hyprcapture-$(id -u)/recording.sock\" \"/tmp/hyprcapture-$(id -u)/recording.sock\"; do [ -S \"$s\" ] && exec socat -T2 - UNIX-CONNECT:\"$s\"; done"]
+
+        stdout: StdioCollector {
+            id: statusOut
+        }
+
+        onExited: (exitCode, exitStatus) => {
+            // No socket means the plugin is not loaded. Nothing to report: a
+            // recording cannot be running either.
+            const text = statusOut.text.trim();
+            if (text === "") {
+                root.apply(false, false, 0, "");
+                return;
+            }
+
+            try {
+                const state = JSON.parse(text);
+                root.apply(state.phase === "recording", state.phase === "finalizing", Math.floor(state.elapsed || 0), state.output || "");
+            } catch (e) {
+                // A malformed line is a transient read, not a state change.
+            }
+        }
+    }
+
+    // Folds one status reading into the properties, and turns the edge where a
+    // recording stops into the finished signal.
+    function apply(isRecording, isFinalizing, seconds, output) {
+        // The overlay has served its purpose once the plugin reports a
+        // recording; a cancelled overlay is caught by the guard below.
+        if (isRecording)
+            selecting = false;
+
+        // Remember the path while it is still being reported: it is cleared
+        // from the status once finalization completes.
+        if (output !== "")
+            path = output;
+
+        if (recording && !isRecording && !isFinalizing)
+            complete();
+        if (finalizing && !isFinalizing && !isRecording)
+            complete();
+
+        recording = isRecording;
+        finalizing = isFinalizing;
+        elapsed = seconds;
+    }
+
+    function complete() {
+        if (path === "")
+            return;
+        lastPath = path;
+        path = "";
+        finished(lastPath);
     }
 
     function toggle() {
-        if (recording)
+        if (recording || finalizing)
             stop();
         else if (!selecting)
             start();
     }
 
+    // Opens hyprcapture's overlay. The recording only begins once a format and
+    // a target have been chosen there, which is why this does not set
+    // recording directly.
     function start() {
         error = "";
         selecting = true;
-        slurp.running = true;
-        // running is still false here: the process starts asynchronously, so
-        // a failure is caught by the watchdog below rather than inline.
+        dispatch.command = ["hyprctl", "eval", "hl.plugin.hyprcapture.record_toggle()"];
+        dispatch.running = true;
         selectGuard.restart();
     }
 
-    // A binary that cannot be found fails without ever running, and quickshell
-    // reports that as a warning with no exited signal, so nothing would clear
-    // the waiting state. Anything that has not started shortly after being
-    // asked to never will.
+    function stop() {
+        dispatch.command = ["hyprctl", "eval", "hl.plugin.hyprcapture.record_stop()"];
+        dispatch.running = true;
+    }
+
+    // The overlay can be dismissed with escape, which the plugin does not
+    // report: it looks exactly like never having started. Give up waiting after
+    // long enough that a deliberate selection has been made.
     Timer {
         id: selectGuard
 
-        interval: 2000
-        onTriggered: {
-            if (root.selecting && !slurp.running) {
-                root.selecting = false;
-                root.error = "Could not start slurp";
-            }
-        }
+        interval: 60000
+        onTriggered: root.selecting = false
     }
-
-    // SIGINT rather than kill: wf-recorder traps it to flush the encoder and
-    // close the container. Killing it outright leaves an unplayable file.
-    function stop() {
-        if (recorder.running)
-            recorder.signal(2);
-    }
-
-    // Region selection. Cancelling with escape exits non zero and prints
-    // nothing, which is the difference between "no region" and "no recording".
-    Process {
-        id: slurp
-
-        // slurp reads stdin for a list of predefined regions, so an open pipe
-        // that is never written to leaves it blocked on that read instead of
-        // ever drawing the selection. stdinEnabled only governs whether the
-        // shell may write to the pipe; the child is handed one either way, so
-        // stdin has to be redirected for slurp to see an end of file and take
-        // its region from the pointer.
-        command: ["sh", "-c", "exec slurp </dev/null"]
-
-        stdout: StdioCollector {
-            id: region
-        }
-
-        onExited: (exitCode, exitStatus) => {
-            root.selecting = false;
-
-            // Escape prints nothing and exits non zero, which is a cancel and
-            // not a failure worth reporting.
-            const geometry = region.text.trim();
-            if (exitCode !== 0 || geometry === "")
-                return;
-
-            root.begin(geometry);
-        }
-
-        // Covers the binary being missing or unexecutable, where exited never
-        // fires because the process never started.
-        onStarted: root.selecting = true
-    }
-
-    function begin(geometry) {
-        // Local time rather than ISO: the name is read by a person browsing a
-        // directory, and colons are awkward in a filename besides.
-        const now = new Date();
-        const stamp = now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate()) + "-" + pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds());
-
-        path = videos + "/screen-recording-" + stamp + ".mp4";
-        startedAt = Date.now();
-        elapsed = 0;
-
-        recorder.command = ["wf-recorder", "-c", "libx264", "-g", geometry, "-f", path];
-        recorder.running = true;
-        recordGuard.restart();
-    }
-
-    // same failure to start as slurp, caught the same way
-    Timer {
-        id: recordGuard
-
-        interval: 2000
-        onTriggered: {
-            if (root.path !== "" && !recorder.running) {
-                root.path = "";
-                root.error = "Could not start wf-recorder";
-            }
-        }
-    }
-
-    function pad(n) {
-        return n < 10 ? "0" + n : "" + n;
-    }
-
-    readonly property string videos: (Quickshell.env("XDG_VIDEOS_DIR") || Quickshell.env("HOME") + "/Videos")
 
     Process {
-        id: recorder
+        id: dispatch
 
-        // nothing is ever written to it, and a recorder has no use for one
         stdinEnabled: false
 
-        stderr: StdioCollector {
-            id: recorderError
+        // hyprctl writes both its own connection failures and the plugin's
+        // errors here rather than to stderr, so there is nothing to collect
+        // from the latter.
+        stdout: StdioCollector {
+            id: dispatchOut
         }
 
         onExited: (exitCode, exitStatus) => {
-            // Stopping with SIGINT is the normal path and is not a failure,
-            // however the exit is reported.
-            const wrote = root.path;
-            root.path = "";
-            root.elapsed = 0;
-
-            if (exitCode !== 0 && exitCode !== 130 && exitStatus !== 0) {
-                root.error = recorderError.text.trim().split("\n").pop() || "Recording failed";
+            if (exitCode === 0) {
+                root.error = "";
                 return;
             }
 
-            root.lastPath = wrote;
-            root.finished(wrote);
+            const reply = dispatchOut.text.trim().split("\n").pop().replace(/^error:\s*/, "");
+
+            // Stopping something that has already ended is the normal way a
+            // recording with its own duration limit finishes: the plugin has
+            // cleared it before the tile asked. Nothing failed, so the status
+            // socket stays the authority on what happened to the file.
+            if (reply === "no active recording") {
+                root.error = "";
+                return;
+            }
+
+            root.selecting = false;
+            root.error = reply || "Could not reach hyprland";
         }
     }
 }

@@ -109,6 +109,13 @@ Singleton {
         inlineReplySupported: true
 
         onNotification: notif => {
+            // The recorder tile already shows what hyprcapture is doing, so its
+            // routine progress notifications are redundant. Dropped by urgency
+            // rather than by message: it marks only these low, and keeps
+            // warnings and failures at normal, which are the ones worth seeing.
+            if (notif.appName === "HyprCapture" && notif.urgency === NotificationUrgency.Low)
+                return;
+
             // keep it alive past the callback so actions stay invokable
             notif.tracked = true;
 

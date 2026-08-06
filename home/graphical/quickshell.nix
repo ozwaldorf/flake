@@ -1,6 +1,10 @@
 { config, pkgs, ... }:
 {
-  home.packages = [ pkgs.quickshell ];
+  # socat reads hyprcapture's recording status socket for the recorder tile
+  home.packages = [
+    pkgs.quickshell
+    pkgs.socat
+  ];
 
   # symlinked out of the store so quickshell's live reload sees edits to the
   # working tree; a store copy would be read only and need a rebuild per change

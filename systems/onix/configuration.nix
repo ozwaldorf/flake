@@ -366,6 +366,12 @@
       withUWSM = true;
     };
 
+    # hyprcapture records through gpu-screen-recorder, whose kms server needs
+    # cap_sys_admin to read the card device. Without the wrapper it falls back
+    # to pkexec, which cannot prompt from the compositor and exits without
+    # writing a frame.
+    gpu-screen-recorder.enable = true;
+
     mtr.enable = true;
     gnupg.agent = {
       enable = true;
