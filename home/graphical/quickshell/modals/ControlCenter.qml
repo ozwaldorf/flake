@@ -618,11 +618,6 @@ ModalPanel {
                             target: rim
                             elevation: 5
                             strength: 0.4
-
-                            // Even all the way round: the record is a circle,
-                            // and a shadow weighted downward on one reads as
-                            // slipping rather than as lit from above.
-                            sink: 0
                         }
                     }
 

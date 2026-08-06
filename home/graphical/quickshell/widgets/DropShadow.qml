@@ -33,11 +33,9 @@ Item {
         }
     }
 
-    // How far the shadow is pushed down as a fraction of the spread, so the
-    // light reads as coming from above. Zero spreads it evenly, for something
-    // round enough that a drop below it reads as lopsided rather than lit.
-    property real sink: 0.4
-
+    // Sits directly behind what casts it, spread evenly on every side rather
+    // than dropped below: the surfaces are lifted off the background, not lit
+    // from one direction, and an even shadow is what reads as height.
     anchors.fill: target
     anchors.margins: -elevation
 
@@ -46,8 +44,6 @@ Item {
     Rectangle {
         anchors.fill: parent
         anchors.margins: root.elevation
-        anchors.topMargin: root.elevation * (1 - root.sink)
-        anchors.bottomMargin: root.elevation * (1 + root.sink)
 
         radius: root.target.radius ?? 9
         color: "black"
