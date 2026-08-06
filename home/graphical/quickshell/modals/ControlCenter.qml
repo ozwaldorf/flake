@@ -198,9 +198,15 @@ ModalPanel {
                 // whichever entry has its menu up, or null; one at a time
                 property var openMenu: null
 
-                // Entries are square and as tall as the row, so what they need
-                // is known before laying anything out.
-                readonly property real entry: 54
+                // Entries are square and as tall as the tile beside them, so
+                // what they need is known before laying anything out.
+                //
+                // Read off the recorder rather than repeated as a number: the
+                // tiles size themselves from the spacing scale, and a literal
+                // here stays put while they grow. Its height does not depend
+                // on its width, so taking it while giving the tile a width
+                // derived from this is not circular.
+                readonly property real entry: recorder.implicitHeight
 
                 // Entries sharing the recorder's line: whatever fits once the
                 // tile has taken its half, and never more than there are.
