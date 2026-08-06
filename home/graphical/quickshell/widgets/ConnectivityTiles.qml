@@ -195,8 +195,25 @@ Column {
 
         // Squared where the tile above meets it. With only one tile there is
         // nothing to pick between, so the whole top edge joins.
+        //
+        // Eased rather than switched: swapping tiles moves the join across,
+        // and the two corners trade shape as it goes rather than jumping.
         topLeftRadius: bothTiles && !fromLeft ? radius : 0
         topRightRadius: bothTiles && fromLeft ? radius : 0
+
+        Behavior on topLeftRadius {
+            NumberAnimation {
+                duration: Theme.morphDuration
+                easing.type: Easing.OutQuint
+            }
+        }
+
+        Behavior on topRightRadius {
+            NumberAnimation {
+                duration: Theme.morphDuration
+                easing.type: Easing.OutQuint
+            }
+        }
 
 
         // Bridges the gap the column leaves, under the open tile alone: the
@@ -207,6 +224,15 @@ Column {
 
             x: listCard.fromLeft || !listCard.bothTiles ? 0 : listCard.width - width
             width: listCard.bothTiles ? (listCard.width - Theme.spaceXs) / 2 : listCard.width
+
+            // slides across when the join moves to the other tile, rather than
+            // vanishing from one side and appearing at the other
+            Behavior on x {
+                NumberAnimation {
+                    duration: Theme.morphDuration
+                    easing.type: Easing.OutQuint
+                }
+            }
 
             // Exactly the gap, tracking it as it opens rather than fixed at
             // its final size: the spacing animates from nothing, so a fixed

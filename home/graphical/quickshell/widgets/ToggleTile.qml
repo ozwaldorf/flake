@@ -64,8 +64,24 @@ Rectangle {
     // close leaves them curved against a list still on its way down.
     property bool joined: expanded
 
+    // Eased on the same clock as the list's own travel, so the corner opens
+    // out as the card comes down rather than snapping once it lands.
     bottomLeftRadius: joined ? 0 : radius
     bottomRightRadius: joined ? 0 : radius
+
+    Behavior on bottomLeftRadius {
+        NumberAnimation {
+            duration: Theme.morphDuration
+            easing.type: Easing.OutQuint
+        }
+    }
+
+    Behavior on bottomRightRadius {
+        NumberAnimation {
+            duration: Theme.morphDuration
+            easing.type: Easing.OutQuint
+        }
+    }
 
     // The panel's own fill, since the cards stand on the desktop rather than
     // on a surface: each frosts its own rectangle.
