@@ -198,6 +198,12 @@ Column {
             }
         }
 
+        DropShadow {
+            target: listCard
+            elevation: 6
+            strength: 0.35
+        }
+
         // The bridge is its own rectangle above the card, so it needs its own
         // blur or it shows as an unfrosted strip across the join.
         Loader {

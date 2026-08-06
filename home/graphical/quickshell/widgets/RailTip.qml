@@ -186,6 +186,14 @@ PanelWindow {
                     radius: chip.radius
                 }
 
+                // A child of the chip, so the chip's own fade carries it in
+                // rather than it needing one of its own.
+                DropShadow {
+                    target: chip
+                    elevation: 6
+                    strength: 0.35
+                }
+
                 Component.onCompleted: root.chipRegions.push(region)
 
                 Component.onDestruction: {

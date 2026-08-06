@@ -61,7 +61,13 @@ PanelWindow {
     // repositioned every frame, since its origin is derived from the width, and
     // those two commits are not atomic: the surface can present at the new size
     // before the new position lands, which shows as a gap at the screen edge.
-    implicitWidth: Theme.rail
+    // Room past the rail for the shadow it casts inward. Without it the window
+    // is exactly the rail's own width, so at full expansion the rail fills it
+    // and the shadow falls entirely outside: it showed while collapsed, where
+    // the rest of the window was still free, and vanished as it opened.
+    readonly property real shadowRoom: 20
+
+    implicitWidth: Theme.rail + shadowRoom
 
     // 0 collapsed, 1 expanded; drives everything that used to follow the width
     property real reveal: expanded ? 1 : 0
@@ -77,7 +83,9 @@ PanelWindow {
     readonly property real railWidth: Theme.sliver + (Theme.rail - Theme.sliver) * reveal
 
     // the rail hugs the outward edge, so the content is inset from the other side
-    readonly property real railX: bar.anchorRight ? Theme.rail - railWidth : 0
+    // measured from the window's own edge, which now reaches past the rail to
+    // give the shadow somewhere to fall
+    readonly property real railX: bar.anchorRight ? width - railWidth : 0
 
     // Client side blur, following the visible rail rather than the surface,
     // which is now a fixed full width strip.
@@ -96,6 +104,38 @@ PanelWindow {
         width: bar.railWidth
         height: parent.height
         color: Theme.surfaceFill
+
+        // Cast inward only: the rail runs the height of the screen against its
+        // own edge, so the other three sides have nothing to fall onto. Grows
+        // as the rail wakes, which is what makes it read as coming forward
+        // rather than only getting wider.
+        Rectangle {
+            id: railShadow
+
+            // Barely wider on expand: spreading the same darkness over more
+            // distance reads as less of it, not more, so the depth comes from
+            // the alpha and the width only follows a little.
+            readonly property real spread: 14 + 6 * bar.reveal
+
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            anchors.left: bar.anchorRight ? undefined : parent.right
+            anchors.right: bar.anchorRight ? parent.left : undefined
+            width: spread
+
+            gradient: Gradient {
+                orientation: Gradient.Horizontal
+
+                GradientStop {
+                    position: 0
+                    color: Qt.alpha("black", bar.anchorRight ? 0 : 0.18 + 0.32 * bar.reveal)
+                }
+                GradientStop {
+                    position: 1
+                    color: Qt.alpha("black", bar.anchorRight ? 0.18 + 0.32 * bar.reveal : 0)
+                }
+            }
+        }
 
         // hairline on the inward facing edge, whichever side that is
         Rectangle {

@@ -216,4 +216,12 @@ Rectangle {
         cursorShape: Qt.PointingHandCursor
         onHoveredChanged: root.raiseHover(hovered)
     }
+
+    // lifts a little under the pointer, so the card reads as coming forward
+    // rather than only changing colour
+    DropShadow {
+        target: root
+        elevation: cardHover.hovered ? 9 : 6
+        strength: cardHover.hovered ? 0.45 : 0.35
+    }
 }

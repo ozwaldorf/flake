@@ -73,7 +73,11 @@ PanelWindow {
         bottom: true
     }
 
-    implicitWidth: Theme.rail + Theme.spaceXs + Theme.modalWidth
+    // Room past the panel for what falls outside it: the cards' shadows reach
+    // beyond their own edges, and the window is what they are clipped to.
+    readonly property real shadowRoom: 16
+
+    implicitWidth: Theme.rail + Theme.spaceXs + Theme.modalWidth + shadowRoom
     exclusiveZone: 0
 
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand

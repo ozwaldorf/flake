@@ -53,6 +53,14 @@ Rectangle {
         }
     }
 
+    // lifts a little under the pointer, so the card reads as coming forward
+    // rather than only changing colour
+    DropShadow {
+        target: root
+        elevation: tileHover.hovered ? 9 : 6
+        strength: tileHover.hovered ? 0.45 : 0.35
+    }
+
     // whichever is taller, the puck or the two text rows, plus padding
     implicitHeight: Theme.spaceSm * 2 + Math.max(puck.implicitHeight, rows.implicitHeight)
     radius: 9

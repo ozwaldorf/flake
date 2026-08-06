@@ -42,7 +42,11 @@ PanelWindow {
         bottom: true
     }
 
-    implicitWidth: root.railOffset + Theme.modalWidth
+    // Room past the stack for the shadows the toasts cast: the window is what
+    // clips them, and one ending flush with the cards cuts their outer edge.
+    readonly property real shadowRoom: 16
+
+    implicitWidth: root.railOffset + Theme.modalWidth + shadowRoom
 
     // click through everywhere except the toasts themselves
     mask: Region {

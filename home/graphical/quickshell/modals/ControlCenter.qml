@@ -18,17 +18,21 @@ ModalPanel {
 
     contentHeight: layout.implicitHeight
 
-    // Room either side for the rows to slide in through. The clip is here for
-    // vertical scrolling, but it cuts the horizontal travel too, so the rows
-    // are inset by the distance they move and arrive within it rather than
-    // from outside the viewport.
+    // Room around the rows for what falls outside them: the distance they
+    // travel on the way in, and the shadow they cast.
+    //
+    // The clip is here for vertical scrolling, but it cuts everything else the
+    // same way, so the viewport reaches past the panel and the rows are inset
+    // back by the same amount.
     readonly property real slideRoom: 12
 
     Flickable {
         anchors.fill: parent
-        anchors.leftMargin: -root.slideRoom
-        anchors.rightMargin: -root.slideRoom
-        contentHeight: layout.implicitHeight
+        anchors.margins: -root.slideRoom
+
+        // The column is inset back by the same room, so the content stays
+        // where it was and only the clip has moved outward.
+        contentHeight: layout.implicitHeight + root.slideRoom * 2
         clip: true
 
         ScrollBar.vertical: ScrollBar {
@@ -39,9 +43,10 @@ ModalPanel {
         Column {
             id: layout
 
-            // Inset back to the panel's own width inside a viewport widened to
-            // give the slide somewhere to come from.
+            // Inset back to the panel's own bounds inside a viewport grown on
+            // every side to give the slide and the shadows somewhere to go.
             x: root.slideRoom
+            y: root.slideRoom
             width: parent.width - root.slideRoom * 2
 
             readonly property var player: Mpris.players.values.length > 0 ? Mpris.players.values[0] : null
@@ -283,6 +288,12 @@ ModalPanel {
                             host: root
                         }
 
+                        DropShadow {
+                            target: trayEntry
+                            elevation: trayHover.hovered ? 9 : 6
+                            strength: trayHover.hovered ? 0.45 : 0.35
+                        }
+
                         Behavior on color {
                             ColorAnimation {
                                 duration: 160
@@ -421,6 +432,12 @@ ModalPanel {
                     CardBlur {
                         target: clearAll
                         host: root
+                    }
+
+                    DropShadow {
+                        target: clearAll
+                        elevation: clearAll.has && clearHover.hovered ? 9 : 6
+                        strength: clearAll.has && clearHover.hovered ? 0.45 : 0.35
                     }
 
                     Text {
