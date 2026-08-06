@@ -57,10 +57,10 @@ Singleton {
 
     // spacing scale; everything in the modals derives from these rather than
     // carrying its own magic numbers
-    readonly property int spaceXs: 6
-    readonly property int spaceSm: 10
-    readonly property int space: 16
-    readonly property int spaceLg: 22
+    readonly property int spaceXs: 8
+    readonly property int spaceSm: 14
+    readonly property int space: 20
+    readonly property int spaceLg: 28
 
     // Rail whitespace. Constant across both forms so expanding never shifts
     // anything vertically. Related marks sit at railItemGap; only genuinely

@@ -73,7 +73,7 @@ PanelWindow {
         bottom: true
     }
 
-    implicitWidth: Theme.rail + 8 + Theme.modalWidth
+    implicitWidth: Theme.rail + Theme.spaceXs + Theme.modalWidth
     exclusiveZone: 0
 
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
@@ -100,7 +100,7 @@ PanelWindow {
     mask: Region {
         x: root.anchorRight ? panel.x : Theme.rail
         y: panel.y
-        width: panel.width + 8
+        width: panel.width + Theme.spaceXs
         height: root.stackHeight
     }
 
@@ -110,7 +110,7 @@ PanelWindow {
         readonly property real maxHeight: root.height - 20
 
         // opens inward from whichever edge the rail is on
-        x: root.anchorRight ? 0 : Theme.rail + 8
+        x: root.anchorRight ? 0 : Theme.rail + Theme.spaceXs
         y: 10
         width: Theme.modalWidth
         // sized to content when the panel reports one, capped to the screen
@@ -244,7 +244,7 @@ PanelWindow {
 
         x: root.anchorRight ? panel.x : Theme.rail
         y: panel.y
-        width: panel.width + 8
+        width: panel.width + Theme.spaceXs
         height: root.stackHeight
         z: -1
 

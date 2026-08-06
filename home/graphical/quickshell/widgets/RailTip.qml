@@ -59,7 +59,7 @@ PanelWindow {
     }
 
     // room for the rail, the gap the panel also uses, and the tip itself
-    implicitWidth: Theme.rail + 8 + 240
+    implicitWidth: Theme.rail + Theme.spaceXs + 240
     exclusiveZone: 0
 
     // Purely a label: it never takes the pointer, which would otherwise steal
@@ -72,7 +72,7 @@ PanelWindow {
         id: tip
 
         // just past the rail, on whichever side it is anchored to
-        x: root.anchorRight ? root.width - Theme.rail - 8 - width : Theme.rail + 8
+        x: root.anchorRight ? root.width - Theme.rail - Theme.spaceXs - width : Theme.rail + Theme.spaceXs
 
         // Centred on the group, then held clear of the screen edges: the meters
         // sit low on the rail and a tall tip would otherwise run off the bottom.
