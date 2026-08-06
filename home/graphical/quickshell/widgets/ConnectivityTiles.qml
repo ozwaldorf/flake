@@ -222,12 +222,28 @@ Column {
         Rectangle {
             id: bridge
 
-            x: listCard.fromLeft || !listCard.bothTiles ? 0 : listCard.width - width
-            width: listCard.bothTiles ? (listCard.width - Theme.spaceXs) / 2 : listCard.width
+            readonly property real half: (listCard.width - Theme.spaceXs) / 2
 
-            // slides across when the join moves to the other tile, rather than
-            // vanishing from one side and appearing at the other
-            Behavior on x {
+            // Both edges animated in their own right rather than a width and a
+            // position derived from it: with x computed from an animating
+            // width, a join travelling outward drags its near edge inward
+            // first and only then slides out.
+            //
+            // not readonly: a Behavior writes to what it animates
+            property real leftEdge: !listCard.bothTiles || listCard.fromLeft ? 0 : listCard.width - half
+            property real rightEdge: !listCard.bothTiles ? listCard.width : listCard.fromLeft ? half : listCard.width
+
+            x: leftEdge
+            width: Math.max(0, rightEdge - leftEdge)
+
+            Behavior on leftEdge {
+                NumberAnimation {
+                    duration: Theme.morphDuration
+                    easing.type: Easing.OutQuint
+                }
+            }
+
+            Behavior on rightEdge {
                 NumberAnimation {
                     duration: Theme.morphDuration
                     easing.type: Easing.OutQuint

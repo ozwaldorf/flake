@@ -153,8 +153,32 @@ Column {
 
             readonly property real unit: (listCard.width - Theme.spaceXs) / 3
 
-            x: listCard.fromLeft ? 0 : listCard.width - width
-            width: listCard.fromLeft ? unit * 2 : unit
+            // Both edges are animated in their own right rather than a width
+            // and a position derived from it: with x computed from an
+            // animating width, travelling outward drags the near edge inward
+            // first as the width shrinks, and only then slides out. Moving the
+            // two edges directly, each simply goes where it is going.
+            //
+            // not readonly: a Behavior writes to what it animates
+            property real leftEdge: listCard.fromLeft ? 0 : listCard.width - unit
+            property real rightEdge: listCard.fromLeft ? unit * 2 : listCard.width
+
+            x: leftEdge
+            width: Math.max(0, rightEdge - leftEdge)
+
+            Behavior on leftEdge {
+                NumberAnimation {
+                    duration: Theme.morphDuration
+                    easing.type: Easing.OutQuint
+                }
+            }
+
+            Behavior on rightEdge {
+                NumberAnimation {
+                    duration: Theme.morphDuration
+                    easing.type: Easing.OutQuint
+                }
+            }
 
             // exactly the gap, tracked as it animates: fixed at its final
             // height it laps onto the card while the gap is still opening, and
@@ -164,20 +188,6 @@ Column {
 
             color: listCard.color
             visible: listCard.height > 0
-
-            Behavior on x {
-                NumberAnimation {
-                    duration: Theme.morphDuration
-                    easing.type: Easing.OutQuint
-                }
-            }
-
-            Behavior on width {
-                NumberAnimation {
-                    duration: Theme.morphDuration
-                    easing.type: Easing.OutQuint
-                }
-            }
         }
 
         Loader {
