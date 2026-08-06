@@ -99,6 +99,21 @@ Rectangle {
         onHoveredChanged: root.hoverChanged(hovered)
     }
 
+    // Anywhere on the card rather than over the track alone: the level is what
+    // the card is for, and aiming at a four pixel rail to change it is the
+    // thing scrolling exists to avoid.
+    //
+    // Adjusts by a step rather than jumping to the pointer. Angle delta is in
+    // eighths of a degree against a fifteen degree notch, so dividing by 120
+    // gives whole notches; a free spinning wheel or a touchpad sends fractions
+    // of one, and those accumulate into the same step.
+    WheelHandler {
+        acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+        onWheel: event => {
+            root.moved(Math.max(0, Math.min(1, root.clamped + event.angleDelta.y / 120 * root.step)));
+        }
+    }
+
     Column {
         id: body
 
@@ -279,18 +294,6 @@ Rectangle {
 
                 TapHandler {
                     onTapped: eventPoint => root.moved(Math.max(0, Math.min(1, eventPoint.position.x / track.width)))
-                }
-
-                // Scroll adjusts by a step rather than jumping to the pointer.
-                // Angle delta is in eighths of a degree and a notch is 15
-                // degrees, so dividing by 120 gives whole notches; a free
-                // spinning wheel or a touchpad sends fractions of one and
-                // those accumulate into the same step.
-                WheelHandler {
-                    acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-                    onWheel: event => {
-                        root.moved(Math.max(0, Math.min(1, root.clamped + event.angleDelta.y / 120 * root.step)));
-                    }
                 }
 
                 HoverHandler {
