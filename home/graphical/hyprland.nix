@@ -270,6 +270,10 @@ in
         (bind "${mod} + E" (exec "firefox"))
         # Toggle displays
         (bind "${mod} + L" (mkLuaInline "hl.dsp.dpms({ action = \"toggle\" })"))
+        # Toggle the idle veil. Goes through the shell's ipc rather than a
+        # dispatcher: the veil is a surface quickshell owns, not a compositor
+        # feature.
+        (bind "${mod} + V" (exec "qs ipc call veil toggle"))
 
         # Screenshots. Lua calls rather than a dispatcher string: the lua config
         # parser reads "hyprcapture:open" as lua syntax and never reaches the
