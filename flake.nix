@@ -83,6 +83,15 @@
               hyprcapture = final.callPackage "${inputs.hyprcapture}/nix/package.nix" {
                 src = inputs.hyprcapture;
               };
+              # Route volume writes are skipped entirely on devices that report
+              # no volume step, which is every bluez sink: the volume moves in
+              # qs and never reaches the card.
+              # Remove once quickshell-mirror/quickshell#808 lands.
+              quickshell = prev.quickshell.overrideAttrs (old: {
+                patches = (old.patches or [ ]) ++ [
+                  ./pkgs/patches/quickshell-pipewire-volume-step.patch
+                ];
+              });
               vimPlugins = prev.vimPlugins // {
                 catppuccin-nvim = prev.vimPlugins.catppuccin-nvim.overrideAttrs {
                   doCheck = false;

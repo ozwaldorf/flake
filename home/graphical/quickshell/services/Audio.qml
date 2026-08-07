@@ -76,6 +76,18 @@ Singleton {
         return node.description || node.nickname || node.name || "Unknown device";
     }
 
+    function setVolume(node, level) {
+        if (!node?.audio)
+            return;
+        node.audio.volume = Math.max(0, Math.min(1, level));
+    }
+
+    function toggleMuted(node) {
+        if (!node?.audio)
+            return;
+        node.audio.muted = !node.audio.muted;
+    }
+
     function setSink(node) {
         Pipewire.preferredDefaultAudioSink = node;
     }

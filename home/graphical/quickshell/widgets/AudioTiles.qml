@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import Quickshell.Services.Pipewire
 import ".."
 import "../services"
 
@@ -66,17 +65,11 @@ Column {
             expanded: root.open === "speaker"
             joined: listCard.height > 0 && listCard.fromLeft
 
-            value: Pipewire.defaultAudioSink?.audio?.volume ?? 0
-            muted: Pipewire.defaultAudioSink?.audio?.muted ?? false
+            value: Audio.sink?.audio?.volume ?? 0
+            muted: Audio.sink?.audio?.muted ?? false
 
-            onMoved: v => {
-                if (Pipewire.defaultAudioSink?.audio)
-                    Pipewire.defaultAudioSink.audio.volume = v;
-            }
-            onMuteToggled: {
-                if (Pipewire.defaultAudioSink?.audio)
-                    Pipewire.defaultAudioSink.audio.muted = !Pipewire.defaultAudioSink.audio.muted;
-            }
+            onMoved: v => Audio.setVolume(Audio.sink, v)
+            onMuteToggled: Audio.toggleMuted(Audio.sink)
             onListToggled: root.toggle("speaker")
             onHoverChanged: hovered => root.hoverChanged(hovered)
         }
@@ -89,17 +82,11 @@ Column {
             expanded: root.open === "mic"
             joined: listCard.height > 0 && !listCard.fromLeft
 
-            value: Pipewire.defaultAudioSource?.audio?.volume ?? 0
-            muted: Pipewire.defaultAudioSource?.audio?.muted ?? false
+            value: Audio.source?.audio?.volume ?? 0
+            muted: Audio.source?.audio?.muted ?? false
 
-            onMoved: v => {
-                if (Pipewire.defaultAudioSource?.audio)
-                    Pipewire.defaultAudioSource.audio.volume = v;
-            }
-            onMuteToggled: {
-                if (Pipewire.defaultAudioSource?.audio)
-                    Pipewire.defaultAudioSource.audio.muted = !Pipewire.defaultAudioSource.audio.muted;
-            }
+            onMoved: v => Audio.setVolume(Audio.source, v)
+            onMuteToggled: Audio.toggleMuted(Audio.source)
             onListToggled: root.toggle("mic")
             onHoverChanged: hovered => root.hoverChanged(hovered)
         }
