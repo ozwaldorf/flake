@@ -1,9 +1,36 @@
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import "modals"
 import "services"
 
 ShellRoot {
+    id: shell
+
+    // Raised over every screen while the session is idle. Held out here rather
+    // than per screen so one call covers the whole desktop.
+    property bool veiled: false
+
+    // `qs ipc call veil raise|lower|toggle`, driven by the idle watcher.
+    //
+    // Deliberately not named show/hide: `qs ipc` parses those as its own
+    // --show subcommand and prints the handler's metadata instead of calling.
+    IpcHandler {
+        target: "veil"
+
+        function raise(): void {
+            shell.veiled = true;
+        }
+
+        function lower(): void {
+            shell.veiled = false;
+        }
+
+        function toggle(): void {
+            shell.veiled = !shell.veiled;
+        }
+    }
+
     // services do not import the config root, so the theme's timings are
     // pushed in from here rather than pulled up from the service
     Component.onCompleted: {
@@ -128,6 +155,11 @@ ShellRoot {
                 modelData: scope.modelData
                 anchorRight: scope.anchorRight
                 barExpanded: bar.expanded
+            }
+
+            Veil {
+                modelData: scope.modelData
+                shown: shell.veiled
             }
 
             // Opening the panel clears every toast outright rather than hiding

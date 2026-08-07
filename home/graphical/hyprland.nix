@@ -139,6 +139,60 @@ in
         };
       };
 
+      # A layer's blur is drawn at its fade alpha, and its radius scales with
+      # that same value, so these are what make the idle veil dissolve in
+      # rather than snap on. Speed is in hyprland's units of roughly a
+      # centisecond, so 2.0 lands on the shell's own 200ms fade.
+      #
+      # Set on the layer nodes rather than on fade itself: windows keep the
+      # default, and only layer surfaces (the veil, the rail, its modals) take
+      # this timing.
+      animation = [
+        {
+          _args = [
+            {
+              leaf = "fadeLayersIn";
+              enabled = true;
+              speed = 2.0;
+              bezier = "easeOutQuint";
+            }
+          ];
+        }
+        {
+          _args = [
+            {
+              leaf = "fadeLayersOut";
+              enabled = true;
+              speed = 2.0;
+              bezier = "easeOutQuint";
+            }
+          ];
+        }
+      ];
+
+      # Matches the OutQuint the shell eases its own fades and slides with, so
+      # the compositor's blur ramp and the surface's contents arrive together.
+      curve = [
+        {
+          _args = [
+            "easeOutQuint"
+            {
+              type = "bezier";
+              points = [
+                [
+                  0.22
+                  1.0
+                ]
+                [
+                  0.36
+                  1.0
+                ]
+              ];
+            }
+          ];
+        }
+      ];
+
       # uwsm waits for these before letting the session come up, and the
       # hyprland.start hook fires too late (first render frame) to satisfy it.
       # quickshell and tailscale-systray are started by their own systemd units.

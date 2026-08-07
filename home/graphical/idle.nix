@@ -8,9 +8,21 @@ let
   # session; writing sysfs directly would need a udev rule loosening the files.
   idleDim = pkgs.writeShellApplication {
     name = "idle-dim";
-    runtimeInputs = [ pkgs.systemd ];
+    runtimeInputs = [
+      pkgs.systemd
+      pkgs.quickshell
+    ];
     text = ''
       state="''${XDG_RUNTIME_DIR:-/tmp}/idle-dim.state"
+
+      # The veil is a surface the shell owns, so it is only there while the
+      # shell is running; dimming still works on its own if it is not. Reported
+      # rather than swallowed outright: a call that never lands is a renamed
+      # handler as easily as an absent shell, and silence hides the difference.
+      veil() {
+        qs ipc call veil "$1" >/dev/null 2>&1 ||
+          printf 'idle-dim: veil %s did not reach the shell\n' "$1" >&2
+      }
 
       # DDC writes NAK often enough that a single failure is not a real one, so
       # retry before giving up. A device that stays unreachable must not take
@@ -35,6 +47,11 @@ let
           # level as the one to come back to.
           [ -e "$state" ] && exit 0
 
+          # Raised before the backlight walks down: the ramp is the warning
+          # that the blank is coming, and the DDC writes below are slow enough
+          # to swallow it if it went last.
+          veil raise
+
           : > "$state"
           for d in /sys/class/backlight/*; do
             [ -e "$d/max_brightness" ] || continue
@@ -53,6 +70,11 @@ let
           ;;
 
         restore)
+          # Dropped first and unconditionally: a veil left up over a session
+          # that never recorded a level would have nothing else to take it
+          # down, and the screen would stay blurred.
+          veil lower
+
           [ -e "$state" ] || exit 0
           # Drop the state first: a panel that refuses its level must not leave
           # a file behind that makes the next dim think it already ran.
