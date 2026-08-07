@@ -235,9 +235,13 @@ PanelWindow {
             // the top of the stack rather than under an empty card's worth of
             // space. Animated with the fade, which is what makes them shuffle
             // down to make room rather than jump.
+            //
+            // Deliberately not clipped: the card's content fills it and so
+            // shrinks with it, leaving nothing to spill, while its shadow is
+            // drawn outside its own bounds and a clip is exactly what cuts
+            // that off.
             opacity: 0
             height: 0
-            clip: true
 
             onChildHoverChanged: hovered => root.mediaHoverCount = Math.max(0, root.mediaHoverCount + (hovered ? 1 : -1))
 
