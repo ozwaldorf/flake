@@ -11,9 +11,7 @@ Rectangle {
     // 0-100
     property int value: 0
 
-    // fill colour at rest; past warnAt it switches to peach regardless
     property color fill: Theme.overlay0
-    property int warnAt: 72
 
     // A second reading stacked on the first, for a meter carrying two halves
     // of one figure: the mark then says which half it is rather than only how
@@ -54,20 +52,12 @@ Rectangle {
         height: parent.height * root.value / 100
         radius: 0
 
-        // A split mark keeps its colours: they are what say which half is
-        // which, and swapping one for the warning colour would read as the
-        // other half having grown.
-        color: !root.split && root.value > root.warnAt ? Theme.peach : root.fill
+        color: root.fill
 
         Behavior on height {
             NumberAnimation {
                 duration: 700
                 easing.type: Easing.OutQuint
-            }
-        }
-        Behavior on color {
-            ColorAnimation {
-                duration: 700
             }
         }
     }
