@@ -193,14 +193,6 @@ PanelWindow {
     readonly property var allMeters: [
         // row 0, against the meters: the widest, at 480
         {
-            kind: "memory",
-            icon: Theme.iconMemory,
-            label: "Memory",
-            fill: Theme.mauve,
-            row: 0,
-            width: 150
-        },
-        {
             kind: "io",
             icon: Theme.iconDisk,
             label: "Disk I/O",
@@ -217,14 +209,22 @@ PanelWindow {
             width: 134,
             dial: true
         },
+        {
+            kind: "memory",
+            icon: Theme.iconMemory,
+            label: "Memory",
+            fill: Theme.mauve,
+            row: 0,
+            width: 150
+        },
         // row 1, at 410
         {
             kind: "network",
             icon: Theme.iconNetwork,
-            label: "Network",
+            label: "Net",
             fill: Theme.teal,
             row: 1,
-            width: 250
+            width: 220
         },
         {
             kind: "cpu",
@@ -234,18 +234,9 @@ PanelWindow {
             // a percentage cannot pass a hundred, so the axis must not either
             limit: 100,
             row: 1,
-            width: 152
+            width: 182
         },
         // row 2, the narrow end at 318
-        {
-            kind: "gpu",
-            icon: Theme.iconGpu,
-            label: "GPU",
-            fill: Theme.green,
-            limit: 100,
-            row: 2,
-            width: 176
-        },
         {
             kind: "vram",
             icon: Theme.iconGpu,
@@ -254,6 +245,15 @@ PanelWindow {
             row: 2,
             width: 134,
             dial: true
+        },
+        {
+            kind: "gpu",
+            icon: Theme.iconGpu,
+            label: "GPU",
+            fill: Theme.green,
+            limit: 100,
+            row: 2,
+            width: 176
         },
         // The apex: what the machine is rather than what it is doing, which is
         // read once on the way past rather than watched.
@@ -371,27 +371,13 @@ PanelWindow {
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: Theme.railGroupGap
 
-            // cpu, memory, network stacked down the rail, each as wide as a
-            // workspace block so the two groups line up
+            // network, cpu, gpu, memory, disk stacked down the rail, each as
+            // wide as a workspace block so the two groups line up
             Column {
                 id: meters
 
                 anchors.horizontalCenter: parent.horizontalCenter
                 spacing: Theme.meterGap
-
-                LoadMeter {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    expanded: bar.expanded
-                    value: SysMeters.cpu
-                    fill: Theme.sapphire
-                }
-
-                LoadMeter {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    expanded: bar.expanded
-                    value: SysMeters.memory
-                    fill: Theme.mauve
-                }
 
                 // Down from the base and up stacked on it, so the mark says
                 // which direction the traffic is in rather than only that
@@ -408,9 +394,23 @@ PanelWindow {
                 LoadMeter {
                     anchors.horizontalCenter: parent.horizontalCenter
                     expanded: bar.expanded
+                    value: SysMeters.cpu
+                    fill: Theme.sapphire
+                }
+
+                LoadMeter {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    expanded: bar.expanded
                     value: SysMeters.gpu
                     fill: Theme.green
                     visible: SysMeters.gpuAvailable
+                }
+
+                LoadMeter {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    expanded: bar.expanded
+                    value: SysMeters.memory
+                    fill: Theme.mauve
                 }
 
                 LoadMeter {
