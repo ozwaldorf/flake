@@ -402,6 +402,12 @@ Singleton {
         return formatBytesAt(bytes, byteScale(bytes));
     }
 
+    // Sensors report celsius; the readings are kept in it and converted only
+    // where they are drawn.
+    function fahrenheit(celsius) {
+        return Math.round(celsius * 9 / 5 + 32);
+    }
+
     // Formatted against a given scale rather than each value picking its own,
     // so an axis reads in one unit down its whole length instead of switching
     // partway and inviting the two ends to be compared as if they matched.

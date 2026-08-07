@@ -273,11 +273,11 @@ PanelWindow {
 
                         readonly property string detail: {
                             if (kind === "cpu")
-                                return SysMeters.cpuTemperature > 0 ? SysMeters.cpu + "% · " + SysMeters.cpuTemperature + "°C" : SysMeters.cpu + "%";
+                                return SysMeters.cpuTemperature > 0 ? SysMeters.cpu + "% Load · " + SysMeters.fahrenheit(SysMeters.cpuTemperature) + "°F" : SysMeters.cpu + "% Load";
                             if (kind === "memory")
                                 return SysMeters.formatBytes(SysMeters.memoryUsed) + " / " + SysMeters.formatBytes(SysMeters.memoryTotal);
                             if (kind === "gpu")
-                                return SysMeters.gpu + "% · " + SysMeters.gpuTemperature + "°C";
+                                return SysMeters.gpu + "% Load · " + SysMeters.fahrenheit(SysMeters.gpuTemperature) + "°F";
                             // What is left rather than what is taken: the ring
                             // already says what share is gone, and the figure
                             // worth reading beside it is the headroom.
