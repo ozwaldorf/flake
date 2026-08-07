@@ -213,7 +213,7 @@ PanelWindow {
             kind: "memory",
             icon: Theme.iconMemory,
             label: "Memory",
-            fill: Theme.mauve,
+            fill: Theme.green,
             row: 0,
             width: 150
         },
@@ -222,7 +222,7 @@ PanelWindow {
             kind: "network",
             icon: Theme.iconNetwork,
             label: "Net",
-            fill: Theme.teal,
+            fill: Theme.red,
             row: 1,
             width: 220
         },
@@ -230,7 +230,7 @@ PanelWindow {
             kind: "cpu",
             icon: Theme.iconCpu,
             label: "CPU",
-            fill: Theme.sapphire,
+            fill: Theme.mauve,
             // a percentage cannot pass a hundred, so the axis must not either
             limit: 100,
             row: 1,
@@ -241,7 +241,7 @@ PanelWindow {
             kind: "vram",
             icon: Theme.iconGpu,
             label: "VRAM",
-            fill: Theme.green,
+            fill: Theme.blue,
             row: 2,
             width: 134,
             dial: true
@@ -250,7 +250,7 @@ PanelWindow {
             kind: "gpu",
             icon: Theme.iconGpu,
             label: "GPU",
-            fill: Theme.green,
+            fill: Theme.blue,
             limit: 100,
             row: 2,
             width: 176
@@ -386,23 +386,23 @@ PanelWindow {
                     anchors.horizontalCenter: parent.horizontalCenter
                     expanded: bar.expanded
                     value: SysMeters.networkDown
-                    fill: Theme.teal
+                    fill: Theme.red
                     secondValue: SysMeters.networkUp
-                    secondFill: Theme.sky
+                    secondFill: Theme.peach
                 }
 
                 LoadMeter {
                     anchors.horizontalCenter: parent.horizontalCenter
                     expanded: bar.expanded
                     value: SysMeters.cpu
-                    fill: Theme.sapphire
+                    fill: Theme.mauve
                 }
 
                 LoadMeter {
                     anchors.horizontalCenter: parent.horizontalCenter
                     expanded: bar.expanded
                     value: SysMeters.gpu
-                    fill: Theme.green
+                    fill: Theme.blue
                     visible: SysMeters.gpuAvailable
                 }
 
@@ -410,7 +410,7 @@ PanelWindow {
                     anchors.horizontalCenter: parent.horizontalCenter
                     expanded: bar.expanded
                     value: SysMeters.memory
-                    fill: Theme.mauve
+                    fill: Theme.green
                 }
 
                 LoadMeter {

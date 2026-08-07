@@ -289,9 +289,9 @@ PanelWindow {
                         readonly property string secondDetail: hasSecond ? "↑ " + SysMeters.formatBytesAt(secondRate, rateScale) + "/s" : ""
 
                         // The outgoing series, distinct from the chip's own
-                        // colour but of a piece with it: sky against the
-                        // network's teal, peach against the disk's yellow.
-                        readonly property color secondFill: kind === "io" ? Theme.peach : Theme.sky
+                        // colour but of a piece with it: peach against the
+                        // network's red and against the disk's yellow alike.
+                        readonly property color secondFill: Theme.peach
 
                         readonly property var format: {
                             if (kind === "cpu" || kind === "gpu")
