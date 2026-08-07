@@ -141,6 +141,15 @@ ShellRoot {
                 if (panelOpen)
                     Notifications.dismissAllToasts();
             }
+
+            // The hold lives in a singleton that survives a reload, and this
+            // scope does not: a config reloaded with the panel open would
+            // otherwise leave its hold behind with nothing left to release it,
+            // and toasts would stay suppressed until the shell was restarted.
+            Component.onDestruction: {
+                if (panelOpen)
+                    Notifications.holdToasts(false);
+            }
         }
     }
 }

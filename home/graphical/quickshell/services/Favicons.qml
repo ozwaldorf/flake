@@ -53,6 +53,17 @@ Singleton {
         return /^[a-z0-9.-]+$/.test(host) && host.indexOf("..") < 0 ? host : "";
     }
 
+    // The site a URL is on, as something to show a user: the host with the
+    // prefixes that say nothing about it dropped.
+    //
+    // Kept whole rather than reduced to a registrable domain, which cannot be
+    // done correctly without the public suffix list: a naive last-two-labels
+    // rule turns bbc.co.uk into co.uk, and drops the part of music.youtube.com
+    // that says which service it actually is.
+    function siteOf(url) {
+        return hostOf(url).replace(/^(www|m|open|play|listen)\./, "");
+    }
+
     // The icon for a URL's host if one is already known, else "". Requests the
     // fetch as a side effect, so a caller can simply bind to this and get the
     // icon once it lands.

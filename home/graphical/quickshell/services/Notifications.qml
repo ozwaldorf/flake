@@ -28,18 +28,26 @@ Singleton {
     // queued arrives the instant the server takes the name, and a shell that
     // has just restarted popping a stack of notifications from before it was
     // running is noise: they are in the history either way.
+    //
+    // Long enough for that queue to land and no longer. The hold is re-armed
+    // whenever this singleton is rebuilt, which a config reload does, so a
+    // generous window is one where every toast is silently swallowed for that
+    // long after any edit to the shell.
     property bool starting: true
 
     Timer {
-        running: true
-        interval: 10000
+        running: root.starting
+        interval: 1000
         onTriggered: root.starting = false
     }
 
     readonly property bool toastsSuppressed: toastHolders > 0 || starting
 
+    // Clamped at both ends: there is one panel per screen, so the count cannot
+    // legitimately pass that. A raise that loses its release, from a panel torn
+    // down while open, would otherwise suppress every toast for good.
     function holdToasts(on) {
-        toastHolders = Math.max(0, toastHolders + (on ? 1 : -1));
+        toastHolders = Math.max(0, Math.min(Quickshell.screens.length, toastHolders + (on ? 1 : -1)));
     }
 
     function refreshUrgent() {
