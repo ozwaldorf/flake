@@ -73,8 +73,8 @@
       # }
     ];
 
-    shellAliases = with { ls_args = "--git --icons"; }; {
-      ls = "eza -lh ${ls_args}"; # better ls
+    shellAliases = {
+      ls = "eza -lh --git --icons always"; # better ls
       la = "ls -a";
       lg = "la --git-ignore";
       l = "lg";
@@ -93,6 +93,7 @@
       wq = "exit";
       fuck = "thefuck";
       switch = "sudo nixos-rebuild switch --flake ${flakeDirectory}\\#${hostname}";
+      # Always run from the latest hourly builds
       claude = "nix run github:sadjow/claude-code-nix -- --dangerously-skip-permissions";
       codex = "nix run github:sadjow/codex-cli-nix -- --yolo";
     };
