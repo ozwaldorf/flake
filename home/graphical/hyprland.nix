@@ -136,6 +136,9 @@ in
           # notifications go through the shell's daemon rather than hyprland's
           # own overlay, which draws over fullscreen windows
           notification_backend = "system";
+          # bake the cursor into screenshots and recordings; the overlay's own
+          # crosshair is never included
+          include_cursor = true;
         };
       };
 
