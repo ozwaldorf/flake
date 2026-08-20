@@ -167,6 +167,7 @@
   };
   environment.systemPackages = with pkgs; [
     sane-frontends
+    steamtinkerlaunch
   ];
 
   # No blueman: it autostarts an applet whose only visible part is a tray icon,
@@ -347,7 +348,11 @@
 
   programs = {
     nix-ld.enable = true;
-    steam.enable = true;
+    steam = {
+      enable = true;
+      extraCompatPackages = [ pkgs.steamtinkerlaunch ];
+    };
+    # steam.protontricks.enable = true;
 
     # enable installing zsh at the system level to set the users default terminal. Everything else configuration wise is done in home manager.
     zsh = {

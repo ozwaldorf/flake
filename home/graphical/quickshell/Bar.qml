@@ -272,6 +272,10 @@ PanelWindow {
     // does not re-evaluate when they move.
     readonly property real tipY: railContent.y + bottom.y + meters.y + meters.height / 2
 
+    // Centre of the clock, summed the same way, so the calendar opens level
+    // with the digits it belongs to.
+    readonly property real clockY: railContent.y + bottom.y + clock.y + clock.height / 2
+
     // widened catch area so the pointer does not have to hit 6px exactly
     HoverHandler {
         id: rawHover
@@ -422,6 +426,8 @@ PanelWindow {
             }
 
             Clock {
+                id: clock
+
                 anchors.horizontalCenter: parent.horizontalCenter
                 expanded: bar.expanded
             }
@@ -447,6 +453,20 @@ PanelWindow {
                 id: meterHover
             }
         }
+
+        // The clock's own target, placed the same way: the digits are two
+        // characters in a narrow strip, and the calendar is reached by aiming
+        // at the bottom of the rail rather than at them exactly.
+        Item {
+            x: (railContent.width - width) / 2
+            y: bottom.y + clock.y
+            width: Theme.rail
+            height: clock.height
+
+            HoverHandler {
+                id: clockHover
+            }
+        }
     }
 
     // Only while the rail is out: in the sliver the meters are six pixels wide
@@ -457,5 +477,14 @@ PanelWindow {
         meters: bar.tipMeters
         markY: bar.tipY
         shown: meterHover.hovered && bar.expanded
+    }
+
+    // Same rule as the meter tip: only while the rail is out, since collapsed
+    // the clock is a sliver of skeleton with no digits to expand on.
+    CalendarTip {
+        screenData: bar.modelData
+        anchorRight: bar.anchorRight
+        markY: bar.clockY
+        shown: clockHover.hovered && bar.expanded
     }
 }
