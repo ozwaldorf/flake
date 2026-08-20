@@ -151,7 +151,10 @@ ShellRoot {
                     closeTimer.restart();
             }
 
-            Wallpaper {
+            // Named apart from the Wallpaper singleton it draws: modals and
+            // services are imported into the same scope, and a shared name
+            // resolves to the singleton, which is not creatable.
+            WallpaperLayer {
                 modelData: scope.modelData
             }
 

@@ -105,15 +105,24 @@ Singleton {
     }
 
     // Generated rather than shipped: it is derived from the palette, and
-    // lutgen produces it in well under a second. Preserving luminosity is what
-    // keeps a photograph looking like one, without it the tones flatten
-    // towards the palette's own and the image goes grey.
+    // lutgen produces it in well under a second.
+    //
+    // Preserving luminosity is what keeps a photograph looking like one:
+    // without it the tones flatten towards the palette's own and the image goes
+    // grey. The low luminosity factor weights the match towards colorful rather
+    // than unsaturated entries, and the blur radius softens the boundaries
+    // between them, so foliage and water keep their separation instead of
+    // collapsing into one muddy tone.
     Process {
         id: makeClut
 
         // statePath only names the location, it does not create it, and both
         // lutgen and the state write below fail outright on a missing parent.
-        command: ["sh", "-c", `mkdir -p "$(dirname "$1")" && exec lutgen generate -p carburetor -P -l "$2" -o "$1"`, "sh", root.clutPath, String(root.clutLevel)]
+        //
+        // The level is passed explicitly: lutgen defaults to 10, and a table
+        // that disagrees with what the shader is told to expect is indexed
+        // wrongly rather than merely looking different.
+        command: ["sh", "-c", `mkdir -p "$(dirname "$1")" && exec lutgen generate -p carburetor -P -L 0.3 -r 10 -l "$2" -o "$1"`, "sh", root.clutPath, String(root.clutLevel)]
 
         onExited: exitCode => {
             if (exitCode === 0) {

@@ -40,12 +40,13 @@ PanelWindow {
     // take them from the desktop underneath.
     mask: Region {}
 
-    // Which of the two slots is showing. Swapped per change so the outgoing
-    // image stays loaded for the length of the fade instead of being replaced
-    // underneath it.
+    // Which of the two slots is showing. Swapped only once the other one has
+    // finished decoding: swapping on assignment would point the shader at an
+    // empty slot for as long as the load takes, which reads as a flash of
+    // black before the fade.
     property bool showingB: false
-    readonly property Image incoming: showingB ? imageB : imageA
-    readonly property Image outgoing: showingB ? imageA : imageB
+    readonly property Image showing: showingB ? imageB : imageA
+    readonly property Image loading: showingB ? imageA : imageB
 
     // Driven to 1 to fade the incoming slot in. Held at whichever end matches
     // the current slot so a reload does not restart a completed fade.
@@ -61,12 +62,38 @@ PanelWindow {
         if (path === "" || !Wallpaper.clutReady)
             return;
 
-        // Already showing it: a reload, or the same file picked twice.
-        if (incoming.source == Qt.resolvedUrl(path))
+        const url = Qt.resolvedUrl(path);
+
+        // Already up, or already on its way in: a reload, or the same file
+        // picked twice.
+        if (showing.source == url || loading.source == url)
             return;
 
-        outgoing.source = path;
+        // Only loaded here. The swap waits for it to decode, in onSlotLoaded.
+        loading.source = path;
+    }
+
+    // Called by whichever slot finished decoding. The one that is not showing
+    // is the new image, so the swap happens here rather than on assignment.
+    function onSlotLoaded(slot) {
+        // Status is checked rather than assumed: this is also called when the
+        // table finishes, where the slot may still be decoding.
+        if (slot !== loading || slot.status !== Image.Ready || clut.status !== Image.Ready)
+            return;
+
+        // Read before the swap, while this still refers to the outgoing image.
+        const hadPrevious = showing.source != "";
+
         showingB = !showingB;
+
+        // Nothing to fade from on the first image of the session, so it is put
+        // up whole rather than dissolving in out of an empty slot.
+        if (!hadPrevious) {
+            progress = showingB ? 1 : 0;
+            return;
+        }
+
+        fade.restart();
     }
 
     Connections {
@@ -95,6 +122,7 @@ PanelWindow {
         cache: false
         fillMode: Image.PreserveAspectCrop
         sourceSize: root.decodeSize
+        onStatusChanged: if (status === Image.Ready) root.onSlotLoaded(this)
     }
 
     Image {
@@ -105,6 +133,7 @@ PanelWindow {
         cache: false
         fillMode: Image.PreserveAspectCrop
         sourceSize: root.decodeSize
+        onStatusChanged: if (status === Image.Ready) root.onSlotLoaded(this)
     }
 
     // Nearest filtered: the shader interpolates between CLUT entries itself,
@@ -117,26 +146,19 @@ PanelWindow {
         cache: false
         smooth: false
         asynchronous: true
+
+        // An image that decoded before the table did was turned away, since
+        // there was nothing to grade it through yet. Picked up here once there
+        // is, which is the ordering on a cold start: the fetch is a network
+        // round trip and the table is generated locally, but only after it.
+        onStatusChanged: if (status === Image.Ready) root.onSlotLoaded(root.loading)
     }
 
-    // The fade only starts once the new image has actually decoded. Starting it
-    // on assignment would fade towards a slot that is still empty, which reads
-    // as a flash of black partway through.
-    readonly property bool ready: incoming.status === Image.Ready && clut.status === Image.Ready
-
-    onReadyChanged: {
-        if (!ready)
-            return;
-
-        // Nothing to fade from on the first image of the session, so it is put
-        // up whole rather than dissolving in out of an empty slot.
-        if (outgoing.source == "") {
-            progress = showingB ? 1 : 0;
-            return;
-        }
-
-        fade.restart();
-    }
+    // Whether there is anything to draw at all. Only the showing slot is
+    // required: the other one holds the previous image, or the next one part
+    // way through loading, and gating on it would blank the screen for the
+    // length of every load.
+    readonly property bool ready: showing.status === Image.Ready && clut.status === Image.Ready
 
     NumberAnimation {
         id: fade
@@ -150,8 +172,9 @@ PanelWindow {
         onFinished: {
             // Released once it is no longer being sampled: two full screen
             // textures per monitor is worth holding during a fade and not
-            // after one.
-            root.outgoing.source = "";
+            // after one. This is the slot that was faded away from, which the
+            // swap has already made the loading one.
+            root.loading.source = "";
         }
     }
 
