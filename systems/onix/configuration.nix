@@ -118,6 +118,16 @@
       kernelPackages.ddcci-driver
     ];
 
+    # The internal panel hangs off the nvidia GPU, so without these in the
+    # initrd there is no KMS driver when the luks prompt is drawn and the
+    # firmware EFI framebuffer is used instead, upscaled from a low-res mode.
+    initrd.kernelModules = [
+      "nvidia"
+      "nvidia_modeset"
+      "nvidia_uvm"
+      "nvidia_drm"
+    ];
+
     kernelModules = [
       # ddcci talks to monitors over the display's i2c bus, which is only
       # reachable once i2c-dev is up. ddcci alone is just the bus layer; the
