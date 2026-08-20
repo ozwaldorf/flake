@@ -66,9 +66,6 @@ in
     hyprlock.enable = true;
   };
 
-  # wallpaper daemon
-  services.awww.enable = true;
-
   wayland.windowManager.hyprland = {
     enable = true;
     configType = "lua";
@@ -288,9 +285,7 @@ in
         (bind "CTRL + Print" (capture "record_toggle()"))
 
         # Cycle wallpaper
-        (bind "${mod} + W" (
-          exec "bash -c 'swww img --transition-type any $(find ~/Pictures/walls/carburetor | shuf -n 1)'"
-        ))
+        (bind "${mod} + W" (exec "qs ipc call wallpaper next"))
 
         # Nix run
         (bind "${mod} + R" (

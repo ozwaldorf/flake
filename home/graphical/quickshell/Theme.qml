@@ -110,6 +110,11 @@ Singleton {
     // how long a toast lingers when the app does not ask for a specific timeout
     readonly property int toastTimeout: 10000
 
+    // Wallpaper crossfade. An order of magnitude longer than anything in the
+    // shell: the panels are answering a pointer and have to keep up with it,
+    // while this is ambient and reads better as a drift than a switch.
+    readonly property int wallpaperFade: 1600
+
     // meter sampling: tighter while the rail is out, relaxed when it is not
     readonly property int meterIntervalActive: 500
     readonly property int meterInterval: 2000

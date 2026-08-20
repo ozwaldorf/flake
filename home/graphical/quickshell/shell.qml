@@ -11,6 +11,25 @@ ShellRoot {
     // than per screen so one call covers the whole desktop.
     property bool veiled: false
 
+    // `qs ipc call wallpaper next|set <path>`, driven by the keybind.
+    IpcHandler {
+        target: "wallpaper"
+
+        // Pulls a new one from Commons. Returns immediately: the fetch is a
+        // network round trip and the caller is a keybind.
+        function next(): void {
+            Wallpaper.next();
+        }
+
+        function set(path: string): void {
+            Wallpaper.setWallpaper(path);
+        }
+
+        function current(): string {
+            return Wallpaper.current;
+        }
+    }
+
     // `qs ipc call veil raise|lower|toggle`, driven by the idle watcher.
     //
     // Deliberately not named show/hide: `qs ipc` parses those as its own
@@ -130,6 +149,10 @@ ShellRoot {
                     closeTimer.stop();
                 else if (hoveredMark === "")
                     closeTimer.restart();
+            }
+
+            Wallpaper {
+                modelData: scope.modelData
             }
 
             Bar {
