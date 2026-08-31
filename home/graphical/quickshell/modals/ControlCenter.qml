@@ -81,7 +81,7 @@ ModalPanel {
             // The media card only counts when there is a player, so with
             // nothing playing the sequence closes up rather than leaving its
             // step as a pause in the middle.
-            readonly property int rows: player !== null ? 5 : 4
+            readonly property int rows: player !== null ? 6 : 5
 
             // Every section is a card or a row of them, so they all sit at one
             // gap; a wider one between sections read as padding hanging under
@@ -170,20 +170,36 @@ ModalPanel {
                 onChildHoverChanged: hovered => root.setChildHovered(hovered)
             }
 
-            // ---- recorder and tray, sharing one row ----
+            // ---- power and the recorder, sharing one row ----
 
-            // One flow rather than a tile beside a tray: with the recorder as
-            // its first item, wrapping packs every line as full as it goes
-            // instead of the tray having to fit whatever the tile left over.
+            SessionTiles {
+                id: session
+
+                host: root
+                anchorRight: root.anchorRight
+
+                width: parent.width
+
+                open: layout.openGroup === session ? layout.openList : ""
+                onRequestOpen: name => layout.openIn(session, name)
+
+                onHoverChanged: hovered => root.setChildHovered(hovered)
+            }
+
+            // ---- tray, finished by the clear tile ----
+
+            // One flow rather than a fixed row: wrapping packs every line as
+            // full as it goes, and the clear tile finishes whichever line the
+            // tray left off on rather than taking one of its own.
             Flow {
                 id: utility
 
                 width: parent.width
                 spacing: Theme.spaceXs
 
-                // Filled from the edge the rail is on, so the recorder leads
-                // the row from whichever side the panel opened from and the
-                // tray trails away toward the middle of the screen.
+                // Filled from the edge the rail is on, so the tray leads the
+                // row from whichever side the panel opened from and trails
+                // away toward the middle of the screen.
                 layoutDirection: root.anchorRight ? Qt.RightToLeft : Qt.LeftToRight
 
                 readonly property int trayCount: SystemTray.items.values.length
@@ -191,49 +207,22 @@ ModalPanel {
                 // whichever entry has its menu up, or null; one at a time
                 property var openMenu: null
 
-                // Entries are square and as tall as the tile beside them, so
+                // Entries are square and as tall as the tiles above them, so
                 // what they need is known before laying anything out.
                 //
-                // Read off the recorder rather than repeated as a number: the
+                // Read off the pair rather than repeated as a number: the
                 // tiles size themselves from the spacing scale, and a literal
-                // here stays put while they grow. Its height does not depend
-                // on its width, so taking it while giving the tile a width
-                // derived from this is not circular.
-                readonly property real entry: recorder.implicitHeight
+                // here stays put while they grow.
+                readonly property real entry: session.tileHeight
 
-                // Entries sharing the recorder's line: whatever fits once the
-                // tile has taken its half, and never more than there are.
-                readonly property int fits: Math.min(trayCount, Math.max(1, Math.floor(((width - spacing) / 2 + spacing) / (entry + spacing))))
-
-                // Taking every entry that fits can leave one alone on the line
-                // below, which reads as a stray rather than a row. Giving one
-                // back pairs it up, and only helps when exactly one was
-                // stranded: with more than that the line below is a row
-                // already, and with none there is nothing to fix.
-                readonly property int beside: trayCount - fits === 1 && fits > 1 ? fits - 1 : fits
-
-                // The tile takes the line's leftover, so an uneven remainder
-                // ends up in it rather than as a gap at the end of the row.
-                // With no tray at all it takes the whole width.
-                readonly property real cell: trayCount > 0 ? width - beside * (entry + spacing) : width
-
-                // How many entries land on the line under the recorder, and so
-                // what is left of it for the clear tile to finish. A full line
-                // leaves nothing, in which case the tile takes a line of its
-                // own and fills it.
-                readonly property int wrapped: trayCount - beside
-                readonly property int onLastLine: wrapped === 0 ? 0 : wrapped % Math.max(1, Math.floor((width + spacing) / (entry + spacing)))
+                // How many entries fit on a line, and so how many land on the
+                // last one: what is left of it is the clear tile's. A full
+                // line leaves nothing, in which case the tile takes a line of
+                // its own and fills it.
+                readonly property int perLine: Math.max(1, Math.floor((width + spacing) / (entry + spacing)))
+                readonly property int onLastLine: trayCount % perLine
 
                 readonly property real clearCell: onLastLine === 0 ? width : width - onLastLine * (entry + spacing)
-
-                RecorderTile {
-                    id: recorder
-
-                    host: root
-
-                    width: utility.cell
-                    onHoverChanged: hovered => root.setChildHovered(hovered)
-                }
 
                 Repeater {
                     model: SystemTray.items
@@ -477,10 +466,17 @@ ModalPanel {
     }
 
     // A step later when the media card is there to take the one before it, so
-    // the row keeps its place in the sequence either way.
+    // these keep their place in the sequence either way.
+    RevealSlide {
+        target: session
+        index: layout.player !== null ? 4 : 3
+        shown: root.shown
+        fromRight: root.anchorRight
+    }
+
     RevealSlide {
         target: utility
-        index: layout.player !== null ? 4 : 3
+        index: layout.player !== null ? 5 : 4
         shown: root.shown
         fromRight: root.anchorRight
     }

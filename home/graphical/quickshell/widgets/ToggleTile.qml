@@ -32,6 +32,12 @@ Rectangle {
     // chevron and the body is not a second target.
     property bool hasList: true
 
+    // Whether the puck is a switch at all. A tile that only discloses a list
+    // has nothing to flip, so the puck stops being a target of its own and is
+    // left to the body, and the list opens without waiting on an on state
+    // that never becomes true.
+    property bool switchable: true
+
     // Overridable for tiles whose on state is not simply "enabled", like a
     // recorder that is red while it is running.
     property color puckFill: on ? Theme.blue : Theme.surface1
@@ -155,7 +161,10 @@ Rectangle {
             onHoveredChanged: root.hoverChanged(hovered)
         }
 
+        // Only where there is a switch to flip. Without one the puck falls
+        // through to the tile's own handler, so the whole card discloses.
         TapHandler {
+            enabled: root.switchable
             onTapped: root.toggled()
         }
     }
@@ -171,7 +180,7 @@ Rectangle {
         open: root.expanded
         fill: tileHover.hovered ? Theme.text : Theme.overlay0
 
-        opacity: root.hasList && root.on ? 1 : 0
+        opacity: root.hasList && (root.on || !root.switchable) ? 1 : 0
         visible: opacity > 0
 
         Behavior on opacity {
@@ -222,7 +231,7 @@ Rectangle {
             // only the puck: there is nothing else it could mean.
             if (!root.hasList)
                 root.toggled();
-            else if (root.on)
+            else if (root.on || !root.switchable)
                 root.listToggled();
         }
     }
