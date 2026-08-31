@@ -38,6 +38,10 @@
       url = "github:gfhdhytghd/HyprCapture";
       flake = false;
     };
+    hyprland = {
+      url = "github:ozwaldorf/Hyprland/fix/scaling-on-monitor-reattach-0.56.1";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -64,12 +68,13 @@
           inherit system;
           overlays = [
             inputs.carburetor.overlays.insert
+            inputs.hyprland.overlays.hyprland-packages
+            inputs.hyprland.overlays.hyprland-extras
             # inputs.neovim-nightly-overlay.overlays.default
             (final: prev: {
               # Force insert flake packages that dont have builtin overlays.
               zoom-sync = inputs.zoom-sync.packages.${system}.default;
-              # Relax glaze pin so it accepts nixpkgs' 8.0.0.
-              # Remove once NixOS/nixpkgs#549253 lands.
+              # The v0.56.1 flake pins glaze 7, but this flake's nixpkgs has glaze 8.
               hyprland = prev.hyprland.overrideAttrs (old: {
                 postPatch = ''
                   substituteInPlace CMakeLists.txt start/CMakeLists.txt hyprpm/CMakeLists.txt \
