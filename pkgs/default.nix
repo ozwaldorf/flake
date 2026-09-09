@@ -10,4 +10,5 @@ inputs: final: prev: {
   };
   snd-hda-intel = prev.callPackage (import ./snd-hda-intel.nix) { };
   beammp-server = prev.callPackage (import ./beammp-server.nix) { };
+  opennow = prev.callPackage (import ./opennow.nix) { };
 }

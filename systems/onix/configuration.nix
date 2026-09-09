@@ -176,6 +176,7 @@
     ];
   };
   environment.systemPackages = with pkgs; [
+    opennow
     sane-frontends
     steamtinkerlaunch
   ];
