@@ -47,8 +47,8 @@ let
   src = fetchFromGitHub {
     owner = "OpenCloudGaming";
     repo = "OpenNOW";
-    rev = "f7c3ecbd730c56bec9736d43892b2c1016e510e4";
-    hash = "sha256-uo+SmDwRNBNN20ZL/BmnxZQTCoKEHdnyuEf7cAUTWzA=";
+    rev = "879dbec1f2611d3690704a98b9ddb91e199e0cdb";
+    hash = "sha256-TIx/B2vC2OapMuZfD9onGBL8I6u1FglDET5al5gVuiY=";
   };
 
   # The two Rust trees are independent workspaces with their own lockfiles, so
@@ -56,13 +56,13 @@ let
   coreVendor = rustPlatform.fetchCargoVendor {
     inherit src;
     sourceRoot = "source/native/opennow-core";
-    hash = "sha256-QWyE1PnzIoeF8NvHBP6V1N+b5G/wEbm20OpGLaPQb4s=";
+    hash = "sha256-mv5OIa1548KsVOLdOpXMGLA5bjDUxgIxWyyx6E679MM=";
   };
 
   streamerVendor = rustPlatform.fetchCargoVendor {
     inherit src;
     sourceRoot = "source/native/opennow-streamer";
-    hash = "sha256-iVq+2xo0ojvITh61UHr4ts57a8Dko7DaxzB8N8J/MF8=";
+    hash = "sha256-3D362rUwE2al8nrRsXs52rzciAbxRqDPxpBK6mHqRwc=";
   };
 
 in
@@ -120,41 +120,41 @@ stdenv.mkDerivation {
   # have to be in place before CMake configures rather than through the usual
   # cargoSetupHook.
   postPatch = ''
-        installVendorConfig() {
-          mkdir -p "$1/.cargo"
-          substitute "$2/.cargo/config.toml" "$1/.cargo/config.toml" \
-            --subst-var-by vendor "$2"
-        }
-        installVendorConfig native/opennow-core ${coreVendor}
-        installVendorConfig native/opennow-streamer ${streamerVendor}
+    installVendorConfig() {
+      mkdir -p "$1/.cargo"
+      substitute "$2/.cargo/config.toml" "$1/.cargo/config.toml" \
+        --subst-var-by vendor "$2"
+    }
+    installVendorConfig native/opennow-core ${coreVendor}
+    installVendorConfig native/opennow-streamer ${streamerVendor}
 
-        # opennow-license-notices regenerates the notices file that upstream already
-        # ships by running cargo metadata over both workspaces from the repository
-        # root, where no single vendored registry can satisfy them. Copy the
-        # checked-in file instead of rebuilding it.
-        sed -i \
-          '/^add_custom_target(opennow-license-notices ALL$/,/^)$/c\
-    add_custom_target(opennow-license-notices ALL\
-        COMMAND "''${CMAKE_COMMAND}" -E copy_if_different\
-                "''${CMAKE_CURRENT_SOURCE_DIR}/../THIRD_PARTY_NOTICES"\
-                "''${OPENNOW_GENERATED_NOTICES}"\
-        BYPRODUCTS "''${OPENNOW_GENERATED_NOTICES}"\
-        VERBATIM\
-    )' opennow-qt/cmake/NativeRuntime.cmake
+    # opennow-license-notices regenerates the notices file that upstream already
+    # ships by running cargo metadata over both workspaces from the repository
+    # root, where no single vendored registry can satisfy them. Replace the
+    # target's COMMAND lines with a copy of the checked-in file, leaving the
+    # surrounding declaration and its dependencies intact.
+    sed -i \
+      -e '/^add_custom_target(opennow-license-notices ALL$/,/^    DEPENDS opennow-core$/{' \
+      -e '/^add_custom_target/!{/^    DEPENDS/!d}' \
+      -e '}' \
+      -e '/^add_custom_target(opennow-license-notices ALL$/a\    COMMAND "''${CMAKE_COMMAND}" -E copy_if_different "''${CMAKE_CURRENT_SOURCE_DIR}/../THIRD_PARTY_NOTICES" "''${OPENNOW_GENERATED_NOTICES}"' \
+      opennow-qt/cmake/NativeRuntime.cmake
+    grep -q 'copy_if_different "''${CMAKE_CURRENT_SOURCE_DIR}/../THIRD_PARTY_NOTICES"' \
+      opennow-qt/cmake/NativeRuntime.cmake
 
-        # ffmpeg 8.1 types AVVkFrame.access as a signed int; the field is a Vulkan
-        # access bitmask, so reinterpret rather than sign-extend it.
-        substituteInPlace \
-          native/opennow-streamer/crates/opennow-streamer-platform-linux/src/video/ffmpeg.rs \
-          --replace-fail "access: unsafe { (*vulkan_frame).access[index] }," \
-                         "access: unsafe { (*vulkan_frame).access[index] } as u32 as u64,"
+    # ffmpeg 8.1 types AVVkFrame.access as a signed int; the field is a Vulkan
+    # access bitmask, so reinterpret rather than sign-extend it.
+    substituteInPlace \
+      native/opennow-streamer/crates/opennow-streamer-platform-linux/src/video/ffmpeg.rs \
+      --replace-fail "access: unsafe { (*vulkan_frame).access[index] }," \
+                     "access: unsafe { (*vulkan_frame).access[index] } as u32 as u64,"
 
-        # ffmpeg-sys-next's build-portable feature git-clones FFmpeg during the
-        # build, which the sandbox forbids. Link the nixpkgs ffmpeg through
-        # FFMPEG_DIR instead and drop the source-build features.
-        substituteInPlace opennow-qt/cmake/NativeRuntime.cmake \
-          --replace-fail "--features linux-ffmpeg-bundled,linux-vaapi" \
-                         "--features linux-ffmpeg,linux-vaapi"
+    # ffmpeg-sys-next's build-portable feature git-clones FFmpeg during the
+    # build, which the sandbox forbids. Link the nixpkgs ffmpeg through
+    # FFMPEG_DIR instead and drop the source-build features.
+    substituteInPlace opennow-qt/cmake/NativeRuntime.cmake \
+      --replace-fail "--features linux-ffmpeg-bundled,linux-vaapi" \
+                     "--features linux-ffmpeg,linux-vaapi"
   '';
 
   cmakeDir = "../opennow-qt";
