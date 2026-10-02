@@ -71,9 +71,12 @@
               # Built through callPackage rather than the upstream flake output
               # so it compiles against the nixpkgs hyprland, matching the ABI of
               # the compositor it is loaded into.
-              hyprcapture = final.callPackage "${inputs.hyprcapture}/nix/package.nix" {
-                src = inputs.hyprcapture;
-              };
+              # Audio finalize and process supervision tests fail in the sandbox
+              hyprcapture =
+                (final.callPackage "${inputs.hyprcapture}/nix/package.nix" {
+                  src = inputs.hyprcapture;
+                }).overrideAttrs
+                  { doCheck = false; };
               # Route volume writes are skipped entirely on devices that report
               # no volume step, which is every bluez sink: the volume moves in
               # qs and never reaches the card.

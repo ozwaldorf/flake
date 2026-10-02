@@ -71,20 +71,23 @@ in
     configType = "lua";
     # uwsm owns the session; its own units handle the activation environment
     systemd.enable = false;
-    plugins = [ pkgs.hyprcapture ];
+    plugins = [
+      pkgs.hyprcapture
+      pkgs.hyprland-scrolldrag
+    ];
     settings = {
       config = {
         debug.disable_logs = false;
         general = {
-          layout = "dwindle";
+          layout = "scrolling";
           col = {
             active_border = color "text";
             inactive_border = color "base";
           };
         };
-        dwindle = {
-          preserve_split = true;
-        };
+        # Wheel events inside the delay window skip bind matching and leak
+        # through to the focused app, so modded scrolls must never be throttled
+        binds.scroll_event_delay = 0;
         group = {
           col = {
             border_inactive = color "sapphire";
@@ -168,6 +171,19 @@ in
             }
           ];
         }
+        # Workspaces stack vertically, leaving the horizontal axis to the
+        # scrolling layout
+        {
+          _args = [
+            {
+              leaf = "workspaces";
+              enabled = true;
+              speed = 4.0;
+              bezier = "easeOutQuint";
+              style = "slidevert";
+            }
+          ];
+        }
       ];
 
       # Matches the OutQuint the shell eases its own fades and slides with, so
@@ -227,6 +243,15 @@ in
             gaps_out = gaps 40 300;
           }
         ];
+
+      # Pan the scrolling layout with a horizontal three finger swipe
+      gesture = [
+        {
+          fingers = 3;
+          direction = "horizontal";
+          action = "scroll_move";
+        }
+      ];
 
       layer_rule = [
         {
@@ -295,7 +320,6 @@ in
         # Window management
         (bind "${mod} + SHIFT + E" (mkLuaInline "hl.dsp.exit()"))
         (bind "${mod} + SHIFT + Q" (mkLuaInline "hl.dsp.window.close()"))
-        (bind "${mod} + J" (mkLuaInline "hl.dsp.layout(\"togglesplit\")"))
         (bind "${mod} + SHIFT + Space" (mkLuaInline "hl.dsp.window.float({ action = \"toggle\" })"))
         (bind "${mod} + SHIFT + Space" (mkLuaInline "hl.dsp.window.resize({ x = 800, y = 500 })"))
         (bind "${mod} + SHIFT + Space" (mkLuaInline "hl.dsp.window.center()"))
@@ -308,6 +332,13 @@ in
         (bind "${mod} + SHIFT + Tab" (mkLuaInline "hl.dsp.group.prev()"))
         (bind "${mod} + CTRL + Left" (mkLuaInline "hl.dsp.group.move_window({ forward = false })"))
         (bind "${mod} + CTRL + Right" (mkLuaInline "hl.dsp.group.move_window({ forward = true })"))
+
+        # Scrolling layout: pan the view by one column
+        (bind "${mod} + mouse_down" (mkLuaInline "hl.dsp.layout(\"move +col\")"))
+        (bind "${mod} + mouse_up" (mkLuaInline "hl.dsp.layout(\"move -col\")"))
+        # Scrolling layout: drag the view with the middle button, with the same
+        # momentum and snapping as the swipe gesture. Ends on button release.
+        (bind "${mod} + mouse:274" (mkLuaInline "function() hl.plugin.scrolldrag.start() end"))
 
         # Mouse move/resize
         {
