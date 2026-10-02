@@ -12,4 +12,5 @@ inputs: final: prev: {
   beammp-server = prev.callPackage (import ./beammp-server.nix) { };
   opennow = prev.callPackage (import ./opennow.nix) { };
   hyprland-scrolldrag = prev.callPackage ./hyprland-scrolldrag { };
+  claude-desktop = final.callPackage ./claude-desktop.nix { src = inputs.claude-desktop; };
 }

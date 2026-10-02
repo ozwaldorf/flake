@@ -14,6 +14,7 @@
     # ../blocky.nix
 
     inputs.zoom-sync.nixosModules.default
+    inputs.codex-desktop-linux.nixosModules.default
   ];
   disabledModules = [ "hardware/facter/system.nix" ];
 
@@ -55,6 +56,7 @@
       chromium
       expressvpn
       qmk
+      claude-desktop
     ];
   };
 
@@ -359,6 +361,7 @@
 
   programs = {
     nix-ld.enable = true;
+    codexDesktopLinux.enable = true;
     steam = {
       enable = true;
       extraCompatPackages = [ pkgs.steamtinkerlaunch ];

@@ -27,6 +27,14 @@
       url = "github:ozwaldorf/zoom-sync";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    codex-desktop-linux = {
+      url = "github:ilysenko/codex-desktop-linux";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    claude-desktop = {
+      url = "github:k3d3/claude-desktop-linux-flake";
+      flake = false;
+    };
     neovim-nightly-overlay = {
       url = "github:nix-community/neovim-nightly-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
