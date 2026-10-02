@@ -8,8 +8,8 @@
         "carburetor-regular.css"
     ],
     "enableReactDevtools": false,
-    "frameless": false,
-    "transparent": true,
+    "frameless": true,
+    "transparent": false,
     "winCtrlQ": false,
     "disableMinSize": false,
     "winNativeTitleBar": false,
@@ -275,7 +275,8 @@
             "ignoreSelf": true,
             "ignoreUsers": "",
             "ignoreChannels": "",
-            "ignoreGuilds": ""
+            "ignoreGuilds": "",
+            "logDeletedAttachments": true
         },
         "MoreCommands": {
             "enabled": false
@@ -603,7 +604,9 @@
             "enabled": false
         },
         "WebKeybinds": {
-            "enabled": true
+            "enabled": true,
+            "showNavigationButtons": true,
+            "overrideCommonKeybinds": true
         },
         "WebScreenShareFixes": {
             "enabled": true
@@ -704,6 +707,12 @@
         },
         "MusicRichPresence": {
             "enabled": false
+        },
+        "AddAttachments": {
+            "enabled": false
+        },
+        "TenorGifSearch": {
+            "enabled": false
         }
     },
     "notifications": {
@@ -716,7 +725,7 @@
         "authenticated": false,
         "url": "https://api.vencord.dev/",
         "settingsSync": false,
-        "settingsSyncVersion": 1785921177820
+        "settingsSyncVersion": 1790965987996
     },
     "eagerPatches": false,
     "uiElements": {
