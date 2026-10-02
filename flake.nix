@@ -71,12 +71,17 @@
               # Built through callPackage rather than the upstream flake output
               # so it compiles against the nixpkgs hyprland, matching the ABI of
               # the compositor it is loaded into.
-              # Audio finalize and process supervision tests fail in the sandbox
+              # Audio finalize and process supervision tests fail in the sandbox.
+              # The patch draws the cursor into compositor desktop recordings,
+              # which otherwise ignore include_cursor.
               hyprcapture =
                 (final.callPackage "${inputs.hyprcapture}/nix/package.nix" {
                   src = inputs.hyprcapture;
                 }).overrideAttrs
-                  { doCheck = false; };
+                  (old: {
+                    doCheck = false;
+                    patches = (old.patches or [ ]) ++ [ ./pkgs/patches/hyprcapture-record-cursor.patch ];
+                  });
               # Route volume writes are skipped entirely on devices that report
               # no volume step, which is every bluez sink: the volume moves in
               # qs and never reaches the card.

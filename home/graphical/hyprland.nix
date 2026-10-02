@@ -88,6 +88,8 @@ in
         # Wheel events inside the delay window skip bind matching and leak
         # through to the focused app, so modded scrolls must never be throttled
         binds.scroll_event_delay = 0;
+        # Keep a lone column at its own width so it stays resizable
+        scrolling.fullscreen_on_one_column = false;
         group = {
           col = {
             border_inactive = color "sapphire";
@@ -133,6 +135,9 @@ in
           show_thumbnail = false;
           record_save_dir = "$XDG_VIDEOS_DIR";
           record_filename_template = "screen-recording-%Y%m%d-%H%M%S.mp4";
+          # record everything through the plugin's own renderer instead of
+          # gpu-screen-recorder for fullscreen and region video
+          record_window_backend = "compositor";
           # notifications go through the shell's daemon rather than hyprland's
           # own overlay, which draws over fullscreen windows
           notification_backend = "system";
@@ -216,31 +221,23 @@ in
 
       workspace_rule =
         let
-          # css gaps: vertical (top/bottom) and horizontal (left/right)
-          gaps = v: h: {
+          # vertical padding only; columns pan horizontally, so the sides keep
+          # the default outer gap
+          vgaps = v: {
             top = v;
             bottom = v;
-            left = h;
-            right = h;
+            left = 20;
+            right = 20;
           };
         in
         [
           {
-            workspace = "m[0] w[t1]";
-            gaps_out = gaps 80 80;
+            workspace = "w[t1]";
+            gaps_out = vgaps 80;
           }
           {
-            workspace = "m[0] w[t2]";
-            gaps_out = gaps 40 40;
-          }
-          # On widescreen monitor, pad 1 and 2 wide workspaces
-          {
-            workspace = "m[1] w[t1]";
-            gaps_out = gaps 80 600;
-          }
-          {
-            workspace = "m[1] w[t2]";
-            gaps_out = gaps 40 300;
+            workspace = "w[t2]";
+            gaps_out = vgaps 40;
           }
         ];
 
