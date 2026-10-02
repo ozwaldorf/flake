@@ -19,7 +19,6 @@ Singleton {
     // ever need the percentage.
     property real memoryUsed: 0
     property real memoryTotal: 0
-    property real networkRate: 0
     property real networkDownRate: 0
     property real networkUpRate: 0
     property real diskUsed: 0
@@ -35,7 +34,6 @@ Singleton {
     // Oldest first, so a graph reads left to right.
     property var cpuHistory: []
     property var memoryHistory: []
-    property var networkHistory: []
     property var networkDownHistory: []
     property var networkUpHistory: []
     property var diskReadHistory: []
@@ -57,7 +55,6 @@ Singleton {
             // of something the axis does not name.
             root.cpuHistory = root.push(root.cpuHistory, root.cpu);
             root.memoryHistory = root.push(root.memoryHistory, root.memoryUsed);
-            root.networkHistory = root.push(root.networkHistory, root.networkRate);
             root.networkDownHistory = root.push(root.networkDownHistory, root.networkDownRate);
             root.networkUpHistory = root.push(root.networkUpHistory, root.networkUpRate);
             root.diskReadHistory = root.push(root.diskReadHistory, root.diskReadRate);
@@ -72,6 +69,11 @@ Singleton {
         const out = list.slice(list.length >= historyLength ? 1 : 0);
         out.push(value);
         return out;
+    }
+
+    // a fraction as a whole percentage, held to 0-100
+    function percent(fraction) {
+        return Math.max(0, Math.min(100, Math.round(100 * fraction)));
     }
 
     // ---- disk ----
@@ -109,7 +111,7 @@ Singleton {
 
                 root.diskTotal = f[0] * f[2];
                 root.diskUsed = (f[0] - f[1]) * f[2];
-                root.disk = Math.max(0, Math.min(100, Math.round(100 * root.diskUsed / root.diskTotal)));
+                root.disk = root.percent(root.diskUsed / root.diskTotal);
             }
         }
     }
@@ -160,12 +162,6 @@ Singleton {
     // faster one would redraw the same string over and over.
     property real uptime: 0
 
-    // Taken when the file has actually loaded rather than straight after
-    // asking for it: a reload is scheduled, not performed, so reading the text
-    // on the next line returns whatever was there before. The other readers
-    // sample twice a second and never show the staleness; this one runs every
-    // half minute, so the first tick would read empty and sit at zero until
-    // the second.
     FileView {
         id: uptimeFile
 
@@ -227,19 +223,15 @@ Singleton {
 
     FileView {
         id: cpuTemp
+
         path: root.cpuTempPath
-    }
-
-    function readCpuTemp() {
-        if (cpuTempPath === "")
-            return;
-
-        cpuTemp.reload();
 
         // millidegrees, as everything under hwmon reports
-        const v = Number(cpuTemp.text().trim());
-        if (v > 0)
-            cpuTemperature = Math.round(v / 1000);
+        onLoaded: {
+            const v = Number(text().trim());
+            if (v > 0)
+                root.cpuTemperature = Math.round(v / 1000);
+        }
     }
 
     // ---- disk io ----
@@ -277,7 +269,9 @@ Singleton {
 
     FileView {
         id: diskstats
+
         path: "/proc/diskstats"
+        onLoaded: root.readDiskIo(text())
     }
 
     // Sectors are always 512 bytes in diskstats, whatever the drive's own
@@ -288,13 +282,8 @@ Singleton {
     property real prevDiskWrite: 0
     property real prevDiskAt: 0
 
-    function readDiskIo() {
-        if (diskDevice === "")
-            return;
-
-        diskstats.reload();
-
-        const line = diskstats.text().split("\n").find(l => l.trim().split(/\s+/)[2] === diskDevice);
+    function readDiskIo(text) {
+        const line = text.split("\n").find(l => l.trim().split(/\s+/)[2] === diskDevice);
         if (!line)
             return;
 
@@ -322,15 +311,10 @@ Singleton {
 
     // ---- gpu ----
     //
-    // Utilisation, video memory and temperature, all out of one nvidia-smi
-    // call. Absent on a machine without the driver, in which case the reading
-    // stays unavailable and nothing displays it.
-    //
-    // Its own timer rather than the /proc sampler: that one runs every half
-    // second while a rail is out, and this is a process spawn taking tens of
-    // milliseconds where the others are file reads taking microseconds. Two
-    // seconds matches the history interval, which is the only thing that reads
-    // the utilisation back.
+    // Utilisation, video memory and temperature, out of one long running
+    // nvidia-smi query that reports on its own interval rather than a process
+    // spawned per sample. Two seconds matches the history interval, which is
+    // the only thing that reads the utilisation back.
     //
     // The card here drives the displays and is not runtime suspended, so
     // polling it does not hold anything awake that would otherwise sleep.
@@ -348,38 +332,40 @@ Singleton {
     Process {
         id: gpuScan
 
-        // One line, comma separated, in the order asked for. Megabytes for the
-        // memory figures, which is what the tool reports in.
-        command: ["nvidia-smi", "--query-gpu=utilization.gpu,memory.used,memory.total,temperature.gpu", "--format=csv,noheader,nounits"]
+        running: true
 
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const f = text.trim().split("\n")[0].split(",").map(s => Number(s.trim()));
+        // One line per sample, comma separated, in the order asked for.
+        // Megabytes for the memory figures, which is what the tool reports in.
+        command: ["nvidia-smi", "--query-gpu=utilization.gpu,memory.used,memory.total,temperature.gpu", "--format=csv,noheader,nounits", "-lms", String(root.gpuInterval)]
+
+        stdout: SplitParser {
+            onRead: line => {
+                const f = line.split(",").map(s => Number(s.trim()));
                 if (f.length < 4 || !(f[2] > 0) || f.some(isNaN))
                     return;
 
-                root.gpu = Math.max(0, Math.min(100, Math.round(f[0])));
+                root.gpu = root.percent(f[0] / 100);
                 root.gpuMemoryUsed = f[1] * 1024 * 1024;
                 root.gpuMemoryTotal = f[2] * 1024 * 1024;
                 root.gpuTemperature = Math.round(f[3]);
                 root.gpuAvailable = true;
             }
         }
+
+        // Without the driver the first run fails and is left at that. A query
+        // that had been answering is restarted, since that is the driver being
+        // reloaded rather than missing.
+        onExited: {
+            if (root.gpuAvailable)
+                gpuRestart.restart();
+        }
     }
 
     Timer {
-        interval: root.gpuInterval
-        running: true
-        repeat: true
-        triggeredOnStart: true
+        id: gpuRestart
 
-        // Skipped while one is still out rather than queued behind it: a call
-        // slower than the interval would otherwise spawn faster than it
-        // finishes.
-        onTriggered: {
-            if (!gpuScan.running)
-                gpuScan.running = true;
-        }
+        interval: 5000
+        onTriggered: gpuScan.running = true
     }
 
     // Byte counts in the largest unit that leaves a number worth reading, and
@@ -438,14 +424,12 @@ Singleton {
     // Scaled against a fixed ceiling so the bar is absolute rather than
     // relative to whatever the busiest moment happened to be. Expressed in
     // bits to match how link rates are quoted; /proc reports bytes.
-    property int network: 0
     property int networkDown: 0
     property int networkUp: 0
     readonly property real netCeilingBits: 100 * 1000 * 1000
     readonly property real netCeiling: netCeilingBits / 8
 
     property var prevCpu: null
-    property real prevNetBytes: 0
     property real prevNetDown: 0
     property real prevNetUp: 0
 
@@ -453,19 +437,28 @@ Singleton {
     // actually covered rather than the current interval, which changes on hover
     property real prevNetAt: 0
 
+    // Each parsed once its reload has landed rather than straight after asking
+    // for it: a reload is scheduled, not performed, so text() on the next line
+    // returns the previous sample, stamped with the wrong time besides.
     FileView {
         id: stat
+
         path: "/proc/stat"
+        onLoaded: root.readCpu(text())
     }
 
     FileView {
         id: meminfo
+
         path: "/proc/meminfo"
+        onLoaded: root.readMemory(text())
     }
 
     FileView {
         id: netdev
+
         path: "/proc/net/dev"
+        onLoaded: root.readNetwork(text())
     }
 
     Timer {
@@ -477,18 +470,18 @@ Singleton {
         triggeredOnStart: true
 
         onTriggered: {
-            root.readCpu();
-            root.readMemory();
-            root.readNetwork();
-            root.readDiskIo();
-            root.readCpuTemp();
+            stat.reload();
+            meminfo.reload();
+            netdev.reload();
+            if (root.diskDevice !== "")
+                diskstats.reload();
+            if (root.cpuTempPath !== "")
+                cpuTemp.reload();
         }
     }
 
-    function readCpu() {
-        stat.reload();
-
-        const line = stat.text().split("\n").find(l => l.startsWith("cpu "));
+    function readCpu(text) {
+        const line = text.split("\n").find(l => l.startsWith("cpu "));
         if (!line)
             return;
 
@@ -503,7 +496,7 @@ Singleton {
             const dTotal = total - prevCpu.total;
             const dIdle = idle - prevCpu.idle;
             if (dTotal > 0)
-                cpu = Math.max(0, Math.min(100, Math.round(100 * (1 - dIdle / dTotal))));
+                cpu = percent(1 - dIdle / dTotal);
         }
 
         prevCpu = {
@@ -512,12 +505,10 @@ Singleton {
         };
     }
 
-    function readMemory() {
-        meminfo.reload();
-
+    function readMemory(text) {
         let total = 0;
         let available = 0;
-        for (const line of meminfo.text().split("\n")) {
+        for (const line of text.split("\n")) {
             if (line.startsWith("MemTotal:"))
                 total = Number(line.split(/\s+/)[1]);
             else if (line.startsWith("MemAvailable:"))
@@ -527,7 +518,7 @@ Singleton {
         }
 
         if (total > 0) {
-            memory = Math.max(0, Math.min(100, Math.round(100 * (1 - available / total))));
+            memory = percent(1 - available / total);
             // kept in bytes so whatever displays them picks its own unit;
             // /proc/meminfo counts kibibytes
             memoryTotal = total * 1024;
@@ -535,15 +526,13 @@ Singleton {
         }
     }
 
-    function readNetwork() {
-        netdev.reload();
-
+    function readNetwork(text) {
         // Received and transmitted counted apart: summed, a saturated upload
         // and a saturated download read identically, which is the one thing
         // the meter is there to tell apart.
         let down = 0;
         let up = 0;
-        for (const line of netdev.text().split("\n").slice(2)) {
+        for (const line of text.split("\n").slice(2)) {
             const parts = line.trim().split(/\s+/);
             if (parts.length < 10)
                 continue;
@@ -555,27 +544,21 @@ Singleton {
         }
 
         const now = Date.now();
-        const bytes = down + up;
 
-        if (prevNetBytes > 0 && prevNetAt > 0) {
+        if (prevNetAt > 0) {
             const elapsed = (now - prevNetAt) / 1000;
             if (elapsed > 0) {
                 networkDownRate = Math.max(0, (down - prevNetDown) / elapsed);
                 networkUpRate = Math.max(0, (up - prevNetUp) / elapsed);
 
-                const rate = networkDownRate + networkUpRate;
-                network = Math.max(0, Math.min(100, Math.round(100 * rate / netCeiling)));
-                networkRate = rate;
-
-                // Each against the same ceiling as the combined figure, so the
-                // two parts of the mark are read on one scale rather than each
-                // being a share of a total that moves.
-                networkDown = Math.max(0, Math.min(100, Math.round(100 * networkDownRate / netCeiling)));
-                networkUp = Math.max(0, Math.min(100, Math.round(100 * networkUpRate / netCeiling)));
+                // Both against the same ceiling, so the two parts of the mark
+                // are read on one scale rather than each being a share of a
+                // total that moves.
+                networkDown = percent(networkDownRate / netCeiling);
+                networkUp = percent(networkUpRate / netCeiling);
             }
         }
 
-        prevNetBytes = bytes;
         prevNetDown = down;
         prevNetUp = up;
         prevNetAt = now;

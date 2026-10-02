@@ -6,7 +6,8 @@ import ".."
 Rectangle {
     id: root
 
-    required property bool expanded
+    // the rail's own 0 to 1 travel, which the width follows
+    required property real reveal
 
     // 0-100
     property int value: 0
@@ -20,29 +21,13 @@ Rectangle {
     property color secondFill: "transparent"
     readonly property bool split: secondFill.a > 0
 
-    // what a tooltip calls this meter and what it reads, and whether the
-    // pointer is on it
-    property string label: ""
-    property string detail: ""
-    property string icon: ""
-    property var history: []
-
-    signal hoverChanged(bool hovered)
-
     // Each meter has its own row, so all three are present in both forms and
     // only the width animates, matching the workspace marks.
-    implicitWidth: expanded ? Theme.meterWidth : Theme.sliver
+    implicitWidth: Theme.sliver + (Theme.meterWidth - Theme.sliver) * reveal
     implicitHeight: Theme.meterHeight
     radius: 0
     color: Theme.surface1
     clip: true
-
-    Behavior on implicitWidth {
-        NumberAnimation {
-            duration: Theme.morphDuration
-            easing.type: Easing.OutQuint
-        }
-    }
 
     Rectangle {
         id: primary
@@ -56,7 +41,7 @@ Rectangle {
 
         Behavior on height {
             NumberAnimation {
-                duration: 700
+                duration: Theme.levelDuration
                 easing.type: Easing.OutQuint
             }
         }
@@ -73,21 +58,9 @@ Rectangle {
 
         Behavior on height {
             NumberAnimation {
-                duration: 700
+                duration: Theme.levelDuration
                 easing.type: Easing.OutQuint
             }
-        }
-    }
-
-    // Fixed size target spanning the rail, so expanding does not move it out
-    // from under a stationary pointer and the sliver is not what has to be hit.
-    Item {
-        anchors.centerIn: parent
-        width: Theme.rail
-        height: parent.height
-
-        HoverHandler {
-            onHoveredChanged: root.hoverChanged(hovered)
         }
     }
 }

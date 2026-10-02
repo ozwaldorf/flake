@@ -15,6 +15,10 @@ Singleton {
     property ListModel toasts: ListModel {}
 
     readonly property int count: history.count
+
+    // Every entry is a card in each screen's panel, so the oldest are dropped
+    // past this rather than left to accumulate for the life of the session.
+    readonly property int historyLimit: 50
     property bool hasUrgent: false
 
     // Suppressed while a control centre is open: new notifications still land
@@ -69,10 +73,43 @@ Singleton {
         }
     }
 
+    // id -> the live Notification behind an entry, for its actions. Held apart
+    // from the models rather than as a role in them: a ListModel fixes its
+    // roles from the first entry it is given, and one of the shell's own
+    // notices, which has no object, would drop the role for every entry after.
+    //
+    // Replaced rather than mutated, so the cards reading actions through it
+    // see an entry go.
+    property var objects: ({})
+
+    function forget(id) {
+        if (!(id in objects))
+            return;
+        const next = Object.assign({}, objects);
+        delete next[id];
+        objects = next;
+    }
+
+    // An app can close its own notification while the entry is still listed.
+    // The object is gone from then on, so the entry stops offering actions on,
+    // or releasing, a notification that no longer exists.
+    function detach(id) {
+        forget(id);
+    }
+
+    // Tracked notifications stay alive on the server until released, so an
+    // entry leaving history releases the object behind it as well.
+    function release(i) {
+        const id = history.get(i).id;
+        objects[id]?.dismiss();
+        forget(id);
+        history.remove(i);
+    }
+
     function remove(id) {
         for (let i = 0; i < history.count; i++) {
             if (history.get(i).id === id) {
-                history.remove(i);
+                release(i);
                 break;
             }
         }
@@ -88,9 +125,43 @@ Singleton {
     }
 
     function clear() {
-        history.clear();
+        while (history.count > 0)
+            release(history.count - 1);
         toasts.clear();
         refreshUrgent();
+    }
+
+    // Files an entry into history, and pops it as a toast unless something is
+    // holding toasts back.
+    function add(entry, toast) {
+        history.insert(0, entry);
+        while (history.count > historyLimit)
+            release(history.count - 1);
+        if (toast)
+            toasts.insert(0, entry);
+        refreshUrgent();
+    }
+
+    // The shell's own notices, such as a config reload, shown like any other
+    // notification but raised from here rather than over the bus.
+    //
+    // Exempt from the startup hold, which is there for a backlog arriving the
+    // moment the server takes the name: a reload notice lands inside exactly
+    // that window, and is the one thing in it worth seeing. Still held while a
+    // panel is open, where the history already shows it.
+    property int nextLocalId: -1
+
+    function post(summary, body, critical, timeout) {
+        add({
+            id: nextLocalId--,
+            appName: "quickshell",
+            summary: summary,
+            body: body,
+            image: "",
+            appIcon: "",
+            urgency: critical ? NotificationUrgency.Critical : NotificationUrgency.Low,
+            expireTimeout: timeout ?? -1
+        }, toastHolders === 0);
     }
 
     // Drops <img> tags from a body before it ever reaches a Text.
@@ -137,16 +208,22 @@ Singleton {
                 urgency: notif.urgency,
                 // seconds as the app requested it; -1 means it has no
                 // preference and 0 means it should never expire
-                expireTimeout: notif.expireTimeout,
-                notification: notif
+                expireTimeout: notif.expireTimeout
             };
 
-            root.history.insert(0, entry);
+            const next = Object.assign({}, root.objects);
+            next[notif.id] = notif;
+            root.objects = next;
+
+            // An app can close its own notification while the entry is still
+            // listed. The object is gone from then on, so the entry stops
+            // carrying it rather than offering actions on, or releasing, a
+            // notification that no longer exists.
+            notif.closed.connect(() => root.detach(notif.id));
+
             // while the panel is open the entry is already visible in its
             // history list, so a toast would just duplicate it
-            if (!root.toastsSuppressed)
-                root.toasts.insert(0, entry);
-            root.refreshUrgent();
+            root.add(entry, !root.toastsSuppressed);
         }
     }
 }

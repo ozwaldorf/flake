@@ -137,7 +137,7 @@ Singleton {
     Process {
         id: fetch
 
-        command: [`${Quickshell.env("HOME")}/.config/quickshell/scripts/fetch-wallpaper.sh`]
+        command: [`${Quickshell.shellDir}/scripts/fetch-wallpaper.sh`]
         environment: ({
                 WALLPAPER_DIR: root.dir
             })

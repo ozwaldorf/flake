@@ -32,7 +32,7 @@ Item {
 
             Behavior on strokeColor {
                 ColorAnimation {
-                    duration: 200
+                    duration: Theme.glyphDuration
                 }
             }
 
@@ -65,20 +65,8 @@ Item {
     }
 
     // slash for the disabled radio, drawn over the rune
-    Rectangle {
-        anchors.centerIn: parent
-        width: Math.sqrt(root.width * root.width + root.height * root.height) - 2
-        height: 1.6
-        radius: 0.8
+    Slash {
+        shown: root.off
         color: root.fill
-        rotation: -45
-        opacity: root.off ? 1 : 0
-        visible: opacity > 0
-
-        Behavior on opacity {
-            NumberAnimation {
-                duration: Theme.fadeDuration
-            }
-        }
     }
 }

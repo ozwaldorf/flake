@@ -15,59 +15,38 @@ Item {
     // only one row in the list holds an open key field at a time
     property bool asking: false
 
-    // Counted and released on destruction: the list is rebuilt as scan results
-    // arrive, so a row can be torn down while the pointer is over it. Its
-    // unhover would never arrive and the panel's counter would stay raised,
-    // holding the modal open for good.
-    signal hoverChanged(bool hovered)
     signal askRequested
     signal askDismissed
-
-    property int hoverRaises: 0
-
-    function raiseHover(on) {
-        hoverRaises += on ? 1 : -1;
-        hoverChanged(on);
-    }
-
-    Component.onDestruction: {
-        while (hoverRaises > 0) {
-            hoverRaises--;
-            hoverChanged(false);
-        }
-    }
 
     readonly property bool connected: network.connected
     readonly property bool busy: network.stateChanging
     readonly property bool failed: Wifi.failedNetwork === network.name && Wifi.failure !== ""
 
-    readonly property int rowHeight: 30
-
     implicitWidth: parent ? parent.width : 0
-    implicitHeight: rowHeight + (asking ? key.height + Theme.spaceXs : 0)
+    implicitHeight: hitRow.height + (asking ? key.height + Theme.spaceXs : 0)
 
     Behavior on implicitHeight {
-        NumberAnimation {
-            duration: Theme.morphDuration
-            easing.type: Easing.OutQuint
-        }
+        Morph {}
     }
 
     clip: true
 
-    Rectangle {
+    ListRow {
         id: hitRow
 
         width: parent.width
-        height: root.rowHeight
-        radius: 6
-        // alpha zero rather than "transparent", which is transparent black and
-        // drags the fade through black at both ends
-        color: hover.hovered || root.asking ? Theme.surface0 : Qt.alpha(Theme.surface0, 0)
+        highlighted: root.asking
 
-        Behavior on color {
-            ColorAnimation {
-                duration: 160
+        onTapped: {
+            if (root.connected) {
+                root.network.disconnect();
+            } else if (Wifi.needsKey(root.network)) {
+                if (root.asking)
+                    root.askDismissed();
+                else
+                    root.askRequested();
+            } else {
+                Wifi.connect(root.network);
             }
         }
 
@@ -94,32 +73,9 @@ Item {
                 opacity: 0.9
             }
 
-            Rectangle {
+            Spinner {
                 anchors.centerIn: parent
-                implicitWidth: 11
-                implicitHeight: 11
-                radius: 5.5
-                color: "transparent"
-                border.width: 1.5
-                border.color: Theme.blue
-                visible: root.busy
-
-                // gap in the ring, spun by the rotation below
-                Rectangle {
-                    x: 0
-                    y: 0
-                    implicitWidth: 5
-                    implicitHeight: 5
-                    color: Theme.surface0
-                }
-
-                RotationAnimator on rotation {
-                    running: root.busy
-                    from: 0
-                    to: 360
-                    duration: 900
-                    loops: Animation.Infinite
-                }
+                running: root.busy
             }
         }
 
@@ -137,7 +93,6 @@ Item {
 
             Rectangle {
                 anchors.horizontalCenter: parent.horizontalCenter
-                y: 0
                 implicitWidth: 5
                 implicitHeight: 5
                 radius: 2.5
@@ -155,9 +110,7 @@ Item {
             }
         }
 
-        Text {
-            id: name
-
+        Label {
             anchors.left: lock.right
             anchors.leftMargin: lock.visible ? Theme.spaceXs : 0
             anchors.right: badges.left
@@ -165,7 +118,6 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
 
             text: root.network.name
-            font.family: Theme.font
             font.pixelSize: 11
             color: root.failed ? Theme.red : Theme.subtext0
             elide: Text.ElideRight
@@ -186,27 +138,6 @@ Item {
             fill: Theme.overlay1
             dim: Theme.surface1
         }
-
-        HoverHandler {
-            id: hover
-            cursorShape: Qt.PointingHandCursor
-            onHoveredChanged: root.raiseHover(hovered)
-        }
-
-        TapHandler {
-            onTapped: {
-                if (root.connected) {
-                    root.network.disconnect();
-                } else if (Wifi.needsKey(root.network)) {
-                    if (root.asking)
-                        root.askDismissed();
-                    else
-                        root.askRequested();
-                } else {
-                    Wifi.connect(root.network);
-                }
-            }
-        }
     }
 
     // Key field, revealed under the row it belongs to. Focus follows the
@@ -223,9 +154,7 @@ Item {
         visible: opacity > 0
 
         Behavior on opacity {
-            NumberAnimation {
-                duration: Theme.fadeDuration
-            }
+            Fade {}
         }
 
         Rectangle {
@@ -238,7 +167,7 @@ Item {
 
             Behavior on border.color {
                 ColorAnimation {
-                    duration: 160
+                    duration: Theme.hoverDuration
                 }
             }
 
@@ -263,40 +192,32 @@ Item {
 
                 Keys.onEscapePressed: root.askDismissed()
 
-                Text {
+                Label {
                     anchors.verticalCenter: parent.verticalCenter
                     text: root.failed ? Wifi.failure : "Password"
-                    font.family: Theme.font
                     font.pixelSize: 11
                     color: root.failed ? Theme.red : Theme.surface2
                     visible: field.text.length === 0
                 }
             }
 
-            Text {
+            Label {
                 id: joinLabel
 
                 anchors.right: parent.right
                 anchors.rightMargin: Theme.spaceSm
                 anchors.verticalCenter: parent.verticalCenter
                 text: "Join"
-                font.family: Theme.font
-                font.pixelSize: 10
                 color: field.text.length > 0 ? Theme.blue : Theme.surface2
 
                 HoverHandler {
                     cursorShape: field.text.length > 0 ? Qt.PointingHandCursor : Qt.ArrowCursor
-                    onHoveredChanged: root.raiseHover(hovered)
                 }
 
                 TapHandler {
                     onTapped: root.submit()
                 }
             }
-        }
-
-        HoverHandler {
-            onHoveredChanged: root.raiseHover(hovered)
         }
     }
 

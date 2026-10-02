@@ -24,7 +24,7 @@ Rectangle {
 
     Behavior on color {
         ColorAnimation {
-            duration: 160
+            duration: Theme.hoverDuration
         }
     }
 

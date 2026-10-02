@@ -34,12 +34,12 @@ Item {
 
             Behavior on fillColor {
                 ColorAnimation {
-                    duration: 200
+                    duration: Theme.glyphDuration
                 }
             }
             Behavior on strokeColor {
                 ColorAnimation {
-                    duration: 200
+                    duration: Theme.glyphDuration
                 }
             }
 
@@ -78,9 +78,7 @@ Item {
         visible: opacity > 0
 
         Behavior on opacity {
-            NumberAnimation {
-                duration: Theme.fadeDuration
-            }
+            Fade {}
         }
 
         ShapePath {
@@ -95,7 +93,7 @@ Item {
 
             Behavior on strokeColor {
                 ColorAnimation {
-                    duration: 200
+                    duration: Theme.glyphDuration
                 }
             }
 
@@ -123,7 +121,7 @@ Item {
 
             Behavior on strokeColor {
                 ColorAnimation {
-                    duration: 200
+                    duration: Theme.glyphDuration
                 }
             }
 
@@ -141,20 +139,9 @@ Item {
     }
 
     // slash for the muted state, drawn over the cone
-    Rectangle {
-        anchors.centerIn: parent
-        width: Math.sqrt(root.width * root.width + root.height * root.height) - 3
-        height: 1.6
-        radius: 0.8
+    Slash {
+        shown: root.muted
+        inset: 3
         color: root.fill
-        rotation: -45
-        opacity: root.muted ? 1 : 0
-        visible: opacity > 0
-
-        Behavior on opacity {
-            NumberAnimation {
-                duration: Theme.fadeDuration
-            }
-        }
     }
 }

@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import Quickshell
 import Quickshell.Hyprland
 import ".."
 
@@ -18,10 +17,21 @@ Column {
 
     required property bool expanded
 
+    // the rail's own 0 to 1 travel, which the marks' width follows
+    required property real reveal
+
+    // the screen this rail is on; only its own workspaces are listed
+    required property var screenData
+
+    readonly property var monitor: Hyprland.monitorFor(screenData)
+
     // constant in both forms: vertical layout does not move on expand
     spacing: Theme.wsGap
 
     Repeater {
+        // The live model rather than a filtered copy, with other monitors'
+        // marks hidden: a rebuilt list would recreate every mark on each
+        // workspace change and cut their focus travel short.
         model: Hyprland.workspaces
 
         Rectangle {
@@ -29,7 +39,12 @@ Column {
 
             required property var modelData
 
-            readonly property bool focused: modelData.focused
+            // the Column skips hidden children, so this takes no slot
+            visible: modelData.monitor === root.monitor
+
+            // the workspace showing on this screen, whether or not the screen
+            // itself has focus: each rail says what is on its own monitor
+            readonly property bool focused: modelData.active
             readonly property bool occupied: modelData.toplevels.values.length > 0
             readonly property bool urgent: modelData.urgent
 
@@ -54,7 +69,7 @@ Column {
 
             anchors.horizontalCenter: parent.horizontalCenter
 
-            implicitWidth: root.expanded ? Theme.wsWidth : Theme.sliver
+            implicitWidth: Theme.sliver + (Theme.wsWidth - Theme.sliver) * root.reveal
             implicitHeight: restLength + (focusLength - restLength) * focusAmount
 
             // urgent keeps its own colour rather than being overridden by focus
@@ -62,13 +77,6 @@ Column {
 
             // square in both forms; length alone carries state
             radius: 0
-
-            Behavior on implicitWidth {
-                NumberAnimation {
-                    duration: Theme.morphDuration
-                    easing.type: Easing.OutQuint
-                }
-            }
 
             // no Behavior on colour: focusAmount already drives it on exactly
             // the same clock as the length, and a second animator here would

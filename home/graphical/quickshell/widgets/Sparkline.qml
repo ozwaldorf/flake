@@ -78,9 +78,58 @@ Item {
 
     readonly property real step: count > 1 ? plot.width / (slots - 1) : plot.width
 
+    // The range the line is actually drawn against, eased toward the one the
+    // axis states so a rescale settles the line into its new shape rather than
+    // jumping it there. The labels name the target straight away.
+    property real shownCeiling: ceiling
+    property real shownFloor: floor
+
+    Behavior on shownCeiling {
+        NumberAnimation {
+            duration: Theme.levelDuration
+            easing.type: Easing.OutQuad
+        }
+    }
+
+    Behavior on shownFloor {
+        NumberAnimation {
+            duration: Theme.levelDuration
+            easing.type: Easing.OutQuad
+        }
+    }
+
     function pointY(v) {
-        const t = (v - floor) / Math.max(ceiling - floor, 0.0001);
+        const t = (v - shownFloor) / Math.max(shownCeiling - shownFloor, 0.0001);
         return plot.height - Math.max(0, Math.min(1, t)) * plot.height;
+    }
+
+    // Time between samples. When set, each new sample slides in from the
+    // right over that interval rather than the whole line stepping left the
+    // moment it lands, so the chart reads as continuous. The line is drawn one
+    // sample behind for it, which over a two minute window is not noticed.
+    property int interval: 0
+
+    // how far the line still sits to the right of its resting place, in steps
+    property real shift: 0
+
+    // the previous sample count, so a window arriving all at once when the tip
+    // opens is put up as it stands rather than slid in
+    property int lastCount: 0
+
+    onValuesChanged: {
+        if (interval > 0 && lastCount > 1 && count > 1)
+            scroll.restart();
+        lastCount = count;
+    }
+
+    NumberAnimation {
+        id: scroll
+
+        target: root
+        property: "shift"
+        from: 1
+        to: 0
+        duration: root.interval
     }
 
     // Ceiling, midpoint and floor of the range, so the shape of the line can be
@@ -158,8 +207,13 @@ Item {
         // it is what sits on a surface rather than being one
         color: Qt.alpha(Theme.surface0, 0.5)
 
+        // the incoming sample slides in from past the right edge
+        clip: true
+
         Shape {
-            anchors.fill: parent
+            x: root.shift * root.step
+            width: parent.width
+            height: parent.height
             preferredRendererType: Shape.CurveRenderer
             visible: root.count > 1
 
@@ -175,7 +229,7 @@ Item {
 
                 Behavior on strokeColor {
                     ColorAnimation {
-                        duration: 200
+                        duration: Theme.glyphDuration
                     }
                 }
 
@@ -206,7 +260,9 @@ Item {
         // carries a filled area: two washes over one another read as a third
         // colour where they cross, and neither line stays legible through it.
         Shape {
-            anchors.fill: parent
+            x: root.shift * root.step
+            width: parent.width
+            height: parent.height
             preferredRendererType: Shape.CurveRenderer
             visible: root.split
 
@@ -219,7 +275,7 @@ Item {
 
                 Behavior on strokeColor {
                     ColorAnimation {
-                        duration: 200
+                        duration: Theme.glyphDuration
                     }
                 }
 

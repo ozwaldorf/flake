@@ -21,38 +21,10 @@ Singleton {
     }
 
     // Real devices only: streams are individual applications playing through a
-    // sink, not something you can make the default.
-    //
-    // Rebuilt from a revision counter rather than bound straight to
-    // Pipewire.nodes.values: the model object itself is constant, so a plain
-    // binding never re-evaluates when a device is plugged in or removed.
-    property int revision: 0
-
-    readonly property var sinks: {
-        revision;
-        return collect(true);
-    }
-
-    readonly property var sources: {
-        revision;
-        return collect(false);
-    }
-
-    Connections {
-        target: Pipewire.nodes
-
-        function onValuesChanged() {
-            root.revision++;
-        }
-    }
-
-    Connections {
-        target: Pipewire
-
-        function onReadyChanged() {
-            root.revision++;
-        }
-    }
+    // sink, not something you can make the default. Re-collected whenever the
+    // node list changes, which collect reads, or Pipewire finishes connecting.
+    readonly property var sinks: Pipewire.ready ? collect(true) : []
+    readonly property var sources: Pipewire.ready ? collect(false) : []
 
     function collect(wantSink) {
         const out = [];

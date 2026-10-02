@@ -7,48 +7,23 @@ import "../services"
 // One device in the list: name on the left, battery and state on the right.
 // Clicking connects or disconnects; a paired device also offers to be
 // forgotten, revealed on hover so the row stays quiet at rest.
-Rectangle {
+ListRow {
     id: root
 
     required property var device
 
-    // Counted and released on destruction: discovery rebuilds the list, so a
-    // row can be torn down while the pointer is over it. Its unhover would
-    // never arrive and the panel's counter would stay raised, holding the
-    // modal open for good.
-    signal hoverChanged(bool hovered)
-
-    property int hoverRaises: 0
-
-    function raiseHover(on) {
-        hoverRaises += on ? 1 : -1;
-        hoverChanged(on);
-    }
-
-    Component.onDestruction: {
-        while (hoverRaises > 0) {
-            hoverRaises--;
-            hoverChanged(false);
-        }
-    }
+    // Read through here rather than off the device directly: BlueZ drops a
+    // device that goes out of range, and the row outlives it by a moment.
+    readonly property bool connected: device?.connected ?? false
+    readonly property bool paired: device?.paired ?? false
+    readonly property bool pairing: device?.pairing ?? false
 
     readonly property bool busy: Bluetooth.inFlight(device)
 
     readonly property int battery: Bluetooth.batteryPercent(device)
     readonly property bool hasBattery: battery >= 0
 
-    implicitWidth: parent ? parent.width : 0
-    implicitHeight: 30
-    radius: 6
-    // alpha zero rather than "transparent", which is transparent black and
-    // drags the fade through black at both ends
-    color: hover.hovered ? Theme.surface0 : Qt.alpha(Theme.surface0, 0)
-
-    Behavior on color {
-        ColorAnimation {
-            duration: 160
-        }
-    }
+    onTapped: Bluetooth.activate(device)
 
     // Connection state marker, in the same slot the wifi rows use for their
     // saved profile dot.
@@ -67,47 +42,26 @@ Rectangle {
             implicitWidth: 5
             implicitHeight: 5
             radius: 2.5
-            color: root.device.connected ? Theme.blue : Qt.alpha(Theme.blue, 0)
-            border.width: root.device.connected ? 0 : 1
+            color: root.connected ? Theme.blue : Qt.alpha(Theme.blue, 0)
+            border.width: root.connected ? 0 : 1
             border.color: Theme.overlay0
-            visible: (root.device.connected || root.device.paired) && !root.busy
+            visible: (root.connected || root.paired) && !root.busy
 
             Behavior on color {
                 ColorAnimation {
-                    duration: 160
+                    duration: Theme.hoverDuration
                 }
             }
         }
 
-        Rectangle {
+        Spinner {
             anchors.centerIn: parent
-            implicitWidth: 11
-            implicitHeight: 11
-            radius: 5.5
-            color: "transparent"
-            border.width: 1.5
-            border.color: Theme.blue
-            visible: root.busy
-
-            Rectangle {
-                x: 0
-                y: 0
-                implicitWidth: 5
-                implicitHeight: 5
-                color: hover.hovered ? Theme.surface0 : Theme.base
-            }
-
-            RotationAnimator on rotation {
-                running: root.busy
-                from: 0
-                to: 360
-                duration: 900
-                loops: Animation.Infinite
-            }
+            running: root.busy
+            gapColor: root.hovered ? Theme.surface0 : Theme.base
         }
     }
 
-    Text {
+    Label {
         anchors.left: lead.right
         anchors.leftMargin: Theme.spaceXs
         anchors.right: trailing.left
@@ -115,9 +69,8 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
 
         text: Bluetooth.label(root.device)
-        font.family: Theme.font
         font.pixelSize: 11
-        color: root.device.connected ? Theme.text : Theme.subtext0
+        color: root.connected ? Theme.text : Theme.subtext0
         elide: Text.ElideRight
     }
 
@@ -131,24 +84,21 @@ Rectangle {
 
         // Forget, on hover only: a paired device you never use again is the
         // one thing you cannot do from a plain connect toggle.
-        Text {
+        Label {
             anchors.verticalCenter: parent.verticalCenter
             text: "Forget"
-            font.family: Theme.font
-            font.pixelSize: 10
             color: forgetHover.hovered ? Theme.red : Theme.surface2
-            visible: root.device.paired && hover.hovered
+            visible: root.paired && root.hovered
 
             Behavior on color {
                 ColorAnimation {
-                    duration: 160
+                    duration: Theme.hoverDuration
                 }
             }
 
             HoverHandler {
                 id: forgetHover
                 cursorShape: Qt.PointingHandCursor
-                onHoveredChanged: root.raiseHover(hovered)
             }
 
             TapHandler {
@@ -157,36 +107,20 @@ Rectangle {
         }
 
         // Battery, only for devices that report one and only while connected.
-        Text {
+        Label {
             anchors.verticalCenter: parent.verticalCenter
             text: root.battery + "%"
-            font.family: Theme.font
-            font.pixelSize: 10
-            font.features: {
-                "tnum": 1
-            }
+            figures: true
             color: root.battery <= 20 ? Theme.peach : Theme.overlay0
             visible: root.hasBattery
         }
 
         // Small state word for anything the markers cannot carry on their own.
-        Text {
+        Label {
             anchors.verticalCenter: parent.verticalCenter
-            text: root.device.pairing ? "Pairing" : root.device.connected ? "" : root.device.paired ? "" : "Pair"
-            font.family: Theme.font
-            font.pixelSize: 10
+            text: root.pairing ? "Pairing" : root.connected || root.paired ? "" : "Pair"
             color: Theme.surface2
             visible: text.length > 0
         }
-    }
-
-    HoverHandler {
-        id: hover
-        cursorShape: Qt.PointingHandCursor
-        onHoveredChanged: root.raiseHover(hovered)
-    }
-
-    TapHandler {
-        onTapped: Bluetooth.activate(root.device)
     }
 }

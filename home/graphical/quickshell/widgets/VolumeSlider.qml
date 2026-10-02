@@ -8,9 +8,10 @@ import "../services"
 // chevron, the level under it as a glyph beside a thin track. Tapping the glyph
 // mutes.
 //
-// The device picker lives outside, in whatever lays these out: the two cards
-// sit side by side and share one expanding list, so only one is ever open.
-Rectangle {
+// The device picker lives outside, in the TileGroup that lays these out: the
+// two cards sit side by side and share one expanding list, so only one is ever
+// open.
+Card {
     id: root
 
     // what the glyph draws and which half of Pipewire this drives:
@@ -26,32 +27,10 @@ Rectangle {
 
     signal moved(real value)
     signal muteToggled
-
-    // exposed so the panel can tell the pointer is still inside it
-    signal hoverChanged(bool hovered)
     signal listToggled
 
-    // window collecting the blur regions; null leaves the card unfrosted
-    property var host: null
-
-    Loader {
-        active: root.host !== null
-        sourceComponent: CardBlur {
-            target: root
-            host: root.host
-        }
-    }
-
-    // lifts a little under the pointer, so the card reads as coming forward
-    // rather than only changing colour
-    DropShadow {
-        target: root
-        elevation: cardHover.hovered ? 9 : 6
-        strength: cardHover.hovered ? 0.45 : 0.35
-    }
-
     readonly property bool isSink: device === "speaker"
-    readonly property real clamped: Math.max(0, Math.min(1, value))
+    readonly property real clamped: Theme.clamp01(value)
 
     // one wheel notch, matching the increment the media keys use
     readonly property real step: 0.05
@@ -64,7 +43,6 @@ Rectangle {
     property bool joined: expanded
 
     implicitHeight: body.implicitHeight + Theme.spaceSm * 2
-    radius: 9
 
     // eased on the same clock as the list's travel, so the corner opens out as
     // the card comes down rather than snapping once it lands
@@ -72,39 +50,11 @@ Rectangle {
     bottomRightRadius: joined ? 0 : radius
 
     Behavior on bottomLeftRadius {
-        NumberAnimation {
-            duration: Theme.morphDuration
-            easing.type: Easing.OutQuint
-        }
+        Morph {}
     }
 
     Behavior on bottomRightRadius {
-        NumberAnimation {
-            duration: Theme.morphDuration
-            easing.type: Easing.OutQuint
-        }
-    }
-
-    // Same resting fill and the same lift on hover as the toggle tiles, so
-    // every card in the panel is one kind of surface.
-    // Lifted on hover alone. An open list joins onto the card as one surface,
-    // so holding the lift while it is out would make the card the brighter
-    // half of something that should read as a single surface.
-    color: cardHover.hovered ? Qt.tint(Theme.surfaceFill, Qt.alpha(Theme.text, 0.06)) : Theme.surfaceFill
-
-    Behavior on color {
-        ColorAnimation {
-            duration: 160
-        }
-    }
-
-    // Behind the content so the children keep their own hover states; this
-    // only reports whether the pointer is over the card at all. Reported
-    // upward too, since the panel dismisses on losing the pointer and the
-    // card's own body is neither the track nor the label row.
-    HoverHandler {
-        id: cardHover
-        onHoveredChanged: root.hoverChanged(hovered)
+        Morph {}
     }
 
     // Anywhere on the card rather than over the track alone: the level is what
@@ -117,9 +67,7 @@ Rectangle {
     // of one, and those accumulate into the same step.
     WheelHandler {
         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-        onWheel: event => {
-            root.moved(Math.max(0, Math.min(1, root.clamped + event.angleDelta.y / 120 * root.step)));
-        }
+        onWheel: event => root.moved(Theme.clamp01(root.clamped + event.angleDelta.y / 120 * root.step))
     }
 
     Column {
@@ -149,28 +97,24 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 1
 
-                Text {
+                Label {
                     width: parent.width
                     text: root.label
-                    font.family: Theme.font
                     font.pixelSize: 11
-                    color: Theme.text
                     elide: Text.ElideRight
                 }
 
                 // What the level is driving, under the name rather than beside
                 // it: at half a panel wide there is no room across for both.
-                Text {
+                Label {
                     width: parent.width
                     text: Audio.label(root.current)
-                    font.family: Theme.font
-                    font.pixelSize: 10
                     color: pickHover.hovered ? Theme.subtext0 : Theme.overlay0
                     elide: Text.ElideRight
 
                     Behavior on color {
                         ColorAnimation {
-                            duration: 160
+                            duration: Theme.hoverDuration
                         }
                     }
                 }
@@ -192,7 +136,6 @@ Rectangle {
             HoverHandler {
                 id: pickHover
                 cursorShape: Qt.PointingHandCursor
-                onHoveredChanged: root.hoverChanged(hovered)
             }
 
             TapHandler {
@@ -238,7 +181,6 @@ Rectangle {
 
                 HoverHandler {
                     cursorShape: Qt.PointingHandCursor
-                    onHoveredChanged: root.hoverChanged(hovered)
                 }
 
                 TapHandler {
@@ -247,67 +189,16 @@ Rectangle {
                 }
             }
 
-            // Taller than the track so the hit target is not a 4px sliver.
-            Item {
-                id: hit
-
+            LevelTrack {
                 anchors.left: glyphSlot.right
                 anchors.leftMargin: Theme.spaceSm
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
                 height: parent.height
 
-                Rectangle {
-                    id: track
-
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: parent.width
-                    height: Theme.barThickness
-                    radius: height / 2
-                    color: Qt.alpha(Theme.surface2, 0.55)
-
-                    Rectangle {
-                        width: Math.max(0, parent.width * root.clamped)
-                        height: parent.height
-                        radius: parent.radius
-                        color: root.muted ? Theme.surface2 : Theme.subtext0
-
-                        Behavior on color {
-                            ColorAnimation {
-                                duration: 200
-                            }
-                        }
-
-                        Behavior on width {
-                            enabled: !drag.active
-                            NumberAnimation {
-                                duration: 180
-                                easing.type: Easing.OutQuint
-                            }
-                        }
-                    }
-                }
-
-                DragHandler {
-                    id: drag
-
-                    target: null
-                    xAxis.enabled: true
-                    yAxis.enabled: false
-                    onCentroidChanged: {
-                        if (active)
-                            root.moved(Math.max(0, Math.min(1, centroid.position.x / track.width)));
-                    }
-                }
-
-                TapHandler {
-                    onTapped: eventPoint => root.moved(Math.max(0, Math.min(1, eventPoint.position.x / track.width)))
-                }
-
-                HoverHandler {
-                    id: hover
-                    onHoveredChanged: root.hoverChanged(hovered)
-                }
+                value: root.clamped
+                fill: root.muted ? Theme.surface2 : Theme.subtext0
+                onMoved: f => root.moved(f)
             }
         }
     }

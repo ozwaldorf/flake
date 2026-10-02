@@ -25,7 +25,7 @@ Item {
 
         Behavior on color {
             ColorAnimation {
-                duration: 200
+                duration: Theme.glyphDuration
             }
         }
     }
@@ -49,7 +49,7 @@ Item {
 
             Behavior on strokeColor {
                 ColorAnimation {
-                    duration: 200
+                    duration: Theme.glyphDuration
                 }
             }
 
@@ -77,26 +77,15 @@ Item {
 
         Behavior on color {
             ColorAnimation {
-                duration: 200
+                duration: Theme.glyphDuration
             }
         }
     }
 
     // slash for the muted state
-    Rectangle {
-        anchors.centerIn: parent
-        width: Math.sqrt(root.width * root.width + root.height * root.height) - 3
-        height: 1.6
-        radius: 0.8
+    Slash {
+        shown: root.muted
+        inset: 3
         color: root.fill
-        rotation: -45
-        opacity: root.muted ? 1 : 0
-        visible: opacity > 0
-
-        Behavior on opacity {
-            NumberAnimation {
-                duration: Theme.fadeDuration
-            }
-        }
     }
 }

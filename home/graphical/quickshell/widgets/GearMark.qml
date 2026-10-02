@@ -11,6 +11,10 @@ Rectangle {
     id: root
 
     required property bool expanded
+
+    // the rail's own 0 to 1 travel, which every width here follows
+    required property real reveal
+
     property bool active: false
 
     // set by the bar's corner hover zone, which is what actually opens the
@@ -24,17 +28,10 @@ Rectangle {
     // an empty slot would draw
     readonly property color hue: urgent ? Theme.red : has ? Theme.yellow : Theme.surface1
 
-    implicitWidth: expanded ? 32 : Theme.sliver
+    implicitWidth: Theme.sliver + (32 - Theme.sliver) * reveal
     implicitHeight: 32
     radius: 0
     color: "transparent"
-
-    Behavior on implicitWidth {
-        NumberAnimation {
-            duration: Theme.morphDuration
-            easing.type: Easing.OutQuint
-        }
-    }
 
     // one value for both hover and open, so the state fades in on hover and is
     // simply held while the modal is up rather than swapping to a second style
@@ -51,38 +48,22 @@ Rectangle {
         }
     }
 
-    // 1 expanded, 0 collapsed, on the same clock as the geometry so the fill
-    // colour arrives with the shape rather than ahead of it
-    property real reveal: expanded ? 1 : 0
-
-    Behavior on reveal {
-        NumberAnimation {
-            duration: Theme.morphDuration
-            easing.type: Easing.OutQuint
-        }
-    }
-
     // Solid block carrying the count. Height is constant, matching the
     // workspace marks: only the width animates on expand.
     Rectangle {
         anchors.centerIn: parent
 
-        // Bound to target values and animated once, exactly like a workspace
-        // mark. Binding to parent.width instead would inherit the root's
-        // in-flight tween and then re-animate from it, which snaps midway.
-        readonly property real collapsedWidth: Theme.sliver
-        // widens for two and three digit counts
-        readonly property real expandedWidth: Math.max(Theme.iconSize + 3, label.implicitWidth + 10)
+        // Widens for two and three digit counts, eased so a count gaining a
+        // digit grows the block rather than snapping it. Not readonly: the
+        // Behavior writes to it.
+        property real expandedWidth: Math.max(Theme.iconSize + 3, label.implicitWidth + 10)
 
-        width: root.expanded ? expandedWidth : collapsedWidth
-        height: Theme.iconSize + 3
-
-        Behavior on width {
-            NumberAnimation {
-                duration: Theme.morphDuration
-                easing.type: Easing.OutQuint
-            }
+        Behavior on expandedWidth {
+            Morph {}
         }
+
+        width: Theme.sliver + (expandedWidth - Theme.sliver) * root.reveal
+        height: Theme.iconSize + 3
 
         // Always solid: the block is the button, and the count is drawn in
         // crust on top of it, so it needs a ground in every state. Hover

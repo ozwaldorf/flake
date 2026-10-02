@@ -27,7 +27,7 @@ Item {
 
     Behavior on reach {
         NumberAnimation {
-            duration: 200
+            duration: Theme.glyphDuration
             easing.type: Easing.OutQuint
         }
     }
@@ -41,7 +41,7 @@ Item {
 
         Behavior on color {
             ColorAnimation {
-                duration: 200
+                duration: Theme.glyphDuration
             }
         }
     }
@@ -76,12 +76,13 @@ Item {
 
             Behavior on opacity {
                 NumberAnimation {
-                    duration: 200
+                    duration: Theme.glyphDuration
+                    easing.type: Easing.OutQuad
                 }
             }
             Behavior on color {
                 ColorAnimation {
-                    duration: 200
+                    duration: Theme.glyphDuration
                 }
             }
         }

@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
-import Quickshell.Wayland
 import ".."
 
 // The month around today, opened by hovering the clock. The rail shows the hour
@@ -11,36 +10,8 @@ import ".."
 //
 // One card rather than a row of them: a month is a single grid, and the date
 // above it is its heading rather than a separate fact.
-//
-// Its own layer surface for the same reason as the meter tip: the bar's window
-// is only as wide as the rail and masked to it, so anything drawn beside it
-// would be clipped away.
-PanelWindow {
+TipWindow {
     id: root
-
-    required property var screenData
-
-    // which edge the rail is on, so the card opens inward
-    required property bool anchorRight
-
-    // vertical centre of the clock, in window coordinates
-    property real markY: 0
-
-    property bool shown: false
-
-    screen: screenData
-    color: "transparent"
-    visible: shown || settling.running
-
-    anchors {
-        left: !root.anchorRight
-        right: root.anchorRight
-        top: true
-        bottom: true
-    }
-
-    // room past the card for the shadow it casts
-    readonly property real shadowRoom: 16
 
     // Seven columns of two digits with air around them, which is what sets the
     // width; the card is sized from the grid rather than the grid fitted to a
@@ -50,38 +21,6 @@ PanelWindow {
     readonly property real cardWidth: cellSize * 7 + Theme.padCard * 2
 
     implicitWidth: Theme.rail + Theme.spaceXs + cardWidth + shadowRoom
-    exclusiveZone: 0
-
-    // Purely a label: it never takes the pointer, which would otherwise steal
-    // hover from the clock it is describing and flicker itself away.
-    mask: Region {}
-
-    WlrLayershell.layer: WlrLayer.Overlay
-
-    // Holds the window mapped while the card is still fading, since the reveal
-    // drives the card's opacity directly rather than the window's.
-    Timer {
-        id: settling
-        interval: Theme.morphDuration
-    }
-
-    onShownChanged: {
-        if (!shown)
-            settling.restart();
-    }
-
-    BackgroundEffect.blurRegion: Region {
-        // A region is plain geometry and cannot fade with the card, so it is
-        // switched at the halfway point of the fade, where the card is
-        // translucent enough either side for the toggle not to register.
-        readonly property bool active: card.opacity > 0.5
-
-        x: card.x
-        y: card.y
-        width: active ? card.width : 0
-        height: active ? card.height : 0
-        radius: card.radius
-    }
 
     // Day precision: nothing here changes between minutes, and a clock ticking
     // faster than the thing it drives only wakes the process for no redraw.
@@ -131,10 +70,8 @@ PanelWindow {
     Rectangle {
         id: card
 
-        // Placed by its centre against the clock, then held inside the screen
-        // so a rail item near the bottom edge does not push it off.
-        x: root.anchorRight ? root.shadowRoom : Theme.rail + Theme.spaceXs
-        y: Math.round(Math.min(root.height - height - 10, Math.max(10, root.markY - height / 2)))
+        x: root.contentX
+        y: root.placeY(height)
 
         width: root.cardWidth
         implicitHeight: body.implicitHeight + Theme.padCard * 2
@@ -149,13 +86,16 @@ PanelWindow {
             index: 0
             shown: root.shown
             fromRight: root.anchorRight
-            restX: root.anchorRight ? root.shadowRoom : Theme.rail + Theme.spaceXs
+            restX: root.contentX
+        }
+
+        CardBlur {
+            target: card
+            host: root
         }
 
         DropShadow {
             target: card
-            elevation: 6
-            strength: 0.35
         }
 
         Column {

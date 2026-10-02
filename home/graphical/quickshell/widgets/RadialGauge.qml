@@ -14,9 +14,8 @@ Item {
     // 0-1, the share of the ring that is filled
     property real level: 0
 
-    // what sits in the middle, and the line under it
+    // what sits in the middle
     property string label: ""
-    property string sublabel: ""
 
     property color fill: Theme.teal
 
@@ -38,7 +37,7 @@ Item {
 
     Behavior on amount {
         NumberAnimation {
-            duration: 700
+            duration: Theme.levelDuration
             easing.type: Easing.OutQuint
         }
     }
@@ -77,7 +76,7 @@ Item {
 
             Behavior on strokeColor {
                 ColorAnimation {
-                    duration: 700
+                    duration: Theme.levelDuration
                 }
             }
 
@@ -92,31 +91,10 @@ Item {
         }
     }
 
-    Column {
+    Label {
         anchors.centerIn: parent
-        spacing: 0
-
-        Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: root.label
-            font.family: Theme.font
-            font.pixelSize: Math.round(root.side * 0.22)
-            font.features: {
-                "tnum": 1
-            }
-            color: Theme.text
-        }
-
-        Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: root.sublabel
-            font.family: Theme.font
-            font.pixelSize: Math.round(root.side * 0.11)
-            font.features: {
-                "tnum": 1
-            }
-            color: Theme.overlay0
-            visible: text !== ""
-        }
+        text: root.label
+        figures: true
+        font.pixelSize: Math.round(root.side * 0.22)
     }
 }

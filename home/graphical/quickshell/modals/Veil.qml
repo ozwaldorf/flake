@@ -1,7 +1,6 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
-import ".."
 
 // Fullscreen blur over everything, raised while the session is idle.
 //

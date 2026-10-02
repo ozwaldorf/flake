@@ -3,64 +3,41 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Services.Mpris
-import Quickshell.Services.Notifications
 import ".."
 import "../widgets"
 import "../services"
 
 // Transient popups next to the rail. Critical notifications persist until
 // dismissed; everything else times out on its own.
-PanelWindow {
+EdgeWindow {
     id: root
 
-    required property var modelData
-    required property bool anchorRight
+    // The bar's own 0 to 1 reveal, so toasts sit against the rail at whatever
+    // width it currently is, moving on the rail's clock rather than a second
+    // animation of their own that could drift from it.
+    required property real barReveal
 
-    // tracks the bar so toasts sit against the rail at whatever width it
-    // currently is, rather than always clearing the full expanded width
-    required property bool barExpanded
-
-    // not readonly: the Behavior below writes to it
-    property int railOffset: (barExpanded ? Theme.rail : Theme.sliver) + 8
-
-    Behavior on railOffset {
-        NumberAnimation {
-            duration: Theme.morphDuration
-            easing.type: Easing.OutQuint
-        }
-    }
+    readonly property real railGap: 8
+    readonly property real railOffset: Theme.sliver + (Theme.rail - Theme.sliver) * barReveal + railGap
 
     // ---- now playing, popped on a track change ----
 
-    readonly property var player: Mpris.players.values.length > 0 ? Mpris.players.values[0] : null
+    readonly property var player: Media.player
 
-    // What identifies the track, the same pair the card's art latches on: the
-    // id is the reliable part, and the title stands in for players that reuse
-    // one object path across everything they play, which Firefox does.
-    //
-    // The id arrives as a stringified QDBusObjectPath rather than a bare path,
-    // so it is only ever compared against itself, never parsed.
-    //
+    // What identifies the track, the same key the card's art latches on.
     // Only read while there is a player, so losing one does not read as a
     // change to an empty track and pop a card with nothing in it.
     readonly property string title: player?.trackTitle ?? ""
-    readonly property string track: player ? (player.metadata?.["mpris:trackid"] ?? "") + "\n" + title : ""
+    readonly property string track: Media.trackKey(player)
 
     property bool mediaShown: false
-
-    // Counted rather than a plain bool: the card raises once per control, and
-    // moving between two adjacent buttons can deliver the exiting one's false
-    // after the entering one's true, which would read as leaving the card.
-    property int mediaHoverCount: 0
-    readonly property bool mediaHovered: mediaHoverCount > 0
 
     // Held up while the pointer is on it, the way a hovered notification is:
     // the timer only starts counting once the pointer leaves.
     Timer {
         id: mediaTimer
         interval: Theme.toastTimeout
-        running: root.mediaShown && !root.mediaHovered
+        running: root.mediaShown && !media.hovered
         onTriggered: root.mediaShown = false
     }
 
@@ -150,9 +127,6 @@ PanelWindow {
         }
     }
 
-    screen: modelData
-    color: "transparent"
-    exclusiveZone: 0
     // Held open past the card going down so its fade out has a surface to run
     // on. Read off the flag and a timer rather than the card's own opacity:
     // the card is inside this window, so a visibility bound to it is a loop.
@@ -162,18 +136,13 @@ PanelWindow {
     // mediaShown alone would leave it waiting on art that never arrives.
     visible: Notifications.toasts.count > 0 || mediaShown || mediaPending || mediaLeaving.running
 
-    anchors {
-        left: !root.anchorRight
-        right: root.anchorRight
-        top: true
-        bottom: true
-    }
+    // Fixed at the widest the offset gets, with the stack moving inside it.
+    // Sizing the window to the offset would resize it every frame of the
+    // rail's travel, and a right anchored surface is repositioned along with
+    // it in a separate commit, which shows as the stack shuddering.
+    readonly property real maxRailOffset: Theme.rail + railGap
 
-    // Room past the stack for the shadows the toasts cast: the window is what
-    // clips them, and one ending flush with the cards cuts their outer edge.
-    readonly property real shadowRoom: 16
-
-    implicitWidth: root.railOffset + Theme.modalWidth + shadowRoom
+    implicitWidth: maxRailOffset + Theme.modalWidth + shadowRoom
 
     // Click through everywhere except the toasts themselves. The column rather
     // than each card: the media card collapses to nothing while it is down, so
@@ -185,10 +154,7 @@ PanelWindow {
     Column {
         id: stack
 
-        // collected by the window's blurRegion; each toast appends its own
-        property list<Region> toastRegions
-
-        x: root.anchorRight ? root.shadowRoom : root.railOffset
+        x: root.anchorRight ? root.shadowRoom + root.maxRailOffset - root.railOffset : root.railOffset
         y: 12
         // same width as the control centre cards, so a notification looks
         // identical whether it is a toast or a history entry
@@ -243,8 +209,6 @@ PanelWindow {
             opacity: 0
             height: 0
 
-            onChildHoverChanged: hovered => root.mediaHoverCount = Math.max(0, root.mediaHoverCount + (hovered ? 1 : -1))
-
             // In from the rail's side like the notification cards, and back out
             // the same way rather than only fading.
             //
@@ -292,9 +256,9 @@ PanelWindow {
                 // together come in as a sequence rather than at once. The step
                 // is well inside the fade, which keeps them overlapping.
                 PauseAnimation {
-                    // clamped: the index is -1 while the transition is not
-                    // running against an item, which is not a valid duration
-                    duration: Math.max(0, ViewTransition.index) * Theme.staggerStep
+                    // the index is -1 while the transition is not running
+                    // against an item, which the stagger clamps to none
+                    duration: Theme.stagger(ViewTransition.index)
                 }
 
                 ParallelAnimation {
@@ -334,8 +298,6 @@ PanelWindow {
                 // The column's own transition drives both opacity and x on the
                 // way in, so neither is bound here: a binding would be
                 // destroyed by the first frame it writes.
-                Component.onCompleted: stack.toastRegions.push(toastRegion)
-
                 // Whether the card is being cleared rather than left to expire:
                 // a tap is the user acting on the notification, so it goes from
                 // history too, while a timeout only takes the toast away.
@@ -359,39 +321,27 @@ PanelWindow {
 
                     onFinished: toast.clearing ? Notifications.remove(toast.model.id) : Notifications.dismiss(toast.model.id)
 
+                    // Short and eased in, so a dismissed toast gets out of the
+                    // way and the stack closes up behind it promptly.
                     NumberAnimation {
                         target: toast
                         property: "opacity"
                         to: 0
-                        duration: Theme.fadeDuration
+                        duration: Theme.exitDuration
+                        easing.type: Easing.InQuad
                     }
                     NumberAnimation {
                         target: toast
                         property: "x"
                         to: root.anchorRight ? Theme.spaceSm : -Theme.spaceSm
-                        duration: Theme.morphDuration
-                        easing.type: Easing.OutQuint
+                        duration: Theme.exitDuration
+                        easing.type: Easing.InCubic
                     }
                 }
 
-                Component.onDestruction: {
-                    const i = stack.toastRegions.indexOf(toastRegion);
-                    if (i >= 0)
-                        stack.toastRegions.splice(i, 1);
-                }
-
-                // Blur switched at the halfway point of the fade rather than
-                // scaled with it, so the region is not re-evaluated per frame.
-                Region {
-                    id: toastRegion
-
-                    readonly property bool active: toast.opacity > 0.5
-
-                    x: stack.x + toast.x
-                    y: stack.y + toast.y
-                    width: active ? toast.width : 0
-                    height: active ? toast.height : 0
-                    radius: toast.radius
+                CardBlur {
+                    target: toast
+                    host: root
                 }
 
                 // The app's own timeout wins when it asks for one. Per the
@@ -414,15 +364,12 @@ PanelWindow {
         }
     }
 
-    // Registered by the media card's own CardBlur, which frosts itself the same
-    // way it does inside the panel rather than having the window describe it.
+    // Registered by each card's own CardBlur: a union of the individual cards
+    // rather than one box over the column, which would blur the gaps between
+    // them and square off their rounded corners.
     property list<Region> cardRegions
 
-    // Union of the individual toasts rather than one box over the column: a
-    // single region would blur the gaps between cards and square off their
-    // rounded corners. Each delegate contributes its own region, so variable
-    // card heights stay correct.
     BackgroundEffect.blurRegion: Region {
-        regions: stack.toastRegions.concat(root.cardRegions)
+        regions: root.cardRegions
     }
 }

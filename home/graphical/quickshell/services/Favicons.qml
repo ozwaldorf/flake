@@ -29,7 +29,7 @@ Singleton {
     // separately from the results since a failure has nothing to store.
     property var settled: ({})
 
-    readonly property string dir: (Quickshell.env("XDG_CACHE_HOME") || Quickshell.env("HOME") + "/.cache") + "/quickshell/favicons"
+    readonly property string dir: `${Quickshell.cacheDir}/favicons`
 
     // Hosts waiting on a turn, and the one being fetched. Serialised so a
     // burst of track changes cannot open a connection per change.

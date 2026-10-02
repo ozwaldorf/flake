@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
@@ -7,19 +9,16 @@ import "services"
 // Vertical rail anchored to the outward facing screen edge. Only the sliver is
 // an exclusive zone, so tiled windows never reflow when the rail wakes; the
 // rail draws over the desktop instead of pushing it.
-PanelWindow {
+EdgeWindow {
     id: bar
 
-    required property var modelData
+    // held open while the panel is up, so moving toward it does not collapse
+    // the rail
+    property bool panelOpen: false
+    readonly property bool expanded: railHovered || panelOpen
 
-    // anchor to the outward facing edge of the monitor arrangement, so the bar
-    // sits on the far left of the leftmost screen and the far right of the
-    // rightmost one rather than down the middle of a multi head setup
-    required property bool anchorRight
-
-    // held open while a modal is up, so moving toward one does not collapse it
-    property bool modalOpen: false
-    readonly property bool expanded: hover.hovered || modalOpen
+    // whether the pointer is on the corner zone that opens the panel
+    readonly property bool cornerHovered: cornerHover.hovered
 
     // sample the meters faster while this rail is out; released on destruction
     // so unplugging a monitor mid hover does not leave the count raised
@@ -28,21 +27,6 @@ PanelWindow {
     Component.onDestruction: {
         if (expanded)
             SysMeters.watch(false);
-    }
-
-    // name of the mark under the pointer, or empty
-    signal markHovered(string name)
-
-    property bool settingsActive: false
-
-    screen: modelData
-    color: "transparent"
-
-    anchors {
-        left: !bar.anchorRight
-        right: bar.anchorRight
-        top: true
-        bottom: true
     }
 
     exclusiveZone: Theme.sliver
@@ -61,34 +45,34 @@ PanelWindow {
     // repositioned every frame, since its origin is derived from the width, and
     // those two commits are not atomic: the surface can present at the new size
     // before the new position lands, which shows as a gap at the screen edge.
+    //
     // Room past the rail for the shadow it casts inward. Without it the window
     // is exactly the rail's own width, so at full expansion the rail fills it
-    // and the shadow falls entirely outside: it showed while collapsed, where
-    // the rest of the window was still free, and vanished as it opened.
-    readonly property real shadowRoom: 20
+    // and the shadow falls entirely outside.
+    shadowRoom: 20
 
     implicitWidth: Theme.rail + shadowRoom
 
-    // 0 collapsed, 1 expanded; drives everything that used to follow the width
+    // 0 collapsed, 1 expanded; every width on the rail, and the toasts beside
+    // it, follow this one value
     property real reveal: expanded ? 1 : 0
 
+    // Glided rather than eased: a pointer flicking in and out of the rail
+    // turns it around mid travel, and every width below follows this one value.
     Behavior on reveal {
-        NumberAnimation {
-            duration: Theme.morphDuration
-            easing.type: Easing.OutQuint
-        }
+        Glide {}
     }
 
     // visible width of the rail within the fixed surface
     readonly property real railWidth: Theme.sliver + (Theme.rail - Theme.sliver) * reveal
 
-    // the rail hugs the outward edge, so the content is inset from the other side
-    // measured from the window's own edge, which now reaches past the rail to
-    // give the shadow somewhere to fall
+    // The rail hugs the outward edge, so the content is inset from the other
+    // side, measured from the window's own edge, which reaches past the rail
+    // to give the shadow somewhere to fall.
     readonly property real railX: bar.anchorRight ? width - railWidth : 0
 
     // Client side blur, following the visible rail rather than the surface,
-    // which is now a fixed full width strip.
+    // which is a fixed full width strip.
     BackgroundEffect.blurRegion: Region {
         x: bar.railX
         y: 0
@@ -157,115 +141,10 @@ PanelWindow {
             opacity: bar.expanded ? 1 : 0
 
             Behavior on opacity {
-                NumberAnimation {
-                    duration: Theme.fadeDuration
-                }
+                Fade {}
             }
         }
     }
-
-    // ---- meter tooltip ----
-    //
-    // The meters say how loaded things are but not what they are, and the rail
-    // has no room to label them. Hovering anywhere in the group opens all
-    // three: they are read against each other more often than alone, and
-    // moving between them to compare meant losing the one just looked at.
-    //
-    // Bound rather than copied, so the readings keep counting while the tip is
-    // up instead of freezing at whatever they were when the pointer arrived.
-    // Constant: only which meters there are and how each is drawn, never a
-    // reading. A list rebuilt when a reading changes is a new array every
-    // sample, and a repeater over it tears down and recreates its delegates
-    // each time, restarting whatever animation they were running.
-    //
-    // The readings come through the kind, which the chips resolve themselves.
-    // Without the driver there is no reading to show, so those entries are
-    // dropped rather than left as chips that never fill.
-    // Rows are numbered from the bottom, where the wide end sits against the
-    // meters. Widths shape the wedge: each row is narrower than the one below
-    // it, and the sizes vary within a row so the stack does not read as a grid.
-    //
-    // Without the driver there is no GPU reading to show, so those entries drop
-    // out. That empties the top row rather than leaving a gap in it, since the
-    // pair sharing that row are both the card's.
-    readonly property var tipMeters: allMeters.filter(m => SysMeters.gpuAvailable || (m.kind !== "gpu" && m.kind !== "vram"))
-
-    readonly property var allMeters: [
-        // row 0, against the meters: the widest, at 480
-        {
-            kind: "io",
-            icon: Theme.iconDisk,
-            label: "Disk I/O",
-            fill: Theme.yellow,
-            row: 0,
-            width: 180
-        },
-        {
-            kind: "disk",
-            icon: Theme.iconDisk,
-            label: "Disk",
-            fill: Theme.yellow,
-            row: 0,
-            width: 134,
-            dial: true
-        },
-        {
-            kind: "memory",
-            icon: Theme.iconMemory,
-            label: "Memory",
-            fill: Theme.green,
-            row: 0,
-            width: 150
-        },
-        // row 1, at 410
-        {
-            kind: "network",
-            icon: Theme.iconNetwork,
-            label: "Net",
-            fill: Theme.red,
-            row: 1,
-            width: 220
-        },
-        {
-            kind: "cpu",
-            icon: Theme.iconCpu,
-            label: "CPU",
-            fill: Theme.mauve,
-            // a percentage cannot pass a hundred, so the axis must not either
-            limit: 100,
-            row: 1,
-            width: 182
-        },
-        // row 2, the narrow end at 318
-        {
-            kind: "vram",
-            icon: Theme.iconGpu,
-            label: "VRAM",
-            fill: Theme.blue,
-            row: 2,
-            width: 134,
-            dial: true
-        },
-        {
-            kind: "gpu",
-            icon: Theme.iconGpu,
-            label: "GPU",
-            fill: Theme.blue,
-            limit: 100,
-            row: 2,
-            width: 176
-        },
-        // The apex: what the machine is rather than what it is doing, which is
-        // read once on the way past rather than watched.
-        {
-            kind: "summary",
-            icon: Theme.iconHost,
-            label: "System",
-            fill: Theme.overlay2,
-            row: 3,
-            width: 225
-        }
-    ]
 
     // Centre of the meter group, so the tip opens level with what it describes.
     // Summed from the items' own geometry rather than mapped: a mapToItem call
@@ -281,33 +160,32 @@ PanelWindow {
         id: rawHover
     }
 
-    // debounce: quick to wake, slow to close
-    property bool hovering: rawHover.hovered
+    // Debounced: quick to wake, slow to close.
+    property bool railHovered: false
 
     Timer {
         id: enterTimer
         interval: Theme.enterDelay
-        onTriggered: hover.hovered = true
+        onTriggered: bar.railHovered = true
     }
 
     Timer {
         id: exitTimer
         interval: Theme.exitDelay
-        onTriggered: hover.hovered = false
+        onTriggered: bar.railHovered = false
     }
 
-    QtObject {
-        id: hover
-        property bool hovered: false
-    }
+    Connections {
+        target: rawHover
 
-    onHoveringChanged: {
-        if (hovering) {
-            exitTimer.stop();
-            enterTimer.restart();
-        } else {
-            enterTimer.stop();
-            exitTimer.restart();
+        function onHoveredChanged() {
+            if (rawHover.hovered) {
+                exitTimer.stop();
+                enterTimer.restart();
+            } else {
+                enterTimer.stop();
+                exitTimer.restart();
+            }
         }
     }
 
@@ -320,8 +198,6 @@ PanelWindow {
     // edge, and following the rail's width so it covers the sliver while
     // collapsed and the full width once out.
     Item {
-        id: corner
-
         x: bar.railX
         y: 0
         width: bar.railWidth
@@ -329,7 +205,6 @@ PanelWindow {
 
         HoverHandler {
             id: cornerHover
-            onHoveredChanged: bar.markHovered(hovered ? "settings" : "")
         }
     }
 
@@ -346,8 +221,6 @@ PanelWindow {
 
         // actions: things you click
         Column {
-            id: top
-
             anchors.top: parent.top
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: Theme.railGroupGap
@@ -357,13 +230,16 @@ PanelWindow {
 
                 anchors.horizontalCenter: parent.horizontalCenter
                 expanded: bar.expanded
-                active: bar.settingsActive
+                reveal: bar.reveal
+                active: bar.panelOpen
                 hovered: cornerHover.hovered
             }
 
             Workspaces {
                 anchors.horizontalCenter: parent.horizontalCenter
                 expanded: bar.expanded
+                reveal: bar.reveal
+                screenData: bar.modelData
             }
         }
 
@@ -375,53 +251,27 @@ PanelWindow {
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: Theme.railGroupGap
 
-            // network, cpu, gpu, memory, disk stacked down the rail, each as
-            // wide as a workspace block so the two groups line up
+            // stacked down the rail, each as wide as a workspace block so the
+            // two groups line up
             Column {
                 id: meters
 
                 anchors.horizontalCenter: parent.horizontalCenter
                 spacing: Theme.meterGap
 
-                // Down from the base and up stacked on it, so the mark says
-                // which direction the traffic is in rather than only that
-                // there is some.
-                LoadMeter {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    expanded: bar.expanded
-                    value: SysMeters.networkDown
-                    fill: Theme.red
-                    secondValue: SysMeters.networkUp
-                    secondFill: Theme.peach
-                }
+                Repeater {
+                    model: Meters.rail
 
-                LoadMeter {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    expanded: bar.expanded
-                    value: SysMeters.cpu
-                    fill: Theme.mauve
-                }
+                    LoadMeter {
+                        required property string modelData
 
-                LoadMeter {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    expanded: bar.expanded
-                    value: SysMeters.gpu
-                    fill: Theme.blue
-                    visible: SysMeters.gpuAvailable
-                }
-
-                LoadMeter {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    expanded: bar.expanded
-                    value: SysMeters.memory
-                    fill: Theme.green
-                }
-
-                LoadMeter {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    expanded: bar.expanded
-                    value: SysMeters.disk
-                    fill: Theme.yellow
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        reveal: bar.reveal
+                        value: Meters.level(modelData)
+                        fill: Meters.defs[modelData].fill
+                        secondValue: Meters.secondLevel(modelData)
+                        secondFill: Meters.hasSecond(modelData) ? Meters.secondFill : "transparent"
+                    }
                 }
             }
 
@@ -434,15 +284,14 @@ PanelWindow {
         }
 
         // One target over the whole meter group rather than one per meter: the
-        // tip shows all three, so which one the pointer is on does not matter,
+        // tip shows them all, so which one the pointer is on does not matter,
         // and travelling between them never drops it. Spans the rail so the
         // marks are not what has to be hit.
         //
         // Placed by summing the group's offsets rather than by mapToItem,
-        // which is a one shot call with no dependency tracking: it answered
-        // while the column was still at the origin and left the target
-        // stranded in the corner. A Column refuses vertical anchors on its
-        // children besides, so this sits outside the columns entirely.
+        // which is a one shot call with no dependency tracking. A Column
+        // refuses vertical anchors on its children besides, so this sits
+        // outside the columns entirely.
         Item {
             x: (railContent.width - width) / 2
             y: bottom.y + meters.y
@@ -472,9 +321,8 @@ PanelWindow {
     // Only while the rail is out: in the sliver the meters are six pixels wide
     // and a panel beside them would be most of what is on screen.
     RailTip {
-        screenData: bar.modelData
+        modelData: bar.modelData
         anchorRight: bar.anchorRight
-        meters: bar.tipMeters
         markY: bar.tipY
         shown: meterHover.hovered && bar.expanded
     }
@@ -482,7 +330,7 @@ PanelWindow {
     // Same rule as the meter tip: only while the rail is out, since collapsed
     // the clock is a sliver of skeleton with no digits to expand on.
     CalendarTip {
-        screenData: bar.modelData
+        modelData: bar.modelData
         anchorRight: bar.anchorRight
         markY: bar.clockY
         shown: clockHover.hovered && bar.expanded

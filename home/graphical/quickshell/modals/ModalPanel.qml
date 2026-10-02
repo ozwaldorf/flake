@@ -1,40 +1,24 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
 import ".."
 
-// Shared chrome for the popup modals: blurred panel that slides out from the
-// rail, holding whatever extends it.
-PanelWindow {
+// Shared chrome for the popup modals: a column of cards that slides out from
+// the rail, holding whatever extends it. The panel draws no surface of its
+// own; each card carries its own fill and blur.
+EdgeWindow {
     id: root
-
-    required property var modelData
-
-    // matches the bar: when the rail is on the right edge, the panel opens
-    // leftward so it stays on screen
-    required property bool anchorRight
 
     property bool shown: false
 
-    // Cards over the desktop rather than on a surface of their own. Each one
-    // already carries a fill, so the panel behind them is mostly a container;
-    // dropping it leaves them floating.
-    property bool floating: true
+    // Raised by anything the panel opens as a window of its own, like a tray
+    // menu, which this window cannot see the pointer over. Counted, and
+    // released by whoever raised it.
+    property int holds: 0
 
-    // Set by interactive children while the pointer is over them. The panel's
-    // own hover surface goes unhovered in that case, so without this the modal
-    // would dismiss the moment you reached for anything clickable.
-    //
-    // Counted rather than a plain bool: moving between adjacent buttons can
-    // deliver the exiting one's false after the entering one's true, which
-    // would read as leaving the panel.
-    property int childHoverCount: 0
-    readonly property bool childHovered: childHoverCount > 0
-
-    function setChildHovered(on) {
-        childHoverCount = Math.max(0, childHoverCount + (on ? 1 : -1));
+    function hold(on) {
+        holds = Math.max(0, holds + (on ? 1 : -1));
     }
 
     // Height of the content, when it can be measured. Panels that fill their
@@ -50,35 +34,28 @@ PanelWindow {
 
     Timer {
         id: resizeGrace
-        interval: Theme.morphDuration + 120
+        interval: Theme.settleDelay
     }
 
     default property alias content: body.data
 
     // Items stacked below the panel as their own surfaces rather than inside
-    // it, so they are not bounded by the panel's fill or rounding.
+    // it, so they are not bounded by the panel's rounding.
     property alias detached: detachedColumn.data
 
-    signal dismissed
     signal hoverChanged(bool hovered)
 
-    screen: modelData
-    color: "transparent"
-    visible: shown || slide.running
-
-    anchors {
-        left: !root.anchorRight
-        right: root.anchorRight
-        top: true
-        bottom: true
-    }
-
-    // Room past the panel for what falls outside it: the cards' shadows reach
-    // beyond their own edges, and the window is what they are clipped to.
-    readonly property real shadowRoom: 16
+    // Mapped for good and switched by its input region instead. A surface
+    // mapped as the panel opens takes the pointer for its first frame, before
+    // its region has applied, and the rail loses it with nothing to hand it
+    // back until the mouse next moves: the corner then reads as left and the
+    // panel closes on a pointer that never went anywhere.
+    //
+    // Nothing is drawn while closed: every row and card has faded to nothing,
+    // and their blur regions with them.
+    readonly property bool live: shown || fadeAnim.running
 
     implicitWidth: Theme.rail + Theme.spaceXs + Theme.modalWidth + shadowRoom
-    exclusiveZone: 0
 
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
@@ -95,27 +72,25 @@ PanelWindow {
     readonly property real detachedScroll: detachedView.contentY
 
     // Total extent of the panel plus anything detached below it, using the
-    // viewport height rather than the column's so the mask and hover surface
-    // stop where the visible stack does.
+    // viewport height rather than the column's so the mask stops where the
+    // visible stack does.
     readonly property real stackHeight: panel.height + (detachedView.height > 0 ? Theme.spaceSm + detachedView.height : 0)
 
-    // only the panel takes pointer input; the strip over the rail stays click
+    // Only the panel takes pointer input; the strip over the rail stays click
     // through so the bar keeps its own hover and tap handling. The region
     // starts at the rail edge so travelling the gap does not drop the hover.
-
     mask: Region {
         x: root.anchorRight ? panel.x : Theme.rail
         y: panel.y
-        width: panel.width + Theme.spaceXs
-        height: root.stackHeight
+        width: root.live ? panel.width + Theme.spaceXs : 0
+        height: root.live ? root.stackHeight : 0
     }
 
-    Rectangle {
+    Item {
         id: panel
 
         readonly property real maxHeight: root.height - 20
 
-        // opens inward from whichever edge the rail is on
         // Inset from whichever edge the window is anchored to, leaving the
         // shadow room on the outward side: anchored right the window grows
         // leftward, so sitting at nothing puts the free room behind the rail
@@ -126,70 +101,38 @@ PanelWindow {
         // sized to content when the panel reports one, capped to the screen
         height: root.contentHeight > 0 ? Math.min(root.contentHeight, maxHeight) : maxHeight
 
-        // Without a surface of its own the panel is just a column of cards
-        // over the desktop, each carrying its own fill and blur.
-        radius: Theme.rounding
-        color: root.floating ? "transparent" : Theme.surfaceFill
-        border.width: root.floating ? 0 : 1
-        border.color: Theme.surface1
-
-        // Fade only: no scale, no position or size animation.
+        // The panel's presence as a fade, though nothing draws with it: the
+        // rows fade themselves on a stagger. It is the timing the window's own
+        // visibility keys off, so the surface outlives the rows going out.
         //
-        // While floating the panel draws nothing of its own, and its rows fade
-        // themselves on a stagger, so applying this to them as well would
-        // compound the two. It stays as the timing signal the blur and the
-        // window's own visibility key off.
-        opacity: root.floating ? 1 : fade
-
         // not readonly: a Behavior writes to what it animates
         property real fade: root.shown ? 1 : 0
 
         Behavior on fade {
             NumberAnimation {
-                id: slide
+                id: fadeAnim
                 duration: Theme.fadeDuration
                 easing.type: Easing.OutQuint
             }
         }
-
 
         Item {
             id: body
 
             anchors.fill: parent
         }
-
     }
 
-    // shape the viewport is masked to; matches the cards' own rounding
-    Item {
-        id: viewportMask
-
-        width: detachedView.width
-        height: detachedView.height
-        layer.enabled: true
-        visible: false
-
-        Rectangle {
-            anchors.fill: parent
-            // Square: the viewport reaches past the cards to give their
-            // shadows room, so a rounded edge here would cut a curve through
-            // empty space rather than following anything.
-            color: "black"
-        }
-    }
-
-    // Detached surfaces, stacked under the panel with the same left edge.
-    // Viewport for the detached stack, capped to whatever room is left below
-    // the panel so a long list scrolls instead of running off screen.
+    // Viewport for the detached stack under the panel, capped to whatever room
+    // is left below it so a long list scrolls instead of running off screen.
     Flickable {
         id: detachedView
 
         // Reaches past the cards on every side, and the column inside is inset
-        // back by the same: the mask clips to these bounds, so a viewport the
+        // back by the same: the clip is to these bounds, so a viewport the
         // width of the cards cuts the shadows they cast.
         x: panel.x - Theme.spaceSm
-        y: panel.y + panel.height + Theme.spaceSm - Theme.spaceSm
+        y: panel.y + panel.height
         width: panel.width + Theme.spaceSm * 2
         height: Math.min(detachedColumn.height + Theme.spaceSm * 2, root.height - y - 10)
 
@@ -197,14 +140,7 @@ PanelWindow {
         contentWidth: width
         interactive: contentHeight > height
         boundsBehavior: Flickable.StopAtBounds
-
-        // Rounded clip rather than Flickable's own clip, which is a rectangular
-        // scissor and squares off cards at the scroll edges.
-        layer.enabled: true
-        layer.effect: MultiEffect {
-            maskEnabled: true
-            maskSource: viewportMask
-        }
+        clip: true
 
         ScrollBar.vertical: ScrollBar {
             policy: ScrollBar.AlwaysOff
@@ -220,17 +156,13 @@ PanelWindow {
             width: parent.width - Theme.spaceSm * 2
             spacing: Theme.spaceSm
 
-            // Not bound to panel.opacity: the cards fade individually on a stagger
-            // so they arrive one after another below the panel.
-            opacity: 1
-
-            // A new card slides down into place from under the panel rather than
-            // appearing where it lands; the ones below it shuffle down to make room.
+            // A new card slides down into place from under the panel rather
+            // than appearing where it lands. Position only: the card drives
+            // its own opacity, so the staggered reveal is not fought by a
+            // second animator here.
             add: Transition {
-                // y is column local, so starting at 0 means sliding down from the
-                // panel's lower edge into whatever slot the card lands in
-                // position only: the card drives its own opacity so the staggered
-                // reveal is not fought by a second animator here
+                // y is column local, so starting at 0 means sliding down from
+                // the panel's lower edge into whatever slot the card lands in
                 NumberAnimation {
                     properties: "y"
                     from: 0
@@ -239,8 +171,8 @@ PanelWindow {
                 }
             }
 
-            // Positioners have no displaced transition; move covers both reordering
-            // and shuffling to make room for an insert or removal.
+            // Positioners have no displaced transition; move covers both
+            // reordering and shuffling to make room for an insert or removal.
             move: Transition {
                 NumberAnimation {
                     properties: "y"
@@ -251,50 +183,33 @@ PanelWindow {
         }
     }
 
-    // Hover surface behind the content, spanning the panel plus the gap back to
-    // the rail so travelling between them never registers as leaving.
-    //
-    // It sits behind rather than in front: an overlay would swallow the
-    // children's own hover state, killing their highlights and cursors. The
-    // cost is that this handler reports unhovered whenever a child takes the
-    // pointer, so childHovered feeds back in to keep the panel open.
-    Item {
-        id: hoverSurface
-
-        x: root.anchorRight ? panel.x : Theme.rail
-        y: panel.y
-        width: panel.width + Theme.spaceXs
-        height: root.stackHeight
-        z: -1
-
-        HoverHandler {
-            id: surfaceHover
-        }
+    // On the window itself, so it is the ancestor of every card and control:
+    // a hover handler on a parent stays hovered while a child has the pointer,
+    // and the mask bounds it to the panel and the gap back to the rail.
+    HoverHandler {
+        id: surfaceHover
     }
 
-    // true while the pointer is anywhere over the panel, whether that is the
-    // bare surface or one of its interactive children, and held true across a
-    // resize so the settling geometry cannot dismiss it
-    readonly property bool pointerInside: surfaceHover.hovered || childHovered || resizeGrace.running
+    // true while the pointer is anywhere over the panel or something it
+    // opened, and held true across a resize so the settling geometry cannot
+    // dismiss it
+    readonly property bool pointerInside: surfaceHover.hovered || holds > 0 || resizeGrace.running
 
     onPointerInsideChanged: root.hoverChanged(pointerInside)
 
-    // Children release their own raises on destruction, which is what keeps
-    // this count honest; there is deliberately no watchdog second-guessing it,
-    // since nothing here can tell a stale raise from a stationary pointer
-    // resting on a row.
-
-    // Client side blur matching the panel exactly, including its corner radius,
-    // so the blur does not square off outside the rounded edge.
-    //
-    // The region is plain geometry and knows nothing about opacity, so leaving
-    // it up through the fade out reads as a ghost. Rather than animate the
-    // geometry, switch it at the halfway point of the fade: the panel is
-    // translucent enough either side of that for the toggle not to register.
-    // Union of the panel and any detached surfaces, so each keeps its own
+    // Union of the detached surfaces and the cards, so each keeps its own
     // rounding rather than one box blurring the gaps between them.
+    //
+    // Seeded with a rectangle of no size: a union with nothing contributing
+    // to it falls back to covering the whole window.
     BackgroundEffect.blurRegion: Region {
-        regions: [panelRegion].concat(detachedRegions).concat(cardRegions)
+        regions: [seedRegion].concat(root.detachedRegions).concat(root.cardRegions)
+    }
+
+    Region {
+        id: seedRegion
+        width: 0
+        height: 0
     }
 
     // populated by detached items that want their own blur
@@ -304,24 +219,4 @@ PanelWindow {
     // panel blurs nothing, so each card frosts its own rectangle instead and
     // the gaps between them stay clear.
     property list<Region> cardRegions
-
-    // Switched at the halfway point of the fade, which every surface here
-    // keys off: a region is plain geometry and knows nothing about opacity, so
-    // holding one to the end of the fade leaves a pane where the panel was.
-    readonly property bool blurActive: panel.fade > 0.5
-
-    Region {
-        id: panelRegion
-
-        // Nothing to blur behind a panel that is not drawing a surface: the
-        // cards over it carry their own, and blurring the gaps between them
-        // would show as a pane hanging around them.
-        readonly property bool active: root.blurActive && !root.floating
-
-        x: panel.x
-        y: panel.y
-        width: active ? panel.width : 0
-        height: active ? panel.height : 0
-        radius: Theme.rounding
-    }
 }

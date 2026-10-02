@@ -20,11 +20,9 @@ let
       '';
 in
 {
-  # socat reads hyprcapture's recording status socket for the recorder tile,
   # curl and jq drive the wallpaper fetcher, lutgen bakes its color table
   home.packages = [
     pkgs.quickshell
-    pkgs.socat
     pkgs.curl
     pkgs.jq
     pkgs.lutgen

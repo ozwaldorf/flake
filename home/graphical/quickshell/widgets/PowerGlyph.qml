@@ -37,7 +37,7 @@ Item {
 
             Behavior on strokeColor {
                 ColorAnimation {
-                    duration: 200
+                    duration: Theme.glyphDuration
                 }
             }
 
@@ -68,7 +68,7 @@ Item {
 
         Behavior on color {
             ColorAnimation {
-                duration: 200
+                duration: Theme.glyphDuration
             }
         }
     }

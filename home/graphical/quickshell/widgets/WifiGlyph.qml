@@ -57,7 +57,7 @@ Item {
 
             Behavior on strokeColor {
                 ColorAnimation {
-                    duration: 200
+                    duration: Theme.glyphDuration
                 }
             }
 
@@ -85,7 +85,7 @@ Item {
 
             Behavior on strokeColor {
                 ColorAnimation {
-                    duration: 200
+                    duration: Theme.glyphDuration
                 }
             }
 
@@ -113,7 +113,7 @@ Item {
 
             Behavior on strokeColor {
                 ColorAnimation {
-                    duration: 200
+                    duration: Theme.glyphDuration
                 }
             }
 
@@ -141,26 +141,16 @@ Item {
 
         Behavior on color {
             ColorAnimation {
-                duration: 200
+                duration: Theme.glyphDuration
             }
         }
     }
 
     // slash for the disabled radio, drawn over the arcs
-    Rectangle {
-        anchors.centerIn: parent
-        width: Math.sqrt(root.width * root.width + root.height * root.height) - 2 * root.unit
+    Slash {
+        shown: root.off
+        inset: 2 * root.unit
         height: 1.6 * root.unit
-        radius: height / 2
         color: root.fill
-        rotation: -45
-        opacity: root.off ? 1 : 0
-        visible: opacity > 0
-
-        Behavior on opacity {
-            NumberAnimation {
-                duration: Theme.fadeDuration
-            }
-        }
     }
 }

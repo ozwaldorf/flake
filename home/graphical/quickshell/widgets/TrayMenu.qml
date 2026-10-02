@@ -218,7 +218,7 @@ PanelWindow {
 
                         Behavior on color {
                             ColorAnimation {
-                                duration: 120
+                                duration: Theme.hoverDuration
                             }
                         }
 
@@ -241,7 +241,7 @@ PanelWindow {
 
                             Behavior on color {
                                 ColorAnimation {
-                                    duration: 120
+                                    duration: Theme.hoverDuration
                                 }
                             }
                         }

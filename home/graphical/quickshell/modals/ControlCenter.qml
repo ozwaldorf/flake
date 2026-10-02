@@ -4,8 +4,6 @@ import QtQuick
 import QtQuick.Controls
 import Quickshell
 import Quickshell.Services.SystemTray
-import Quickshell.Services.Mpris
-import Quickshell.Services.Notifications
 import ".."
 import "../widgets"
 import "../services"
@@ -35,7 +33,7 @@ ModalPanel {
 
         // The whole sequence: the last card's wait plus its own fade, and a
         // little past that so the final frame has landed before the entries go.
-        interval: Math.max(0, Notifications.count - 1) * Theme.staggerStep + Theme.fadeDuration + 40
+        interval: Theme.stagger(Notifications.count - 1) + Theme.exitDuration + 40
 
         onTriggered: {
             Notifications.clear();
@@ -74,19 +72,17 @@ ModalPanel {
             y: root.slideRoom
             width: parent.width - root.slideRoom * 2
 
-            readonly property var player: Mpris.players.values.length > 0 ? Mpris.players.values[0] : null
-
-            // how many rows the controls take, so the notification cards below
-            // carry on the same sequence rather than starting a second one.
-            // The media card only counts when there is a player, so with
-            // nothing playing the sequence closes up rather than leaving its
-            // step as a pause in the middle.
-            readonly property int rows: player !== null ? 6 : 5
-
             // Every section is a card or a row of them, so they all sit at one
             // gap; a wider one between sections read as padding hanging under
             // whatever was above it.
             spacing: Theme.spaceXs
+
+            // The rows in reveal order, and those of them actually showing:
+            // the notification cards below carry on the same sequence rather
+            // than starting a second one, and a row that is hidden closes up
+            // rather than leaving its step as a pause in the middle.
+            readonly property var rows: [connectivity, brightness, audio, media, session, utility]
+            readonly property var shownRows: rows.filter(r => r.visible)
 
             // Which group holds the open list, and which entry within it. Kept
             // here rather than in each group so opening a list closes whichever
@@ -126,13 +122,8 @@ ModalPanel {
                 id: connectivity
 
                 host: root
-
-                width: parent.width
-
                 open: layout.openGroup === connectivity ? layout.openList : ""
                 onRequestOpen: name => layout.openIn(connectivity, name)
-
-                onHoverChanged: hovered => root.setChildHovered(hovered)
             }
 
             BrightnessCard {
@@ -140,20 +131,14 @@ ModalPanel {
 
                 host: root
                 width: parent.width
-                onHoverChanged: hovered => root.setChildHovered(hovered)
             }
 
             AudioTiles {
                 id: audio
 
                 host: root
-
-                width: parent.width
-
                 open: layout.openGroup === audio ? layout.openList : ""
                 onRequestOpen: name => layout.openIn(audio, name)
-
-                onHoverChanged: hovered => root.setChildHovered(hovered)
             }
 
             // ---- now playing, only when a player exists ----
@@ -162,12 +147,10 @@ ModalPanel {
                 id: media
 
                 width: parent.width
-                player: layout.player
+                player: Media.player
                 host: root
                 live: root.shown
-                visible: layout.player !== null
-
-                onChildHoverChanged: hovered => root.setChildHovered(hovered)
+                visible: Media.player !== null
             }
 
             // ---- power and the recorder, sharing one row ----
@@ -177,13 +160,8 @@ ModalPanel {
 
                 host: root
                 anchorRight: root.anchorRight
-
-                width: parent.width
-
                 open: layout.openGroup === session ? layout.openList : ""
                 onRequestOpen: name => layout.openIn(session, name)
-
-                onHoverChanged: hovered => root.setChildHovered(hovered)
             }
 
             // ---- tray, finished by the clear tile ----
@@ -207,27 +185,35 @@ ModalPanel {
                 // whichever entry has its menu up, or null; one at a time
                 property var openMenu: null
 
-                // Entries are square and as tall as the tiles above them, so
-                // what they need is known before laying anything out.
+                // Entries are square and about as tall as the tiles above them,
+                // read off the pair rather than repeated as a number so they
+                // follow the tiles as those grow.
                 //
-                // Read off the pair rather than repeated as a number: the
-                // tiles size themselves from the spacing scale, and a literal
-                // here stays put while they grow.
-                readonly property real entry: session.tileHeight
+                // As many as come nearest that size per line, then sized to
+                // divide the line exactly: sized to the tile alone, a line a
+                // couple of pixels short of one more entry wraps it and leaves
+                // a gap at the end that reads as a missing tile.
+                readonly property int perLine: Math.max(1, Math.round((width + spacing) / (session.tileHeight + spacing)))
 
-                // How many entries fit on a line, and so how many land on the
-                // last one: what is left of it is the clear tile's. A full
-                // line leaves nothing, in which case the tile takes a line of
-                // its own and fills it.
-                readonly property int perLine: Math.max(1, Math.floor((width + spacing) / (entry + spacing)))
+                // A hair under the exact share, so rounding in the sum cannot
+                // push the last entry on a line over the edge and wrap it.
+                readonly property real entry: (width - (perLine - 1) * spacing) / perLine - 0.01
+
+                // How many land on the last line: what is left of it is the
+                // clear tile's, as long as its label fits there. A full line,
+                // or one with too little left for the label, puts the tile on a
+                // line of its own, which it fills.
                 readonly property int onLastLine: trayCount % perLine
 
-                readonly property real clearCell: onLastLine === 0 ? width : width - onLastLine * (entry + spacing)
+                readonly property real leftover: width - onLastLine * (entry + spacing) - 0.01
+                readonly property real clearNeeds: clearLabel.implicitWidth + Theme.spaceSm * 2
+
+                readonly property real clearCell: onLastLine > 0 && leftover >= clearNeeds ? leftover : width
 
                 Repeater {
                     model: SystemTray.items
 
-                    Rectangle {
+                    Card {
                         id: trayEntry
 
                         required property var modelData
@@ -237,28 +223,8 @@ ModalPanel {
                         // against a taller card.
                         implicitWidth: utility.entry
                         implicitHeight: utility.entry
-                        radius: 9
-
-                        // same surface as the tiles and the level cards, each
-                        // frosting its own rectangle
-                        color: trayHover.hovered ? Qt.tint(Theme.surfaceFill, Qt.alpha(Theme.text, 0.06)) : Theme.surfaceFill
-
-                        CardBlur {
-                            target: trayEntry
-                            host: root
-                        }
-
-                        DropShadow {
-                            target: trayEntry
-                            elevation: trayHover.hovered ? 9 : 6
-                            strength: trayHover.hovered ? 0.45 : 0.35
-                        }
-
-                        Behavior on color {
-                            ColorAnimation {
-                                duration: 160
-                            }
-                        }
+                        host: root
+                        cursorShape: Qt.PointingHandCursor
 
                         // Decoded at device resolution rather than at the 16
                         // logical pixels it draws into. Without a sourceSize
@@ -271,8 +237,6 @@ ModalPanel {
                         // URL, so the request has to reach the provider rather
                         // than only the painter.
                         Image {
-                            id: trayIcon
-
                             // Sized off the entry so it keeps its inset as
                             // the entry follows the tile's height, rather
                             // than a fixed size floating in a bigger box.
@@ -291,12 +255,6 @@ ModalPanel {
                             asynchronous: true
                         }
 
-                        HoverHandler {
-                            id: trayHover
-                            cursorShape: Qt.PointingHandCursor
-                            onHoveredChanged: root.setChildHovered(hovered)
-                        }
-
                         // Rendered from the DBusMenu tree rather than handed to
                         // QsMenuAnchor, which opens Qt's native widget menu and
                         // ignores the shell's styling.
@@ -311,19 +269,18 @@ ModalPanel {
                             // monitor, so its window origin is not screen zero
                             anchorWindowX: root.anchorRight ? root.screen.width - root.width : 0
 
-                            // The menu is its own window, so the panel's hover
-                            // surface cannot see the pointer once it moves onto
-                            // it. Hold the panel open for as long as the menu
-                            // is, and release that hold if the tray item goes
-                            // away while its menu is still up: the panel would
-                            // otherwise stay open with nothing holding it.
+                            // The menu is its own window, so the panel cannot
+                            // see the pointer once it moves onto it. Hold the
+                            // panel open for as long as the menu is, and
+                            // release that hold if the tray item goes away
+                            // while its menu is still up.
                             //
                             // Registering as the open one here rather than
                             // binding visible to the tray's key, since the menu
                             // writes its own visible when it dismisses itself
                             // and a binding would be broken by that write.
                             onVisibleChanged: {
-                                root.setChildHovered(visible);
+                                root.hold(visible);
 
                                 if (visible)
                                     utility.openMenu = trayMenu;
@@ -337,7 +294,7 @@ ModalPanel {
 
                                 // torn down while up: nothing else will emit
                                 // the change that would release these
-                                root.setChildHovered(false);
+                                root.hold(false);
                                 if (utility.openMenu === trayMenu)
                                     utility.openMenu = null;
                             }
@@ -367,7 +324,7 @@ ModalPanel {
                 // Clearing every notification, with the settings rather than on
                 // the stack it acts on: the stack is a list of things to read, and
                 // a control among them reads as one of them.
-                Rectangle {
+                Card {
                     id: clearAll
 
                     // Present whether or not there is anything to clear: an
@@ -376,52 +333,29 @@ ModalPanel {
                     readonly property bool has: Notifications.count > 0
 
                     // finishes whatever line the tray left off on, or takes one
-                    // of its own when the tray filled the last one exactly
+                    // of its own when there is no room left there for it
                     width: utility.clearCell
                     implicitHeight: utility.entry
-                    radius: 9
+                    host: root
+                    lifts: has
+                    cursorShape: has ? Qt.PointingHandCursor : Qt.ArrowCursor
 
-                    color: clearAll.has && clearHover.hovered ? Qt.tint(Theme.surfaceFill, Qt.alpha(Theme.text, 0.06)) : Theme.surfaceFill
+                    Label {
+                        id: clearLabel
 
-                    Behavior on color {
-                        ColorAnimation {
-                            duration: 160
-                        }
-                    }
-
-                    CardBlur {
-                        target: clearAll
-                        host: root
-                    }
-
-                    DropShadow {
-                        target: clearAll
-                        elevation: clearAll.has && clearHover.hovered ? 9 : 6
-                        strength: clearAll.has && clearHover.hovered ? 0.45 : 0.35
-                    }
-
-                    Text {
                         anchors.centerIn: parent
 
                         text: clearAll.has ? "Clear " + Notifications.count + " notification" + (Notifications.count === 1 ? "" : "s") : "No new notifications"
-                        font.family: Theme.font
-                        font.pixelSize: 10
 
                         // dimmer with nothing to say, and only red when there
                         // is something a click would actually discard
-                        color: !clearAll.has ? Theme.surface2 : clearHover.hovered ? Theme.red : Theme.overlay1
+                        color: !clearAll.has ? Theme.surface2 : clearAll.hovered ? Theme.red : Theme.overlay1
 
                         Behavior on color {
                             ColorAnimation {
-                                duration: 160
+                                duration: Theme.hoverDuration
                             }
                         }
-                    }
-
-                    HoverHandler {
-                        id: clearHover
-                        cursorShape: clearAll.has ? Qt.PointingHandCursor : Qt.ArrowCursor
-                        onHoveredChanged: root.setChildHovered(hovered)
                     }
 
                     TapHandler {
@@ -437,48 +371,17 @@ ModalPanel {
     // edge the panel opened from. Declared out here rather than inside the
     // rows: a Column lays out every child it has, and these would each take a
     // slot of their own.
-    RevealSlide {
-        target: connectivity
-        index: 0
-        shown: root.shown
-        fromRight: root.anchorRight
-    }
+    Repeater {
+        model: layout.rows
 
-    RevealSlide {
-        target: brightness
-        index: 1
-        shown: root.shown
-        fromRight: root.anchorRight
-    }
+        RevealSlide {
+            required property Item modelData
 
-    RevealSlide {
-        target: audio
-        index: 2
-        shown: root.shown
-        fromRight: root.anchorRight
-    }
-
-    RevealSlide {
-        target: media
-        index: 3
-        shown: root.shown
-        fromRight: root.anchorRight
-    }
-
-    // A step later when the media card is there to take the one before it, so
-    // these keep their place in the sequence either way.
-    RevealSlide {
-        target: session
-        index: layout.player !== null ? 4 : 3
-        shown: root.shown
-        fromRight: root.anchorRight
-    }
-
-    RevealSlide {
-        target: utility
-        index: layout.player !== null ? 5 : 4
-        shown: root.shown
-        fromRight: root.anchorRight
+            target: modelData
+            index: Math.max(0, layout.shownRows.indexOf(modelData))
+            shown: root.shown
+            fromRight: root.anchorRight
+        }
     }
 
     // Notification cards live below the panel as their own surfaces rather than
@@ -506,7 +409,7 @@ ModalPanel {
             // than the model emptying out from under them.
             RevealSlide {
                 target: card
-                index: layout.rows + card.index
+                index: layout.shownRows.length + card.index
                 shown: root.shown && !root.clearing
                 fromRight: root.anchorRight
 
@@ -518,10 +421,8 @@ ModalPanel {
                 exitIndex: Notifications.count - 1 - card.index
             }
 
-            onChildHoverChanged: hovered => root.setChildHovered(hovered)
-
-            // Blur switched at the halfway point of the fade like every other
-            // surface. The fade lives on the containing column, not the card.
+            // Blur switched at the halfway point of the card's fade like every
+            // other surface.
             //
             // parent is guarded throughout: on dismissal the delegate is
             // reparented to null before its bindings are torn down, so an
@@ -529,7 +430,6 @@ ModalPanel {
             Region {
                 id: cardRegion
 
-                // the fade now lives on the card itself, not the column
                 readonly property bool active: card.opacity > 0.5
 
                 // Window coordinates, summed from properties rather than via
@@ -552,11 +452,8 @@ ModalPanel {
                 radius: card.radius
             }
 
-            // the reveal starts itself; only the blur needs registering
             Component.onCompleted: root.detachedRegions.push(cardRegion)
             Component.onDestruction: {
-                // NotificationCard releases its own outstanding hover raises,
-                // so nothing to undo here beyond the blur region
                 const i = root.detachedRegions.indexOf(cardRegion);
                 if (i >= 0)
                     root.detachedRegions.splice(i, 1);

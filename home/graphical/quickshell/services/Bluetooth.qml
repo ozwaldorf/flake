@@ -87,9 +87,20 @@ Singleton {
 
     onWantDiscoveryChanged: syncDiscovery()
 
-    // the adapter appears asynchronously, after the first request may already
-    // have been made against nothing
-    onAdapterChanged: syncDiscovery()
+    // The adapter appears asynchronously, after the first request may already
+    // have been made against nothing. It is also settled against what is
+    // actually running: a reload rebuilds this singleton with nothing
+    // requested, over a discovery the previous one may have left going.
+    onAdapterChanged: settleDiscovery()
+    Component.onCompleted: settleDiscovery()
+
+    function settleDiscovery() {
+        if (!adapter)
+            return;
+        requestedDiscovery = wantDiscovery;
+        if (adapter.discovering !== wantDiscovery)
+            adapter.discovering = wantDiscovery;
+    }
 
     // What we last asked BlueZ for. The adapter's own discovering property
     // reports what is actually running, which lags the request by a round trip,
@@ -106,14 +117,6 @@ Singleton {
         adapter.discovering = wantDiscovery;
     }
 
-    // A reload tears down the panels without running their destructors, so the
-    // count can come back raised over a discovery that is still running. Settle
-    // both against the adapter once it is known.
-    Component.onCompleted: {
-        scanners = 0;
-        requestedDiscovery = false;
-    }
-
     function toggle() {
         if (adapter)
             adapter.enabled = !adapter.enabled;
@@ -122,7 +125,7 @@ Singleton {
     // An unnamed device is listed by address rather than as a blank row; BlueZ
     // reports the name late, or never for a device that does not advertise one.
     function label(device) {
-        return device.name || device.deviceName || device.address || "Unknown device";
+        return device?.name || device?.deviceName || device?.address || "Unknown device";
     }
 
     // Pairing is implied by connecting to something new: BlueZ refuses a
@@ -160,13 +163,15 @@ Singleton {
     // True while a device is mid transition, so the rows do not have to import
     // the BlueZ enums to know when to show a spinner.
     function inFlight(device) {
+        if (!device)
+            return false;
         return device.state === Bt.BluetoothDeviceState.Connecting || device.state === Bt.BluetoothDeviceState.Disconnecting || device.pairing;
     }
 
     // Battery percentage, or -1 when the device does not report one. Reported
     // as a fraction, and only meaningful while the device is connected.
     function batteryPercent(device) {
-        if (!device.batteryAvailable)
+        if (!device?.batteryAvailable)
             return -1;
         return Math.max(0, Math.min(100, Math.round(device.battery * 100)));
     }

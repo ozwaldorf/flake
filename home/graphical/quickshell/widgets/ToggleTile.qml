@@ -7,10 +7,10 @@ import ".."
 // connection, with a chevron on the right. Tapping the puck flips the switch,
 // tapping the body opens the list.
 //
-// The list itself lives outside the tile, in whatever lays these out: two
-// tiles sit side by side and share one expanding area below them, so only one
-// list is ever open.
-Rectangle {
+// The list itself lives outside the tile, in the TileGroup that lays these out:
+// two tiles sit side by side and share one expanding area below them, so only
+// one list is ever open.
+Card {
     id: root
 
     required property string label
@@ -44,71 +44,28 @@ Rectangle {
 
     property bool expanded: false
 
-    signal hoverChanged(bool hovered)
     signal toggled
     signal listToggled
 
-    // window collecting the blur regions; null leaves the card unfrosted
-    property var host: null
-
-    Loader {
-        active: root.host !== null
-        sourceComponent: CardBlur {
-            target: root
-            host: root.host
-        }
-    }
-
-    // lifts a little under the pointer, so the card reads as coming forward
-    // rather than only changing colour
-    DropShadow {
-        target: root
-        elevation: tileHover.hovered ? 9 : 6
-        strength: tileHover.hovered ? 0.45 : 0.35
-    }
-
     // whichever is taller, the puck or the two text rows, plus padding
     implicitHeight: Theme.spaceSm * 2 + Math.max(puck.implicitHeight, rows.implicitHeight)
-    radius: 9
+    cursorShape: Qt.PointingHandCursor
 
-    // Squared along the bottom while its own list is out, so the tile and the
-    // list read as one surface rather than two stacked against each other.
-    // Set while a list is joined onto the bottom of this tile, including the
-    // whole of its collapse: rounding the corners the moment it is asked to
-    // close leaves them curved against a list still on its way down.
+    // Squared along the bottom while a list is joined onto this tile,
+    // including the whole of its collapse: rounding the corners the moment it
+    // is asked to close leaves them curved against a list still on its way
+    // down. Eased on the same clock as the list's own travel.
     property bool joined: expanded
 
-    // Eased on the same clock as the list's own travel, so the corner opens
-    // out as the card comes down rather than snapping once it lands.
     bottomLeftRadius: joined ? 0 : radius
     bottomRightRadius: joined ? 0 : radius
 
     Behavior on bottomLeftRadius {
-        NumberAnimation {
-            duration: Theme.morphDuration
-            easing.type: Easing.OutQuint
-        }
+        Morph {}
     }
 
     Behavior on bottomRightRadius {
-        NumberAnimation {
-            duration: Theme.morphDuration
-            easing.type: Easing.OutQuint
-        }
-    }
-
-    // The panel's own fill, since the cards stand on the desktop rather than
-    // on a surface: each frosts its own rectangle.
-    //
-    // Lifted on hover alone. An open list joins onto the tile as one surface,
-    // so holding the lift while it is out would make the tile the brighter
-    // half of something that should read as a single card.
-    color: tileHover.hovered ? Qt.tint(Theme.surfaceFill, Qt.alpha(Theme.text, 0.06)) : Theme.surfaceFill
-
-    Behavior on color {
-        ColorAnimation {
-            duration: 160
-        }
+        Morph {}
     }
 
     // Round puck, filled when the switch is on. This is the switch itself: the
@@ -142,7 +99,8 @@ Rectangle {
 
             Behavior on opacity {
                 NumberAnimation {
-                    duration: 160
+                    duration: Theme.hoverDuration
+                    easing.type: Easing.OutQuad
                 }
             }
         }
@@ -157,8 +115,6 @@ Rectangle {
 
         HoverHandler {
             id: puckHover
-            cursorShape: Qt.PointingHandCursor
-            onHoveredChanged: root.hoverChanged(hovered)
         }
 
         // Only where there is a switch to flip. Without one the puck falls
@@ -178,15 +134,13 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
 
         open: root.expanded
-        fill: tileHover.hovered ? Theme.text : Theme.overlay0
+        fill: root.hovered ? Theme.text : Theme.overlay0
 
         opacity: root.hasList && (root.on || !root.switchable) ? 1 : 0
         visible: opacity > 0
 
         Behavior on opacity {
-            NumberAnimation {
-                duration: Theme.fadeDuration
-            }
+            Fade {}
         }
     }
 
@@ -200,29 +154,19 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         spacing: 1
 
-        Text {
+        Label {
             width: parent.width
             text: root.label
-            font.family: Theme.font
             font.pixelSize: 11
-            color: Theme.text
             elide: Text.ElideRight
         }
 
-        Text {
+        Label {
             width: parent.width
             text: root.status
-            font.family: Theme.font
-            font.pixelSize: 10
             color: root.warn ? Theme.peach : Theme.overlay0
             elide: Text.ElideRight
         }
-    }
-
-    HoverHandler {
-        id: tileHover
-        cursorShape: Qt.PointingHandCursor
-        onHoveredChanged: root.hoverChanged(hovered)
     }
 
     TapHandler {

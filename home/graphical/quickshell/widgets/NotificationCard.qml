@@ -15,40 +15,17 @@ Rectangle {
     // stripe sits on the edge facing the rail
     property bool anchorRight: false
 
-    // Raised while this card or one of its children has the pointer, so a
-    // containing panel can tell the pointer has not left it.
-    //
-    // The card counts its own outstanding raises so it can release them all on
-    // destruction: dismissing a hovered card would otherwise leave the panel's
-    // counter permanently incremented and the modal stuck open.
-    signal childHoverChanged(bool hovered)
-
-    property int hoverRaises: 0
-
-    function raiseHover(on) {
-        hoverRaises += on ? 1 : -1;
-        childHoverChanged(on);
-    }
-
-    Component.onDestruction: {
-        while (hoverRaises > 0) {
-            hoverRaises--;
-            childHoverChanged(false);
-        }
-    }
-
     readonly property bool critical: entry.urgency === NotificationUrgency.Critical
 
-    // Any outstanding raise means the pointer is over the card or one of its
-    // controls. Reading cardHover alone would drop while the close affordance
-    // has the pointer, making it vanish as you reach for it.
-    readonly property bool hovered: hoverRaises > 0
+    // On the card itself, so it holds while one of its controls has the
+    // pointer rather than dropping as you reach for the close affordance.
+    readonly property bool hovered: cardHover.hovered
 
     implicitHeight: content.implicitHeight + Theme.padCard * 2
     radius: Theme.rounding
     // lifts toward surface0 on hover, keeping the surface alpha rather than
     // going through Qt.lighter, which distorts translucent colours
-    color: Qt.rgba(hovered ? Theme.surface0.r : Theme.base.r, hovered ? Theme.surface0.g : Theme.base.g, hovered ? Theme.surface0.b : Theme.base.b, 0.8)
+    color: Qt.alpha(hovered ? Theme.surface0 : Theme.base, 0.8)
     border.width: 1
     border.color: hovered ? Theme.surface2 : Theme.surface1
 
@@ -142,10 +119,10 @@ Rectangle {
             spacing: Theme.spaceXs
             topPadding: 3
             layoutDirection: root.anchorRight ? Qt.RightToLeft : Qt.LeftToRight
-            visible: root.entry.notification?.actions?.length > 0
+            visible: Notifications.objects[root.entry.id]?.actions?.length > 0
 
             Repeater {
-                model: root.entry.notification?.actions ?? []
+                model: Notifications.objects[root.entry.id]?.actions ?? []
 
                 Rectangle {
                     id: actionButton
@@ -161,7 +138,7 @@ Rectangle {
 
                     Behavior on border.color {
                         ColorAnimation {
-                            duration: 160
+                            duration: Theme.hoverDuration
                         }
                     }
 
@@ -178,7 +155,6 @@ Rectangle {
                     HoverHandler {
                         id: actionHover
                         cursorShape: Qt.PointingHandCursor
-                        onHoveredChanged: root.raiseHover(hovered)
                     }
 
                     TapHandler {
@@ -211,9 +187,7 @@ Rectangle {
         visible: opacity > 0
 
         Behavior on opacity {
-            NumberAnimation {
-                duration: Theme.fadeDuration
-            }
+            Fade {}
         }
     }
 
@@ -223,7 +197,6 @@ Rectangle {
         id: cardHover
 
         cursorShape: Qt.PointingHandCursor
-        onHoveredChanged: root.raiseHover(hovered)
     }
 
     // lifts a little under the pointer, so the card reads as coming forward

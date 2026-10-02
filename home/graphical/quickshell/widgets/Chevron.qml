@@ -18,10 +18,7 @@ Item {
     rotation: open ? 90 : 0
 
     Behavior on rotation {
-        NumberAnimation {
-            duration: Theme.morphDuration
-            easing.type: Easing.OutQuint
-        }
+        Morph {}
     }
 
     readonly property real arm: 6.2
@@ -47,7 +44,7 @@ Item {
 
         Behavior on color {
             ColorAnimation {
-                duration: 160
+                duration: Theme.hoverDuration
             }
         }
     }
@@ -64,7 +61,7 @@ Item {
 
         Behavior on color {
             ColorAnimation {
-                duration: 160
+                duration: Theme.hoverDuration
             }
         }
     }

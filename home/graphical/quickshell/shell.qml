@@ -50,6 +50,25 @@ ShellRoot {
         }
     }
 
+    // Reload results as ordinary notifications rather than Quickshell's own
+    // popup. A success is brief and low, since it follows every save; a
+    // failure stays until dismissed, since the config that is still running
+    // is the old one and the error is what says why.
+    Connections {
+        target: Quickshell
+
+        function onReloadCompleted() {
+            Quickshell.inhibitReloadPopup();
+            Notifications.post("Configuration reloaded", "", false, 2);
+        }
+
+        function onReloadFailed(errorString) {
+            Quickshell.inhibitReloadPopup();
+            // the body is read as markup, and an error quotes code
+            Notifications.post("Configuration failed to load", errorString.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"), true, 0);
+        }
+    }
+
     // services do not import the config root, so the theme's timings are
     // pushed in from here rather than pulled up from the service
     Component.onCompleted: {
@@ -79,75 +98,67 @@ ShellRoot {
                 return rightmost !== null && Quickshell.screens.length > 1 && modelData.name === rightmost.name;
             }
 
-            property string openModal: ""
+            property bool panelOpen: false
 
-            // whichever mark the pointer is over, and whether a modal has it
-            property string hoveredMark: ""
-            property bool modalHovered: false
+            // whether the pointer is on the rail's corner zone, or on the panel
+            readonly property bool cornerHovered: bar.cornerHovered
+            property bool panelHovered: false
 
             // Opening waits out a short dwell so a pointer passing through the
             // corner on its way somewhere else does not flash the panel open.
-            // Kept brief: there is only the one zone to cross now, so it is
-            // guarding against a passing pointer rather than a mark being
-            // crossed on the way to another. Closing waits longer so the
-            // pointer can travel the gap from the zone to the panel.
+            // Closing waits longer so the pointer can travel the gap from the
+            // zone to the panel.
             Timer {
                 id: openTimer
                 interval: 50
                 onTriggered: {
-                    if (scope.hoveredMark !== "") {
-                        scope.openModal = scope.hoveredMark;
+                    if (scope.cornerHovered) {
+                        scope.panelOpen = true;
                         graceTimer.restart();
                     }
                 }
             }
 
-            // Opening a modal resizes the rail and the marks under a stationary
-            // pointer, and Qt re-evaluates hover against the new geometry. That
-            // emits a spurious unhover, so ignore close requests until the
-            // layout has settled.
+            // Opening the panel resizes the rail under a stationary pointer,
+            // and Qt re-evaluates hover against the new geometry. That emits a
+            // spurious unhover, so ignore close requests until the layout has
+            // settled.
             Timer {
                 id: graceTimer
-                interval: Theme.morphDuration + 120
+                interval: Theme.settleDelay
             }
 
             Timer {
                 id: closeTimer
                 interval: 320
                 onTriggered: {
-                    if (scope.modalHovered || scope.hoveredMark !== "")
+                    if (scope.panelHovered || scope.cornerHovered)
                         return;
                     if (graceTimer.running) {
                         // layout still settling; re-arm rather than dismissing
                         closeTimer.restart();
                         return;
                     }
-                    scope.openModal = "";
+                    scope.panelOpen = false;
                 }
             }
 
-            function evaluateHover() {
-                if (hoveredMark !== "") {
+            onCornerHoveredChanged: {
+                if (cornerHovered) {
                     closeTimer.stop();
-                    // switching between marks while one is open is immediate
-                    if (openModal !== "" && openModal !== hoveredMark) {
-                        openModal = hoveredMark;
-                        graceTimer.restart();
-                    } else if (openModal === "") {
+                    if (!panelOpen)
                         openTimer.restart();
-                    }
                 } else {
                     openTimer.stop();
-                    if (!modalHovered)
+                    if (!panelHovered)
                         closeTimer.restart();
                 }
             }
 
-            onHoveredMarkChanged: evaluateHover()
-            onModalHoveredChanged: {
-                if (modalHovered)
+            onPanelHoveredChanged: {
+                if (panelHovered)
                     closeTimer.stop();
-                else if (hoveredMark === "")
+                else if (!cornerHovered)
                     closeTimer.restart();
             }
 
@@ -163,24 +174,20 @@ ShellRoot {
 
                 modelData: scope.modelData
                 anchorRight: scope.anchorRight
-                modalOpen: scope.openModal !== ""
-                settingsActive: scope.openModal === "settings"
-
-                onMarkHovered: name => scope.hoveredMark = name
+                panelOpen: scope.panelOpen
             }
 
             ControlCenter {
                 modelData: scope.modelData
                 anchorRight: scope.anchorRight
-                shown: scope.openModal === "settings"
-                onDismissed: scope.openModal = ""
-                onHoverChanged: hovered => scope.modalHovered = hovered
+                shown: scope.panelOpen
+                onHoverChanged: hovered => scope.panelHovered = hovered
             }
 
             Toasts {
                 modelData: scope.modelData
                 anchorRight: scope.anchorRight
-                barExpanded: bar.expanded
+                barReveal: bar.reveal
             }
 
             Veil {
@@ -192,18 +199,14 @@ ShellRoot {
             // them: the same notifications are listed inside it, and critical
             // ones have no timeout so they would otherwise return on close.
             // Suppression then keeps new arrivals from duplicating the list.
-            readonly property bool panelOpen: openModal === "settings"
-
             onPanelOpenChanged: {
                 Notifications.holdToasts(panelOpen);
                 if (panelOpen)
                     Notifications.dismissAllToasts();
             }
 
-            // The hold lives in a singleton that survives a reload, and this
-            // scope does not: a config reloaded with the panel open would
-            // otherwise leave its hold behind with nothing left to release it,
-            // and toasts would stay suppressed until the shell was restarted.
+            // Unplugging a monitor with its panel open destroys this scope with
+            // the hold still raised, and nothing else would release it.
             Component.onDestruction: {
                 if (panelOpen)
                     Notifications.holdToasts(false);

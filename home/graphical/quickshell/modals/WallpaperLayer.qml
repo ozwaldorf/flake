@@ -189,9 +189,8 @@ PanelWindow {
         property Image toTex: imageB
         property Image clut: clut
 
-        // The shader blends from A to B, so a fade that is running the other
-        // way is expressed by inverting it here rather than by swapping which
-        // slot is which.
+        // The shader blends from A to B, so a fade back to A runs the progress
+        // down rather than swapping which slot is which.
         property real progress: root.progress
         property real level: Wallpaper.clutLevel
 

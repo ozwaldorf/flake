@@ -24,8 +24,6 @@ Rectangle {
     opacity: expanded || filled ? 0 : 1
 
     Behavior on opacity {
-        NumberAnimation {
-            duration: Theme.fadeDuration
-        }
+        Fade {}
     }
 }

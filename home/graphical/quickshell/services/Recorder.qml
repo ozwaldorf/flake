@@ -50,39 +50,69 @@ Singleton {
         running: true
         repeat: true
         triggeredOnStart: true
-        onTriggered: {
-            if (!status.running)
-                status.running = true;
-        }
+        onTriggered: root.poll()
     }
 
     // XDG_RUNTIME_DIR is the plugin's primary location; it falls back to
     // /dev/shm and then /tmp when that is unavailable, so try them in the same
-    // order and take the first that answers.
-    Process {
+    // order and stay on whichever answers. The uid is the runtime directory's
+    // own name, which is the only place the shell can read it without asking.
+    readonly property string runtimeDir: Quickshell.env("XDG_RUNTIME_DIR") ?? ""
+    readonly property string uid: runtimeDir.split("/").pop()
+    readonly property var socketPaths: [`${runtimeDir}/hyprcapture/recording.sock`, `/dev/shm/hyprcapture-${uid}/recording.sock`, `/tmp/hyprcapture-${uid}/recording.sock`]
+
+    // which of those is being tried, how many have failed this poll, and
+    // whether this poll got through to one at all
+    property int pathIndex: 0
+    property int misses: 0
+    property bool reached: false
+
+    function poll() {
+        if (status.connected)
+            return;
+        misses = 0;
+        reached = false;
+        status.connected = true;
+    }
+
+    Socket {
         id: status
 
-        command: ["sh", "-c", "for s in \"${XDG_RUNTIME_DIR:-/nonexistent}/hyprcapture/recording.sock\" \"/dev/shm/hyprcapture-$(id -u)/recording.sock\" \"/tmp/hyprcapture-$(id -u)/recording.sock\"; do [ -S \"$s\" ] && exec socat -T2 - UNIX-CONNECT:\"$s\"; done"]
+        path: root.socketPaths[root.pathIndex]
 
-        stdout: StdioCollector {
-            id: statusOut
+        parser: SplitParser {
+            onRead: line => {
+                try {
+                    const state = JSON.parse(line);
+                    root.apply(state.phase === "recording", state.phase === "finalizing", Math.floor(state.elapsed || 0), state.output || "");
+                } catch (e) {
+                    // A malformed line is a transient read, not a state change.
+                }
+
+                // Hung up from this side once the reading is in, rather than
+                // left for the plugin to close, which reports as an error.
+                Qt.callLater(() => status.connected = false);
+            }
         }
 
-        onExited: (exitCode, exitStatus) => {
-            // No socket means the plugin is not loaded. Nothing to report: a
-            // recording cannot be running either.
-            const text = statusOut.text.trim();
-            if (text === "") {
+        onConnectedChanged: {
+            if (connected)
+                root.reached = true;
+        }
+
+        // Nothing listening there: move on to the next location. With none
+        // answering the plugin is not loaded, and a recording cannot be
+        // running either. An error after connecting is only the hang up.
+        onError: {
+            if (root.reached)
+                return;
+            root.misses++;
+            if (root.misses >= root.socketPaths.length) {
                 root.apply(false, false, 0, "");
                 return;
             }
-
-            try {
-                const state = JSON.parse(text);
-                root.apply(state.phase === "recording", state.phase === "finalizing", Math.floor(state.elapsed || 0), state.output || "");
-            } catch (e) {
-                // A malformed line is a transient read, not a state change.
-            }
+            root.pathIndex = (root.pathIndex + 1) % root.socketPaths.length;
+            Qt.callLater(() => status.connected = true);
         }
     }
 

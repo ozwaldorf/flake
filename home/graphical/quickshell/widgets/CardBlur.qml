@@ -59,7 +59,7 @@ Item {
         y: root.chain.y
         width: root.active && root.target.visible ? root.target.width : 0
         height: root.active && root.target.visible ? root.target.height : 0
-        radius: root.target.radius ?? 9
+        radius: (root.target as Rectangle)?.radius ?? Theme.cardRadius
     }
 
     Component.onCompleted: host.cardRegions.push(region)

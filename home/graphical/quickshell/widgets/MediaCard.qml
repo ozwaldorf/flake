@@ -10,39 +10,14 @@ import "../services"
 // Now playing, as a card like the levels above it. Rendered identically
 // whether it sits in the control centre or pops as a toast on a track change;
 // the only difference is where it is loaded and what drives its blur.
-Rectangle {
+Card {
     id: root
 
     // the Mpris player being drawn, or null
     required property var player
 
-    // the window collecting blur regions, and whether the card is on screen:
-    // the position timer only ticks while it is
-    required property var host
+    // whether the card is on screen: the position timer only ticks while it is
     property bool live: true
-
-    // Raised while the card or one of its controls has the pointer, so a
-    // containing panel can tell the pointer has not left it. Counted here so
-    // every raise can be released on destruction, which is what keeps a
-    // dismissed card from leaving its host's counter stuck.
-    signal childHoverChanged(bool hovered)
-
-    property int hoverRaises: 0
-
-    function raiseHover(on) {
-        hoverRaises += on ? 1 : -1;
-        childHoverChanged(on);
-    }
-
-    Component.onDestruction: {
-        while (hoverRaises > 0) {
-            hoverRaises--;
-            childHoverChanged(false);
-        }
-    }
-
-    // The sleeve's colour, published so a host can tint around the card.
-    readonly property alias accent: art.accent
 
     // Whether the player offers a way back to itself. Advertised as CanRaise on
     // the bus, and taken at its word: nothing here can tell a player that will
@@ -60,15 +35,11 @@ Rectangle {
     readonly property bool artSettled: art.incomingReady
 
     implicitHeight: 86
-    radius: 9
 
-    color: mediaHover.hovered ? Qt.tint(Theme.surfaceFill, Qt.alpha(Theme.text, 0.06)) : Theme.surfaceFill
-
-    Behavior on color {
-        ColorAnimation {
-            duration: 160
-        }
-    }
+    // Only where the card itself is the target. The transport and the scrub
+    // bar carry their own cursors, and this would otherwise put a pointing
+    // hand over a slider that drags.
+    cursorShape: root.canRaise ? Qt.PointingHandCursor : Qt.ArrowCursor
 
     // The sleeve's colour washing in from the record's side and gone by the
     // middle of the card.
@@ -79,8 +50,20 @@ Rectangle {
     // show as a patch through the frosting. This fades to fully transparent and
     // lets the card show through instead.
     Rectangle {
+        id: wash
+
         anchors.fill: parent
         radius: parent.radius
+
+        // eased once the track has a colour, the same as the rim
+        property color tint: Qt.alpha(art.accent, 0.28)
+
+        Behavior on tint {
+            enabled: art.easeAccent
+            ColorAnimation {
+                duration: Theme.fadeDuration
+            }
+        }
 
         // Follows the side the record is on, so the colour comes from the art
         // rather than across the card at it.
@@ -95,65 +78,20 @@ Rectangle {
 
             GradientStop {
                 position: 0
-                color: Qt.alpha(art.accent, 0.28)
-
-                Behavior on color {
-                    enabled: art.easeAccent
-                    ColorAnimation {
-                        duration: Theme.fadeDuration
-                    }
-                }
+                color: wash.tint
             }
 
             GradientStop {
                 // just past the record's far edge
                 position: 0.22
-                color: Qt.alpha(art.accent, 0.28)
-
-                Behavior on color {
-                    enabled: art.easeAccent
-                    ColorAnimation {
-                        duration: Theme.fadeDuration
-                    }
-                }
+                color: wash.tint
             }
 
             GradientStop {
                 position: 1
-                color: Qt.alpha(art.accent, 0)
-
-                Behavior on color {
-                    enabled: art.easeAccent
-                    ColorAnimation {
-                        duration: Theme.fadeDuration
-                    }
-                }
+                color: Qt.alpha(wash.tint, 0)
             }
         }
-    }
-
-    CardBlur {
-        target: root
-        host: root.host
-    }
-
-    DropShadow {
-        target: root
-        elevation: mediaHover.hovered ? 9 : 6
-        strength: mediaHover.hovered ? 0.45 : 0.35
-    }
-
-    // Reported upward like the other cards: the panel dismisses on losing the
-    // pointer, and the buttons alone do not cover it.
-    HoverHandler {
-        id: mediaHover
-
-        // Only where the card itself is the target. The transport and the
-        // scrub bar carry their own cursors, and this would otherwise put a
-        // pointing hand over a slider that drags.
-        cursorShape: root.canRaise ? Qt.PointingHandCursor : Qt.ArrowCursor
-
-        onHoveredChanged: root.raiseHover(hovered)
     }
 
     // The whole card is the way back to the player, rather than the client name
@@ -384,49 +322,57 @@ Rectangle {
                 return best && bestScore > 0.05 ? best : fallback;
             }
 
-            // Driven as an angle that only ever increases, rather than a zero to
-            // 360 loop: a loop restarts from its "from" every time it runs, so
-            // pausing and playing would snap the record back to the top. Each
-            // leg starts from wherever the last one was stopped.
-            property real spin: 0
-
-            readonly property bool turning: (root.player?.isPlaying ?? false) && root.live
+            // Turned on the render thread, so the record keeps an even pace
+            // whatever the rest of the shell is doing, and only while a cover
+            // is up: a site icon or the glyph stands in for art and is held
+            // upright, and a plain disc turning shows nothing at all.
+            readonly property bool turning: (root.player?.isPlaying ?? false) && root.live && shownCover
 
             // one revolution, so the leg length sets the speed
             readonly property int revolution: 8000
 
-            // The from and to are captured when the animation starts and
-            // replayed for every loop, so each revolution repeats the same leg.
-            // That is seamless only because the leg is exactly 360 degrees: the
-            // jump back at the loop boundary is a whole turn, and a whole turn
-            // is no turn at all. Any other leg length here would visibly snap.
-            NumberAnimation {
+            // Where the current leg started, in angle and in time. An animator
+            // only writes its value back when it finishes, which an endless
+            // spin never does, so the angle it was stopped at is worked out
+            // from these rather than read off the disc.
+            property real legAngle: 0
+            property real legStart: 0
+
+            RotationAnimator {
                 id: spinner
 
-                target: art
-                property: "spin"
-                from: art.spin
-                to: art.spin + 360
+                target: disc
                 duration: art.revolution
                 loops: Animation.Infinite
             }
 
-            // Restarted on each change so the new leg picks up the angle the old
-            // one stopped at. Stopping alone leaves spin where it stands, which
-            // is the hold.
-            onTurningChanged: {
-                if (turning)
-                    spinner.restart();
-                else
-                    spinner.stop();
+            // Each leg is exactly one turn from wherever the last stopped, so
+            // the jump back at the loop boundary is a whole turn and invisible,
+            // and pausing holds the record at its angle rather than snapping
+            // it back to the top.
+            function startSpin() {
+                legAngle = disc.rotation % 360;
+                legStart = Date.now();
+                spinner.from = legAngle;
+                spinner.to = legAngle + 360;
+                spinner.restart();
             }
+
+            function stopSpin() {
+                if (!spinner.running)
+                    return;
+                spinner.stop();
+                disc.rotation = (legAngle + 360 * ((Date.now() - legStart) % revolution) / revolution) % 360;
+            }
+
+            onTurningChanged: turning ? startSpin() : stopSpin()
 
             // The handlers only run on a change, so a card built against a
             // player already playing, or a cover already loaded, would
             // otherwise start stopped and at the seed colour.
             Component.onCompleted: {
                 if (turning)
-                    spinner.restart();
+                    startSpin();
                 commit();
             }
 
@@ -455,7 +401,6 @@ Rectangle {
                 anchors.margins: art.rim
                 radius: width / 2
                 color: Theme.surface0
-                rotation: art.spin
 
                 layer.enabled: true
                 layer.effect: MultiEffect {
@@ -486,16 +431,12 @@ Rectangle {
 
                     visible: false
 
-                    // Quickshell surfaces the art url as a property but not the
-                    // page's own, so that comes off the raw metadata map.
                     readonly property string reported: root.player?.trackArtUrl ?? ""
-                    readonly property string page: root.player?.metadata?.["xesam:url"] ?? ""
+                    readonly property string page: Media.pageUrl(root.player)
 
-                    // What identifies the track itself, so a cover can be held
-                    // for as long as one is playing. The id is the reliable
-                    // part; the title stands in for players that reuse a single
-                    // object path, which Firefox does for every tab it plays.
-                    readonly property string track: (root.player?.metadata?.["mpris:trackid"] ?? "") + "\n" + (root.player?.trackTitle ?? "")
+                    // what identifies the track, so a cover can be held for as
+                    // long as one is playing
+                    readonly property string track: Media.trackKey(root.player)
 
                     // The cover, held across the updates that omit it.
                     //
@@ -574,13 +515,6 @@ Rectangle {
                     width: showingCover ? parent.width : 22
                     height: showingCover ? parent.height : 22
 
-                    // Cover art is the record and turns with it. A site icon is
-                    // not: it is a stand in for art that does not exist, and
-                    // spinning a logo reads as a glitch rather than as a record.
-                    // Turned back by the same angle so it sits still while the
-                    // disc moves under it.
-                    rotation: showingCover ? 0 : -art.spin
-
                     // The site icon is only ever asked for when there is no
                     // cover at all, so a player with artwork never causes a
                     // request. It stays empty until the fetch lands, which is
@@ -631,7 +565,7 @@ Rectangle {
                         // and spinning a logo reads as a glitch rather than as a
                         // record. Turned back by the same angle so it sits still
                         // while the disc moves under it.
-                        rotation: cover ? 0 : -art.spin
+                        rotation: cover ? 0 : -disc.rotation
 
                         // Committed by the swap rather than bound to the loader,
                         // which is what holds the outgoing art up until the new
@@ -702,7 +636,7 @@ Rectangle {
 
                     // Held upright like the site icon: standing in for missing
                     // art, not art itself.
-                    rotation: -art.spin
+                    rotation: -disc.rotation
 
                     // A quaver, as one outline: up the stem, out along the flag
                     // and back under it, then down to the foot. Drawn with width
@@ -820,7 +754,7 @@ Rectangle {
                     // not consistent about it, and the label is a note about
                     // the source rather than a proper noun on a card whose
                     // other text is the track's.
-                    readonly property string site: Favicons.siteOf(root.player?.metadata?.["xesam:url"] ?? "")
+                    readonly property string site: Favicons.siteOf(thumb.page)
 
                     text: (site !== "" ? site : (root.player?.identity ?? "")).toLowerCase()
 
@@ -829,11 +763,11 @@ Rectangle {
 
                     // Lifts with the card's own hover: the whole surface is the
                     // way back to the player, and this names where that goes.
-                    color: mediaHover.hovered && root.canRaise ? Theme.subtext0 : Theme.overlay0
+                    color: root.hovered && root.canRaise ? Theme.subtext0 : Theme.overlay0
 
                     Behavior on color {
                         ColorAnimation {
-                            duration: 160
+                            duration: Theme.hoverDuration
                         }
                     }
 
@@ -872,21 +806,18 @@ Rectangle {
                         symbol: "prev"
                         enabled: root.player?.canGoPrevious ?? false
                         onTriggered: root.player.previous()
-                        onHoveredChanged: root.raiseHover(hovered)
                     }
 
                     MediaButton {
                         symbol: root.player?.isPlaying ? "pause" : "play"
                         enabled: root.player?.canTogglePlaying ?? false
                         onTriggered: root.player.togglePlaying()
-                        onHoveredChanged: root.raiseHover(hovered)
                     }
 
                     MediaButton {
                         symbol: "next"
                         enabled: root.player?.canGoNext ?? false
                         onTriggered: root.player.next()
-                        onHoveredChanged: root.raiseHover(hovered)
                     }
                 }
 
@@ -895,20 +826,16 @@ Rectangle {
                 // Only up for a player that reports both a length and a
                 // position: without either there is nothing to draw a proportion
                 // from, and a bar stuck at zero reads as a stalled track.
-                Item {
+                //
+                // Held rather than live while dragging, so the bar follows the
+                // pointer rather than the position still arriving from the
+                // player, which would fight it back to where the track
+                // actually is, and the seek is made once where it is let go.
+                LevelTrack {
                     id: scrub
 
                     readonly property real length: root.player?.length ?? 0
                     readonly property bool has: (root.player?.lengthSupported ?? false) && (root.player?.positionSupported ?? false) && length > 0
-
-                    // Held while dragging so the bar follows the pointer rather
-                    // than the position still arriving from the player, which
-                    // would fight it back to where the track actually is.
-                    property real held: 0
-                    property bool seeking: false
-
-                    readonly property real at: seeking ? held : Math.max(0, Math.min(length, root.player?.position ?? 0))
-                    readonly property real fraction: length > 0 ? at / length : 0
 
                     anchors.left: transport.right
                     anchors.leftMargin: Theme.spaceSm
@@ -917,104 +844,30 @@ Rectangle {
                     height: parent.height
                     visible: has
 
+                    // Seeking is not always offered even when a position is: a
+                    // live stream reports where it is without letting you move
+                    // it.
+                    enabled: root.player?.canSeek ?? false
+
+                    live: false
+                    cursorShape: Qt.PointingHandCursor
+                    value: length > 0 ? (root.player?.position ?? 0) / length : 0
+                    fill: hovered || dragging ? Theme.text : Theme.subtext0
+
+                    onMoved: f => root.player.position = f * length
+
                     // Position is not pushed during playback, only on a seek, so
                     // it is re-read on a tick to advance the bar. Stopped
                     // whenever the card is not up or nothing is playing, so a
                     // closed panel is not waking to poll the bus.
                     Timer {
-                        running: scrub.has && root.live && (root.player?.isPlaying ?? false) && !scrub.seeking
+                        running: scrub.has && root.live && (root.player?.isPlaying ?? false) && !scrub.dragging
                         interval: 1000
                         repeat: true
                         onTriggered: {
                             if (root.player)
                                 root.player.positionChanged();
                         }
-                    }
-
-                    Rectangle {
-                        id: scrubTrack
-
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: parent.width
-                        height: Theme.barThickness
-                        radius: height / 2
-                        color: Qt.alpha(Theme.surface2, 0.55)
-
-                        Rectangle {
-                            width: Math.max(0, Math.min(1, scrub.fraction) * parent.width)
-                            height: parent.height
-                            radius: parent.radius
-                            color: scrubHover.hovered || scrub.seeking ? Theme.text : Theme.subtext0
-
-                            Behavior on color {
-                                ColorAnimation {
-                                    duration: 160
-                                }
-                            }
-
-                            // Followed straight while being dragged, and eased
-                            // otherwise so the once a second tick does not step.
-                            Behavior on width {
-                                enabled: !scrub.seeking
-                                NumberAnimation {
-                                    duration: 180
-                                    easing.type: Easing.OutQuint
-                                }
-                            }
-                        }
-                    }
-
-                    // Seeking is not always offered even when a position is: a
-                    // live stream reports where it is without letting you move
-                    // it.
-                    readonly property bool canSeek: root.player?.canSeek ?? false
-
-                    // Seconds rather than a pixel, so the drag can commit what it
-                    // was already holding without converting back through the
-                    // width.
-                    function seekTo(seconds) {
-                        if (!canSeek || length <= 0)
-                            return;
-                        root.player.position = Math.max(0, Math.min(length, seconds));
-                    }
-
-                    function seekToX(x) {
-                        seekTo(Math.max(0, Math.min(1, x / width)) * length);
-                    }
-
-                    HoverHandler {
-                        id: scrubHover
-                        enabled: scrub.canSeek
-                        cursorShape: Qt.PointingHandCursor
-                        onHoveredChanged: root.raiseHover(hovered)
-                    }
-
-                    DragHandler {
-                        id: scrubDrag
-
-                        enabled: scrub.canSeek
-                        target: null
-                        xAxis.enabled: true
-                        yAxis.enabled: false
-
-                        onActiveChanged: {
-                            if (active) {
-                                scrub.seeking = true;
-                            } else {
-                                scrub.seekTo(scrub.held);
-                                scrub.seeking = false;
-                            }
-                        }
-
-                        onCentroidChanged: {
-                            if (active)
-                                scrub.held = Math.max(0, Math.min(1, centroid.position.x / scrub.width)) * scrub.length;
-                        }
-                    }
-
-                    TapHandler {
-                        enabled: scrub.canSeek
-                        onTapped: eventPoint => scrub.seekToX(eventPoint.position.x)
                     }
                 }
             }
