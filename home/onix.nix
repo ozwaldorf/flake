@@ -15,7 +15,7 @@
     ./headless/git.nix # Git
     ./headless/dev.nix # Dev utils
 
-    ./graphical/hyprland.nix # window manager
+    ./graphical/niri.nix # window manager
     ./graphical/gtk.nix # gtk theming
     ./graphical/vicinae.nix # app launcher
     ./graphical/quickshell.nix # bar and notifications

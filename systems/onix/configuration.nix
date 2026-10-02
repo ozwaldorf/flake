@@ -199,7 +199,7 @@
     enable = true;
     settings = {
       default_session = {
-        command = "uwsm start hyprland-uwsm.desktop";
+        command = "niri-session";
         user = username;
       };
     };
@@ -224,20 +224,7 @@
   xdg.portal = {
     enable = true;
     wlr.enable = true;
-    extraPortals = with pkgs; [
-      xdg-desktop-portal-hyprland
-      xdg-desktop-portal-gtk
-    ];
-    config = {
-      common = {
-        default = [
-          "hyprland"
-          "gtk"
-        ];
-        # GTK portal handles file choosers well
-        "org.freedesktop.impl.portal.FileChooser" = "gtk";
-      };
-    };
+    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
   };
 
   services.printing.enable = true;
@@ -374,18 +361,19 @@
       enableCompletion = false;
     };
 
-    # Same for sway and hyprland, install to system to ensure wayland sessions are propagated correctly.
+    # Same for sway and niri, install to system to ensure wayland sessions are propagated correctly.
     sway = {
       enable = true;
       package = pkgs.swayfx;
       extraOptions = [ "--unsupported-gpu" ];
     };
-    hyprland = {
+    niri = {
       enable = true;
-      withUWSM = true;
+      # GTK portal handles file choosers well
+      useNautilus = false;
     };
 
-    # hyprcapture records through gpu-screen-recorder, whose kms server needs
+    # The shell records through gpu-screen-recorder, whose kms server needs
     # cap_sys_admin to read the card device. Without the wrapper it falls back
     # to pkexec, which cannot prompt from the compositor and exits without
     # writing a frame.

@@ -92,21 +92,18 @@ let
   # Dim first, then blank: the dim warns the blank is coming and is cheap to
   # undo if you are still there. -w waits for each command, so a slow DDC write
   # cannot be overtaken by the resume that follows it.
-  #
-  # Blanking is a hyprland dispatcher and takes its lua form here; the bare
-  # "dpms off" spelling is not accepted.
   idleWatch = pkgs.writeShellApplication {
     name = "idle-watch";
     runtimeInputs = [
       pkgs.swayidle
-      pkgs.hyprland
+      pkgs.niri
     ];
     text = ''
       exec swayidle -w \
         timeout 300 '${idleDim}/bin/idle-dim dim' \
         resume '${idleDim}/bin/idle-dim restore' \
-        timeout 600 'hyprctl dispatch "hl.dsp.dpms({ action = \"off\" })"' \
-        resume 'hyprctl dispatch "hl.dsp.dpms({ action = \"on\" })"'
+        timeout 600 'niri msg action power-off-monitors' \
+        resume 'niri msg action power-on-monitors'
     '';
   };
 in
