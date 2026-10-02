@@ -163,6 +163,12 @@ Singleton {
     // while this is ambient and reads better as a drift than a switch.
     readonly property int wallpaperFade: motion(1600)
 
+    // Wallpaper parallax: how much larger than the screen the image is drawn,
+    // as a fraction of its size, and how long it takes to follow the view. The
+    // duration matches niri's workspace switch.
+    readonly property real wallpaperPan: 0.06
+    readonly property int wallpaperPanDuration: motion(400)
+
     // meter sampling: tighter while the rail is out, relaxed when it is not
     readonly property int meterIntervalActive: 500
     readonly property int meterInterval: 2000

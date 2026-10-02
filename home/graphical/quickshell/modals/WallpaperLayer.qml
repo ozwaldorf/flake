@@ -56,7 +56,7 @@ PanelWindow {
     // off Commons is several times the size of any output, and decoding it in
     // full would cost tens of megabytes per screen for detail that is then
     // scaled away.
-    readonly property size decodeSize: Qt.size(root.width * root.screen.devicePixelRatio, root.height * root.screen.devicePixelRatio)
+    readonly property size decodeSize: Qt.size(canvas.width * root.screen.devicePixelRatio, canvas.height * root.screen.devicePixelRatio)
 
     function apply(path) {
         if (path === "" || !Wallpaper.clutReady)
@@ -112,11 +112,43 @@ PanelWindow {
 
     Component.onCompleted: apply(Wallpaper.current)
 
+    // Larger than the screen and slid across it as the view moves: right as the
+    // focused column moves right, down as the active workspace moves down.
+    // Follows the focus rather than the view itself, which niri does not
+    // report, so a drag or swipe catches up once it settles on a column.
+    Item {
+        id: canvas
+
+        readonly property var view: Niri.views[root.screen.name] ?? {
+            x: 0,
+            y: 0
+        }
+
+        width: root.width * (1 + Theme.wallpaperPan)
+        height: root.height * (1 + Theme.wallpaperPan)
+        x: -view.x * (width - root.width)
+        y: -view.y * (height - root.height)
+
+        Behavior on x {
+            NumberAnimation {
+                duration: Theme.wallpaperPanDuration
+                easing.type: Easing.OutQuint
+            }
+        }
+
+        Behavior on y {
+            NumberAnimation {
+                duration: Theme.wallpaperPanDuration
+                easing.type: Easing.OutQuint
+            }
+        }
+    }
+
     // Both slots are hidden: they exist to be sampled by the shader, and
     // drawing them directly would show the ungraded original underneath it.
     Image {
         id: imageA
-        anchors.fill: parent
+        anchors.fill: canvas
         visible: false
         asynchronous: true
         cache: false
@@ -127,7 +159,7 @@ PanelWindow {
 
     Image {
         id: imageB
-        anchors.fill: parent
+        anchors.fill: canvas
         visible: false
         asynchronous: true
         cache: false
@@ -179,7 +211,7 @@ PanelWindow {
     }
 
     ShaderEffect {
-        anchors.fill: parent
+        anchors.fill: canvas
 
         // Held back until every input is loaded. The effect samples all three
         // unconditionally, and an unset one reads as black.
