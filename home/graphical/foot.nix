@@ -1,4 +1,7 @@
-{ ... }:
+{ lib, inputs, ... }:
+let
+  palette = (lib.importJSON "${inputs.carburetor}/whiskers.json").mocha;
+in
 {
   carburetor.themes.foot.enable = true;
   programs.foot = {
@@ -12,8 +15,13 @@
       };
       colors-dark = {
         alpha = "0.8";
-        # foot negotiates its own blur via ext-background-effect-v1
-        blur = "yes";
+      };
+      # niri has foot draw its own title bar, a subsurface that foot's own
+      # blur request does not cover, so blur is left to the niri window rule.
+      # Darker than the window background, still translucent. AARRGGBB.
+      csd = {
+        color = "cc${palette.crust}";
+        button-color = "ff${palette.text}";
       };
       mouse.hide-when-typing = "no";
       cursor = {

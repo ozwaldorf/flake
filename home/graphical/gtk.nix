@@ -34,6 +34,10 @@
     };
   };
 
+  # Read through the settings portal by libadwaita, Firefox and Electron apps,
+  # which otherwise default to light
+  dconf.settings."org/gnome/desktop/interface".color-scheme = "prefer-dark";
+
   gtk = {
     enable = true;
     # Keep the pre-26.05 default; gtk4 apps follow the same theme as gtk3
