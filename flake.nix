@@ -33,14 +33,10 @@
     };
     # Source only: its own flake pins hyprland git, but plugins are ABI bound
     # to the compositor they load into, so the package is built below against
-    # the patched nixpkgs hyprland instead.
+    # the nixpkgs hyprland instead.
     hyprcapture = {
       url = "github:gfhdhytghd/HyprCapture";
       flake = false;
-    };
-    hyprland = {
-      url = "github:ozwaldorf/Hyprland/fix/scaling-on-monitor-reattach-0.56.1";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
@@ -68,22 +64,12 @@
           inherit system;
           overlays = [
             inputs.carburetor.overlays.insert
-            inputs.hyprland.overlays.hyprland-packages
-            inputs.hyprland.overlays.hyprland-extras
             # inputs.neovim-nightly-overlay.overlays.default
             (final: prev: {
               # Force insert flake packages that dont have builtin overlays.
               zoom-sync = inputs.zoom-sync.packages.${system}.default;
-              # The v0.56.1 flake pins glaze 7, but this flake's nixpkgs has glaze 8.
-              hyprland = prev.hyprland.overrideAttrs (old: {
-                postPatch = ''
-                  substituteInPlace CMakeLists.txt start/CMakeLists.txt hyprpm/CMakeLists.txt \
-                    --replace-fail "glaze 7...<8" "glaze"
-                ''
-                + old.postPatch;
-              });
               # Built through callPackage rather than the upstream flake output
-              # so it compiles against the hyprland above, matching the ABI of
+              # so it compiles against the nixpkgs hyprland, matching the ABI of
               # the compositor it is loaded into.
               hyprcapture = final.callPackage "${inputs.hyprcapture}/nix/package.nix" {
                 src = inputs.hyprcapture;
