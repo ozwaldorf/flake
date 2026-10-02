@@ -20,12 +20,14 @@ let
       '';
 in
 {
-  # curl and jq drive the wallpaper fetcher, lutgen bakes its color table
+  # curl and jq drive the wallpaper fetcher, lutgen bakes its color table,
+  # slurp picks the recorder's region
   home.packages = [
     pkgs.quickshell
     pkgs.curl
     pkgs.jq
     pkgs.lutgen
+    pkgs.slurp
   ];
 
   # symlinked out of the store so quickshell's live reload sees edits to the

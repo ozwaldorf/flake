@@ -1,8 +1,8 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import Quickshell.Hyprland
 import ".."
+import "../services"
 
 // Workspace marks. Each is one Rectangle that morphs between a sliver bar and a
 // square rail block.
@@ -23,8 +23,6 @@ Column {
     // the screen this rail is on; only its own workspaces are listed
     required property var screenData
 
-    readonly property var monitor: Hyprland.monitorFor(screenData)
-
     // constant in both forms: vertical layout does not move on expand
     spacing: Theme.wsGap
 
@@ -32,21 +30,24 @@ Column {
         // The live model rather than a filtered copy, with other monitors'
         // marks hidden: a rebuilt list would recreate every mark on each
         // workspace change and cut their focus travel short.
-        model: Hyprland.workspaces
+        model: Niri.workspaces
 
         Rectangle {
             id: mark
 
-            required property var modelData
+            required property int wsId
+            required property string output
+            required property bool active
+            required property bool urgent
+            required property int windows
 
             // the Column skips hidden children, so this takes no slot
-            visible: modelData.monitor === root.monitor
+            visible: output === root.screenData.name
 
             // the workspace showing on this screen, whether or not the screen
             // itself has focus: each rail says what is on its own monitor
-            readonly property bool focused: modelData.active
-            readonly property bool occupied: modelData.toplevels.values.length > 0
-            readonly property bool urgent: modelData.urgent
+            readonly property bool focused: active
+            readonly property bool occupied: windows > 0
 
             // 0 when unfocused, 1 when focused; everything else derives from it
             property real focusAmount: focused ? 1 : 0
@@ -86,7 +87,7 @@ Column {
                 anchors.fill: parent
                 anchors.margins: -4
                 cursorShape: Qt.PointingHandCursor
-                onClicked: mark.modelData.activate()
+                onClicked: Niri.focusWorkspace(mark.wsId)
             }
         }
     }

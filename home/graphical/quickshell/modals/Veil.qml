@@ -5,9 +5,8 @@ import Quickshell.Wayland
 // Fullscreen blur over everything, raised while the session is idle.
 //
 // The blur is the compositor's: the window declares its whole area as a blur
-// region and hyprland ramps both the blur's alpha and its radius with the
-// layer's fade, so the veil dissolves in rather than snapping on. Nothing is
-// drawn into it beyond that, since the frosting is the entire effect.
+// region. Nothing is drawn into it beyond that, since the frosting is the
+// entire effect.
 PanelWindow {
     id: root
 
@@ -56,8 +55,7 @@ PanelWindow {
         anchors.fill: parent
     }
 
-    // The whole surface. Hyprland clips one blurred texture to this region and
-    // fades it with the layer, which is what animates the veil.
+    // The whole surface
     BackgroundEffect.blurRegion: Region {
         item: body
     }

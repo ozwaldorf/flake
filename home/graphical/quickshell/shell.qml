@@ -50,6 +50,15 @@ ShellRoot {
         }
     }
 
+    // `qs ipc call recorder toggle`, driven by the keybind.
+    IpcHandler {
+        target: "recorder"
+
+        function toggle(): void {
+            Recorder.toggle();
+        }
+    }
+
     // Reload results as ordinary notifications rather than Quickshell's own
     // popup. A success is brief and low, since it follows every save; a
     // failure stays until dismissed, since the config that is still running

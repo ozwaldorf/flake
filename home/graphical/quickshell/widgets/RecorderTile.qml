@@ -4,9 +4,8 @@ import QtQuick
 import ".."
 import "../services"
 
-// Screen recording toggle. Starting opens hyprcapture's overlay to pick a
-// format and a target, so the tile sits in a waiting state between the click
-// and the recording actually beginning.
+// Screen recording toggle. Starting asks for a region first, so the tile sits
+// in a waiting state between the click and the recording actually beginning.
 ToggleTile {
     id: root
 

@@ -46,7 +46,7 @@ Singleton {
     readonly property string iconGpu: String.fromCodePoint(0xe266)
     readonly property string iconHost: String.fromCodePoint(0xf313)
 
-    // matches hyprland decoration.rounding
+    // matches the niri window corner radius
     readonly property int rounding: 10
 
     // surface fill shared with foot: background 161616 at alpha 0.8, blurred
