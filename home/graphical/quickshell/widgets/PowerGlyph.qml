@@ -27,8 +27,8 @@ Item {
 
             readonly property real cx: root.width / 2
             readonly property real cy: root.height / 2 + 1
-            readonly property real start: (90 - root.gap) * Math.PI / 180
-            readonly property real end: (90 + root.gap) * Math.PI / 180
+            readonly property real start: root.gap * Math.PI / 180
+            readonly property real end: -root.gap * Math.PI / 180
 
             strokeColor: root.fill
             strokeWidth: 1.6
