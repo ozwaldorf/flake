@@ -35,9 +35,11 @@
       weechat
       beekeeper-studio
       prismlauncher
+      eden
       gimp
       obsidian
       kdePackages.kdenlive
+      nvtopPackages.full
     ];
   };
 
