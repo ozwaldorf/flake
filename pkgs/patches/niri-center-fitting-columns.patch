@@ -1,0 +1,124 @@
+diff -ru a/src/layout/scrolling.rs b/src/layout/scrolling.rs
+--- a/src/layout/scrolling.rs
++++ b/src/layout/scrolling.rs
+@@ -45,6 +45,10 @@
+     /// Ongoing interactive resize.
+     interactive_resize: Option<InteractiveResize<W>>,
+ 
++    /// Whether the ongoing interactive resize keeps the columns centered as a group. Decided
++    /// when the resize begins, so the behavior cannot switch mid-drag.
++    resize_centers_group: bool,
++
+     /// Offset of the view computed from the active column.
+     ///
+     /// Any gaps, including left padding from work area left exclusive zone, is handled
+@@ -297,6 +301,7 @@
+             data: Vec::new(),
+             active_column_idx: 0,
+             interactive_resize: None,
++            resize_centers_group: false,
+             view_offset: ViewOffset::Static(0.),
+             activate_prev_column_on_removal: None,
+             view_offset_to_restore: None,
+@@ -617,6 +622,43 @@
+         )
+     }
+ 
++    /// View offset relative to column `idx` that centers all columns as a group.
++    fn compute_group_centered_view_offset(&self, idx: usize) -> f64 {
++        let last = self.columns.len() - 1;
++        let first_x = self.column_x(0);
++        let total = self.column_x(last) + self.columns[last].width() - first_x;
++        let area = self.working_area;
++        let view_pos = first_x - (area.size.w - total) / 2. - area.loc.x;
++        view_pos - self.column_x(idx)
++    }
++
++    /// With always-center-single-column, columns that all fit on screen together are centered
++    /// as a group, generalizing the single column case.
++    fn compute_new_view_offset_for_fitting_columns(&self, idx: usize) -> Option<f64> {
++        if !self.options.layout.always_center_single_column || self.columns.len() < 2 {
++            return None;
++        }
++
++        if self.columns.iter().any(|col| !col.sizing_mode().is_normal()) {
++            return None;
++        }
++
++        let last = self.columns.len() - 1;
++        let total = self.column_x(last) + self.columns[last].width() - self.column_x(0);
++        if total + self.options.layout.gaps * 2. > self.working_area.size.w {
++            return None;
++        }
++
++        Some(self.compute_group_centered_view_offset(idx))
++    }
++
++    /// Whether an interactive resize that began with fitting columns is ongoing. The group stays
++    /// centered for the whole drag, even once it grows past the screen, and the view settles
++    /// normally when the resize ends.
++    fn is_resize_centering_group(&self) -> bool {
++        self.resize_centers_group && self.interactive_resize.is_some()
++    }
++
+     fn compute_new_view_offset_for_column(
+         &self,
+         target_x: Option<f64>,
+@@ -627,6 +669,10 @@
+             return self.compute_new_view_offset_for_column_centered(target_x, idx);
+         }
+ 
++        if let Some(offset) = self.compute_new_view_offset_for_fitting_columns(idx) {
++            return offset;
++        }
++
+         match self.options.layout.center_focused_column {
+             CenterFocusedColumn::Always => {
+                 self.compute_new_view_offset_for_column_centered(target_x, idx)
+@@ -1335,6 +1381,17 @@
+             }
+         }
+ 
++        // The active column is handled below.
++        if col_idx != self.active_column_idx
++            && resize.is_some()
++            && offset != 0.
++            && self.is_resize_centering_group()
++        {
++            self.view_offset.cancel_gesture();
++            let new_offset = self.compute_group_centered_view_offset(self.active_column_idx);
++            self.view_offset.offset(new_offset - self.view_offset.target());
++        }
++
+         if col_idx == self.active_column_idx {
+             // If offset == 0, then don't mess with the view or the gesture. Some clients (Firefox,
+             // Chromium, Electron) currently don't commit after the ack of a configure that drops
+@@ -1354,6 +1411,8 @@
+                     let new_offset =
+                         -(self.working_area.size.w - width) / 2. - self.working_area.loc.x;
+                     new_offset - self.view_offset.target()
++                } else if self.is_resize_centering_group() {
++                    self.compute_group_centered_view_offset(col_idx) - self.view_offset.target()
+                 } else if resize.edges.contains(ResizeEdge::LEFT) {
+                     -offset
+                 } else {
+@@ -3537,6 +3596,10 @@
+ 
+         let original_window_size = tile.window_size();
+ 
++        self.resize_centers_group = self
++            .compute_new_view_offset_for_fitting_columns(self.active_column_idx)
++            .is_some();
++
+         let resize = InteractiveResize {
+             window,
+             original_window_size,
+@@ -3562,7 +3625,7 @@
+             return false;
+         }
+ 
+-        let is_centering = self.is_centering_focused_column();
++        let is_centering = self.is_centering_focused_column() || self.is_resize_centering_group();
+ 
+         let col = self
+             .columns

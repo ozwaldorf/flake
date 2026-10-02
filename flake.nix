@@ -94,10 +94,15 @@
               # window is drawn offscreen: opening, closing and while dragged.
               # The patch keeps dragged windows opaque so they render directly,
               # and falls back to xray blur for the offscreen renders.
+              # always-center-single-column is extended to center any set of
+              # columns that fits on screen together.
               # Layout invariant tests assert the fade, so they are skipped.
               niri = prev.niri.overrideAttrs (old: {
                 doCheck = false;
-                patches = (old.patches or [ ]) ++ [ ./pkgs/patches/niri-offscreen-blur.patch ];
+                patches = (old.patches or [ ]) ++ [
+                  ./pkgs/patches/niri-offscreen-blur.patch
+                  ./pkgs/patches/niri-center-fitting-columns.patch
+                ];
               });
               # Route volume writes are skipped entirely on devices that report
               # no volume step, which is every bluez sink: the volume moves in

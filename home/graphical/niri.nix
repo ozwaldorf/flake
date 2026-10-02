@@ -92,6 +92,7 @@ in
           bottom = 10;
         };
         default-column-width.proportion = 0.5;
+        # Patched to center any set of columns that fits on screen together
         always-center-single-column = { };
         # Workspaces slide over the wallpaper in the backdrop instead of
         # carrying it with them, which leaves the shell's parallax to move it
