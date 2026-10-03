@@ -227,6 +227,59 @@ Singleton {
         }
     }
 
+    // ---- processes ----
+    //
+    // The busiest processes now, by share of the whole processor: top's own
+    // figures are per core, so divided by the core count to read on the same
+    // scale as the load meter. Sampled over half a second rather than read
+    // once, since a single read gives each process's average over its whole
+    // life rather than what it is doing now. Only while something is showing
+    // them, since it is the heaviest thing sampled here.
+    //
+    // Oldest first is meaningless here; busiest first, a handful deep.
+    property var processes: []
+    property int processWatchers: 0
+
+    function watchProcesses(on) {
+        processWatchers = Math.max(0, processWatchers + (on ? 1 : -1));
+    }
+
+    // Nix wraps most programs, and top cuts names short, so a wrapper reads
+    // as ".firefox-wrappe": the dot and the wrapper suffix are dropped.
+    function processName(comm) {
+        return comm.replace(/^\./, "").replace(/-(unwr|wr)[a-z]*$/, "");
+    }
+
+    Timer {
+        interval: 2000
+        running: root.processWatchers > 0
+        repeat: true
+        triggeredOnStart: true
+
+        onTriggered: processScan.running = true
+    }
+
+    Process {
+        id: processScan
+
+        command: ["sh", "-c", "top -b -n 2 -d 0.5 -o %CPU -w 512 | awk '/^top -/{n++} n==2 && $1 ~ /^[0-9]+$/ && $12 != \"top\" {print $9, $10, $12}' | head -8; nproc"]
+
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const lines = text.trim().split("\n");
+                const cores = Number(lines.pop()) || 1;
+                root.processes = lines.filter(l => Number(l.split(" ")[0]) > 0).map(l => {
+                    const [cpu, mem, comm] = l.split(" ");
+                    return {
+                        name: root.processName(comm ?? ""),
+                        cpu: Number(cpu) / cores,
+                        mem: Number(mem)
+                    };
+                });
+            }
+        }
+    }
+
     // Seconds since boot. Its own slow timer: it is read to the minute, so a
     // faster one would redraw the same string over and over.
     property real uptime: 0
