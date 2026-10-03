@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import Quickshell
+import Quickshell.Io
 import Quickshell.Services.SystemTray
 import ".."
 import "../widgets"
@@ -435,8 +436,8 @@ ModalPanel {
 
         width: parent.width
         // the button's own height, or with nothing to clear, all the room
-        // under the panel so the line saying so sits in the middle of it
-        height: has ? clearAll.height : Math.max(clearAll.height, root.freeBelow - Theme.spaceSm)
+        // under the panel so the quote sits in the middle of it
+        height: has ? clearAll.height : Math.max(clearAll.height, quote.implicitHeight, root.freeBelow - Theme.spaceSm)
 
         Card {
             id: clearAll
@@ -473,16 +474,87 @@ ModalPanel {
             }
         }
 
-        Label {
+        // A fortune in place of the empty stack, drawn fresh each time the
+        // panel opens. Short ones only, since it has to sit in the room left
+        // under the panel; the attribution, when there is one, set apart.
+        Column {
+            id: quote
+
+            property string body: ""
+            property string source: ""
+
             anchors.centerIn: parent
-            text: "No new notifications"
-            color: Theme.surface2
-            opacity: foot.has ? 0 : 1
+            width: parent.width - Theme.spaceLg * 2
+            spacing: Theme.spaceXs
+            opacity: foot.has || body === "" ? 0 : 1
             visible: opacity > 0
 
             Behavior on opacity {
                 Fade {}
             }
+
+            Label {
+                width: parent.width
+                text: quote.body
+                font.pixelSize: 11
+                lineHeight: 1.2
+                color: Theme.overlay1
+                wrapMode: Text.Wrap
+                horizontalAlignment: Text.AlignHCenter
+            }
+
+            Label {
+                width: parent.width
+                text: quote.source
+                visible: text !== ""
+                color: Theme.surface2
+                wrapMode: Text.Wrap
+                horizontalAlignment: Text.AlignHCenter
+            }
         }
+
+        Process {
+            id: fortune
+
+            command: ["fortune", "-a", "-s"]
+
+            stdout: StdioCollector {
+                onStreamFinished: {
+                    const lines = text.replace(/\t/g, "    ").replace(/\s+$/, "").split("\n");
+                    // An attribution trails the quote led by a dash, and may run
+                    // on over several lines; everything from that dash is the
+                    // source, joined into one line.
+                    let split = lines.length;
+                    for (let i = lines.length - 1; i > 0; i--) {
+                        if (/^\s*(--|—)/.test(lines[i])) {
+                            split = i;
+                            break;
+                        }
+                    }
+                    // or closes the last line of the quote itself
+                    let tail = "";
+                    if (split === lines.length) {
+                        const inline = lines[split - 1].match(/^(.*\S)\s+(--|—)\s*(\S.*)$/);
+                        if (inline) {
+                            lines[split - 1] = inline[1];
+                            tail = inline[3];
+                        }
+                    }
+                    quote.source = tail || lines.slice(split).map(l => l.trim()).join(" ").replace(/^(--|—)\s*/, "");
+                    quote.body = lines.slice(0, split).map(l => l.replace(/\s+$/, "")).join("\n").trim();
+                }
+            }
+        }
+
+        Connections {
+            target: root
+
+            function onShownChanged() {
+                if (root.shown && !foot.has)
+                    fortune.running = true;
+            }
+        }
+
+        Component.onCompleted: fortune.running = true
     }
 }
