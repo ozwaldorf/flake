@@ -21,8 +21,7 @@ let
 in
 {
   # curl and jq drive the wallpaper fetcher, lutgen bakes its color table,
-  # slurp picks the recorder's region; fortune, which the calendar draws its
-  # line from, comes in with the shell setup
+  # slurp picks the recorder's region
   home.packages = [
     pkgs.quickshell
     pkgs.curl

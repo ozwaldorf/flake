@@ -8,9 +8,9 @@ import ".."
 import "../widgets"
 import "../services"
 
-// Settings controls and notification history in one panel. Sized to its
-// content, so with nothing playing and no notifications it is just the sliders
-// and the tray.
+// The month, settings controls and notification history in one panel. Sized
+// to its content, so with nothing playing and no notifications it is just the
+// month, the sliders and the tray.
 ModalPanel {
     id: root
 
@@ -132,9 +132,14 @@ ModalPanel {
                 }
             }
 
-            // Connectivity first, matching where the system panel puts it: it
-            // is the control you reach for when something is wrong, and the
-            // only one whose state you read without touching it.
+            // the day and the month at the head, under the clock on the rail
+            MonthCalendar {
+                width: parent.width
+            }
+
+            // Connectivity first among the controls, matching where the system
+            // panel puts it: it is the control you reach for when something is
+            // wrong, and the only one whose state you read without touching it.
             ConnectivityTiles {
                 id: connectivity
 

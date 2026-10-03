@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
-import Quickshell.Io
 import ".."
 
 // Today and the month around it, as one well: the date in words down one side,
@@ -72,50 +71,11 @@ Rectangle {
         return "th";
     }
 
-    // A fortune for the hour: drawn once and kept against the date and hour,
-    // so the drawer shows the same one however often it opens, and a new one
-    // on the hour. Kept to the short, attributed kinds, and short enough to
-    // sit beside the month in a few lines.
-    property var quote: ["", ""]
+    // the part of the day, for the greeting
+    readonly property string greeting: clock.hours >= 5 && clock.hours < 12 ? "Good morning" : clock.hours >= 12 && clock.hours < 17 ? "Good afternoon" : "Good evening"
 
-    // drawing again on the hour, which the minute clock passes through
-    readonly property int hour: clock.hours
-    onHourChanged: fortune.draw(false)
-
-    // a fresh one now, kept for the rest of the hour in place of the last
-    function redraw() {
-        fortune.draw(true);
-    }
-
-    Process {
-        id: fortune
-
-        // whether to draw a new one even if this hour already has one
-        property bool force: false
-
-        function draw(again) {
-            force = again;
-            running = true;
-        }
-
-        running: true
-        command: ["sh", "-c", "f=\"$1\"; d=$(date +%F-%H); mkdir -p \"$(dirname \"$f\")\"; if [ \"$2\" = 1 ] || [ \"$(head -1 \"$f\" 2>/dev/null)\" != \"$d\" ]; then { echo \"$d\"; fortune -s -n 80 wisdom literature people humorists science pratchett; } > \"$f\"; fi; tail -n +2 \"$f\"", "sh", Quickshell.statePath("fortune"), force ? "1" : "0"]
-
-        stdout: StdioCollector {
-            onStreamFinished: {
-                // The attribution, when there is one, is the last line after
-                // a double dash; the rest is wrapped for a terminal, so its
-                // line breaks are folded back into spaces.
-                const raw = text.trim();
-                const m = /\n\s*--\s*(.+)$/.exec(raw);
-                const body = (m ? raw.slice(0, m.index) : raw).replace(/\s+/g, " ").trim();
-                root.quote = [body, m ? m[1].trim() : ""];
-            }
-        }
-    }
-
-    // Today in words, the one thing the rail's digits leave out, and a line
-    // to take into it, changing with the date.
+    // A greeting, then today in words, the one thing the rail's digits leave
+    // out.
     Column {
         anchors.left: parent.left
         anchors.leftMargin: Theme.padCard
@@ -124,6 +84,20 @@ Rectangle {
         anchors.top: parent.top
         anchors.topMargin: Theme.padCard
         spacing: Theme.spaceSm
+
+        Text {
+            width: parent.width
+            text: root.greeting + " <font color=\"" + Theme.blue + "\">" + Quickshell.env("USER") + "</font>!"
+            textFormat: Text.StyledText
+            font.family: Theme.font
+            font.pixelSize: 18
+            color: Theme.text
+            // the column is narrow for the larger size, so the name may take a
+            // second line
+            wrapMode: Text.WordWrap
+            maximumLineCount: 2
+            elide: Text.ElideRight
+        }
 
         // Two set lines rather than one wrapped run: the day's name belongs
         // with "Today is", and a wrap that pushed it down a line read as a
@@ -146,76 +120,10 @@ Rectangle {
                 width: parent.width
                 text: Qt.formatDateTime(root.today, "MMMM ") + root.today.getDate() + root.ordinal(root.today.getDate()) + Qt.formatDateTime(root.today, " yyyy")
                 font.family: Theme.font
-                font.pixelSize: 13
-                color: Theme.text
+                font.pixelSize: 11
+                color: Theme.subtext0
                 elide: Text.ElideRight
             }
-        }
-
-        // the rule between the date and the quote, and after it a way to draw
-        // another
-        Item {
-            width: parent.width
-            height: reload.height
-
-            Rectangle {
-                id: rule
-
-                anchors.verticalCenter: parent.verticalCenter
-                width: 24
-                height: 1
-                color: Theme.surface1
-            }
-
-            Text {
-                id: reload
-
-                anchors.left: rule.right
-                anchors.leftMargin: Theme.spaceSm
-                text: String.fromCodePoint(0xf021)
-                font.family: Theme.iconFont
-                font.pixelSize: 11
-                color: reloadArea.containsMouse ? Theme.text : Theme.overlay0
-
-                Behavior on color {
-                    ColorAnimation {
-                        duration: Theme.hoverDuration
-                    }
-                }
-
-                MouseArea {
-                    id: reloadArea
-
-                    anchors.fill: parent
-                    anchors.margins: -6
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.redraw()
-                }
-            }
-        }
-
-        Text {
-            width: parent.width
-            text: root.quote[0]
-            font.family: Theme.font
-            font.pixelSize: 11
-            font.italic: true
-            lineHeight: 1.25
-            color: Theme.subtext0
-            wrapMode: Text.WordWrap
-            maximumLineCount: 5
-            elide: Text.ElideRight
-        }
-
-        Text {
-            width: parent.width
-            visible: root.quote[1] !== ""
-            text: "— " + root.quote[1]
-            font.family: Theme.font
-            font.pixelSize: 10
-            color: Theme.overlay0
-            elide: Text.ElideRight
         }
     }
 

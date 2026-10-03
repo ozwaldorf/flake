@@ -10,8 +10,8 @@ import "services"
 // desktop rather than over it: waking the rail widens the exclusive zone so the
 // windows move aside, the wallpaper slides with them, and the rail is revealed
 // in the gap they leave. Opening a drawer widens it again, by the width of the
-// panel it holds: the control centre from the top corner, the monitor and
-// calendar from the foot.
+// panel it holds: the control centre and calendar from the top corner,
+// the monitor from the foot.
 EdgeWindow {
     id: bar
 
@@ -266,10 +266,11 @@ EdgeWindow {
         }
     }
 
-    // Opening the control centre: the whole top corner of the rail, rather
-    // than the mark alone. The mark is a small block in a narrow strip, and
-    // aiming at it is the only fiddly part of reaching a panel that opens on
-    // hover; the corner is what the pointer travels to anyway.
+    // Opening the control centre: the whole top corner of the rail, the clock
+    // and the gear under it, rather than the mark alone. The mark is a small
+    // block in a narrow strip, and aiming at it is the only fiddly part of
+    // reaching a panel that opens on hover; the corner is what the pointer
+    // travels to anyway.
     //
     // Outside the padded content item so it reaches the rail's actual top
     // edge, and following the rail's width so it covers the sliver while
@@ -280,7 +281,7 @@ EdgeWindow {
         x: bar.railX
         y: 0
         width: bar.railWidth
-        height: Theme.railPad + gear.height + Theme.railItemGap
+        height: Theme.railPad + head.height + Theme.railItemGap
 
         HoverHandler {
             id: cornerHover
@@ -303,7 +304,7 @@ EdgeWindow {
         }
     }
 
-    // Opening the monitor and calendar: the foot of the rail, from just above
+    // Opening the monitor: the foot of the rail, from just above
     // the meters down to the screen edge, the counterpart of the corner. Summed
     // from the group's offsets rather than mapped, which would not follow it.
     Item {
@@ -348,20 +349,35 @@ EdgeWindow {
         height: parent.height - Theme.railPad * 2
         clip: true
 
-        // actions: things you click
+        // actions: things you click, all at the workspaces' own gap so the
+        // head of the rail reads as one evenly spaced run
         Column {
             anchors.top: parent.top
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: Theme.railGroupGap
+            spacing: Theme.wsGap
 
-            GearMark {
-                id: gear
+            // the clock over the gear, both opening the control centre that
+            // holds the month
+            Column {
+                id: head
 
                 anchors.horizontalCenter: parent.horizontalCenter
-                expanded: bar.expanded
-                reveal: bar.reveal
-                active: bar.panelOpen
-                hovered: cornerHover.hovered
+                spacing: Theme.wsGap
+
+                Clock {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    expanded: bar.expanded
+                }
+
+                GearMark {
+                    id: gear
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    expanded: bar.expanded
+                    reveal: bar.reveal
+                    active: bar.panelOpen
+                    hovered: cornerHover.hovered
+                }
             }
 
             Workspaces {
@@ -402,13 +418,6 @@ EdgeWindow {
                         secondFill: Meters.hasSecond(modelData) ? Meters.secondFill : "transparent"
                     }
                 }
-            }
-
-            Clock {
-                id: clock
-
-                anchors.horizontalCenter: parent.horizontalCenter
-                expanded: bar.expanded
             }
         }
     }

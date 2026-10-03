@@ -7,11 +7,11 @@ import ".."
 import "../widgets"
 import "../services"
 
-// The system monitor and the month, in the drawer opened from the foot of the
-// rail: the machine at the head, and a grid of wells held against the bottom,
-// each reading in the form that suits it. Loads as a big figure over the last
+// The system monitor, in the drawer opened from the foot of the rail: the
+// machine at the head, and a grid of wells held against the bottom, each
+// reading in the form that suits it. Loads as a big figure over the last
 // couple of minutes, capacities as a run of blocks, rates as a mirror of down
-// over up, the month at the foot beside the clock.
+// over up.
 ModalPanel {
     id: root
 
@@ -28,8 +28,8 @@ ModalPanel {
     // The readings take up whatever the head leaves them: the gap between the
     // host and the stack is shared out over the four rows of charts, so they
     // grow on a tall screen rather than leaving the middle of the drawer
-    // empty. The month keeps its own height.
-    readonly property real naturalStack: (112 + 100 + 100 + 112) + calendar.implicitHeight + gap * 4
+    // empty.
+    readonly property real naturalStack: (112 + 100 + 100 + 112) + gap * 3
     readonly property real stretch: Math.max(0, (layout.parent.height - host.height - gap - naturalStack) / 4)
 
     // a switch moves the generation under a running session, so the host's
@@ -766,12 +766,6 @@ ModalPanel {
                 width: root.narrow
                 height: 112 + root.stretch
             }
-        }
-
-        MonthCalendar {
-            id: calendar
-
-            width: parent.width
         }
     }
 }

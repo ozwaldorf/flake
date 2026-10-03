@@ -29,7 +29,7 @@ Rectangle {
     readonly property color hue: urgent ? Theme.red : has ? Theme.yellow : Theme.surface1
 
     implicitWidth: Theme.sliver + (32 - Theme.sliver) * reveal
-    implicitHeight: 32
+    implicitHeight: block.height
     radius: 0
     color: "transparent"
 
@@ -49,8 +49,11 @@ Rectangle {
     }
 
     // Solid block carrying the count. Height is constant, matching the
-    // workspace marks: only the width animates on expand.
+    // workspace marks: only the width animates on expand. The mark is as tall
+    // as the block, so the rail spaces it like any other.
     Rectangle {
+        id: block
+
         anchors.centerIn: parent
 
         // Widens for two and three digit counts, eased so a count gaining a
