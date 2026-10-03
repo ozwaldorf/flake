@@ -121,7 +121,7 @@ ModalPanel {
         required property string kind
 
         readonly property var def: Meters.defs[kind]
-        readonly property int columns: 6
+        property int columns: 6
         // as many rows as the tile is tall enough for, so the block grows
         // with the tile rather than leaving it empty above
         readonly property int rows: Math.max(1, Math.floor((parent.height + root.blockGap) / (root.blockSize + root.blockGap)))
@@ -161,7 +161,9 @@ ModalPanel {
 
     // What a block takes off the side of a tile, measured from the backdrop's
     // edge, so a chart beside it stops short of the blocks.
-    readonly property real blocksRoom: Theme.padCard - 5 + blockSize * 6 + blockGap * 5 + Theme.space
+    function blocksRoom(columns) {
+        return Theme.padCard - 5 + blockSize * columns + blockGap * (columns - 1) + Theme.space;
+    }
 
     // what a capacity reads, set against the tile's heading
     function capacityNote(kind) {
@@ -436,10 +438,11 @@ ModalPanel {
                 width: root.wide
                 height: 112 + root.stretch
                 note: "VRAM  " + root.capacityNote("vram")
-                chartRight: root.blocksRoom
+                chartRight: root.blocksRoom(4)
 
                 Blocks {
                     kind: "vram"
+                    columns: 4
                 }
             }
         }
@@ -667,7 +670,7 @@ ModalPanel {
                 width: root.wide
                 height: 112 + root.stretch
                 note: root.capacityNote("disk")
-                chartRight: root.blocksRoom
+                chartRight: root.blocksRoom(6)
 
                 Blocks {
                     kind: "disk"
