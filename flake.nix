@@ -90,23 +90,26 @@
                     doCheck = false;
                     patches = (old.patches or [ ]) ++ [ ./pkgs/patches/hyprcapture-record-cursor.patch ];
                   });
-              # Regular blur samples the framebuffer, so it vanishes wherever a
-              # window is drawn offscreen: opening, closing and while dragged.
-              # The patch keeps dragged windows opaque so they render directly,
-              # and falls back to xray blur for the offscreen renders.
-              # always-center-single-column is extended to center any set of
-              # columns that fits on screen together.
-              # The overview eases each workspace's view back to its first column,
-              # so every preview starts with the same window at its left.
-              # A column's lone window, when shorter than the column, is centered
-              # in it rather than held to its top.
-              # Layout invariant tests assert the fade, so they are skipped.
               niri = prev.niri.overrideAttrs (old: {
+                # Layout invariant tests assert the upstream layout, which the
+                # patches below change, so they are skipped.
                 doCheck = false;
                 patches = (old.patches or [ ]) ++ [
+                  # Regular blur samples the framebuffer, so it vanishes wherever
+                  # a window is drawn offscreen: opening, closing and while
+                  # dragged. Keeps dragged windows opaque so they render
+                  # directly, and falls back to xray blur for the offscreen
+                  # renders.
                   ./pkgs/patches/niri-offscreen-blur.patch
+                  # Extends always-center-single-column to center any set of
+                  # columns that fits on screen together.
                   ./pkgs/patches/niri-center-fitting-columns.patch
+                  # The overview eases each workspace's view back to its first
+                  # column, so every preview starts with the same window at its
+                  # left.
                   ./pkgs/patches/niri-overview-first-column.patch
+                  # A column's lone window, when shorter than the column, is
+                  # centered in it rather than held to its top.
                   ./pkgs/patches/niri-center-lone-window.patch
                 ];
               });
