@@ -68,6 +68,10 @@ EdgeWindow {
     // stack above it is doing.
     property alias footer: footerSlot.data
 
+    // Kept clear at the foot for the row of drawer tabs, which stands in
+    // its own window over every page.
+    readonly property real bottomPad: Theme.railPad + Theme.tabsHeight + Theme.spaceXs
+
     // what the footer takes off the bottom of the stack's room
     readonly property real footerRoom: footerSlot.childrenRect.height > 0 ? footerSlot.childrenRect.height + Theme.spaceSm : 0
 
@@ -115,7 +119,51 @@ EdgeWindow {
 
     implicitWidth: Theme.rail + Theme.railInset + panelWidth + shadowRoom
 
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+    // Drawers driven from the keyboard take it outright while they are out,
+    // so a keybind can open one and typing goes straight to it.
+    property bool grabsKeyboard: false
+
+    // asked to be put away from inside, as by escape
+    signal closeRequested
+
+    // ctrl+tab and ctrl+shift+tab, to the next drawer along or the one before
+    signal cycleRequested(int by)
+
+    // what takes the keys while the drawer holds them
+    property Item focusTarget: keyCatcher
+
+    WlrLayershell.keyboardFocus: shown && grabsKeyboard ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand
+
+    function takeFocus() {
+        if (shown && grabsKeyboard)
+            focusTarget.forceActiveFocus();
+    }
+
+    onShownChanged: takeFocus()
+    onGrabsKeyboardChanged: takeFocus()
+
+    // Accepts a key that moves between drawers, for whatever holds the focus.
+    function cycleKey(event) {
+        if ((event.key !== Qt.Key_Tab && event.key !== Qt.Key_Backtab) || !(event.modifiers & Qt.ControlModifier))
+            return false;
+        cycleRequested(event.key === Qt.Key_Backtab || (event.modifiers & Qt.ShiftModifier) ? -1 : 1);
+        event.accepted = true;
+        return true;
+    }
+
+    // the keys for a drawer with no field of its own to take them
+    Item {
+        id: keyCatcher
+
+        Keys.onPressed: event => {
+            if (root.cycleKey(event))
+                return;
+            if (event.key === Qt.Key_Escape) {
+                root.closeRequested();
+                event.accepted = true;
+            }
+        }
+    }
 
     // Bounds of the detached viewport in window coordinates, so detached items
     // can clip their own blur regions to what is actually on screen.
@@ -138,7 +186,7 @@ EdgeWindow {
     // that fills it rather than sitting at its bottom. Measured from the panel
     // alone: the stack below it is capped by the footer's own room, and
     // reading it here would chase that cap round.
-    readonly property real freeBelow: Math.max(0, height - Theme.railPad * 2 - (panel.y + panel.height))
+    readonly property real freeBelow: Math.max(0, height - Theme.railPad - bottomPad - (panel.y + panel.height))
 
     // Only the panel takes pointer input; the strip over the rail stays click
     // through so the bar keeps its own hover and tap handling. The region
@@ -179,14 +227,14 @@ EdgeWindow {
             Item {
                 id: panel
 
-                readonly property real maxHeight: root.height - Theme.railPad * 2
+                readonly property real maxHeight: root.height - Theme.railPad - root.bottomPad
 
                 // Inset from whichever edge the window is anchored to, leaving the
                 // shadow room on the outward side: anchored right the window grows
                 // leftward, so sitting at nothing puts the free room behind the rail
                 // rather than where the shadow falls.
                 x: root.anchorRight ? root.shadowRoom : Theme.rail + Theme.railInset
-                y: root.alignBottom ? root.height - Theme.railPad - height : Theme.railPad
+                y: root.alignBottom ? root.height - root.bottomPad - height : Theme.railPad
                 width: root.panelWidth
                 // sized to content when the panel reports one, capped to the screen
                 height: root.contentHeight > 0 ? Math.min(root.contentHeight, maxHeight) : maxHeight
@@ -224,7 +272,7 @@ EdgeWindow {
                 x: panel.x - Theme.spaceSm
                 y: panel.y + panel.height
                 width: panel.width + Theme.spaceSm * 2
-                height: Math.min(detachedColumn.height + Theme.spaceSm * 2, root.height - y - Theme.railPad - root.footerRoom)
+                height: Math.min(detachedColumn.height + Theme.spaceSm * 2, root.height - y - root.bottomPad - root.footerRoom)
 
                 contentHeight: detachedColumn.height + Theme.spaceSm * 2
                 contentWidth: width
@@ -277,7 +325,7 @@ EdgeWindow {
                 id: footerSlot
 
                 x: panel.x
-                y: root.height - Theme.railPad - height
+                y: root.height - root.bottomPad - height
                 width: panel.width
                 height: childrenRect.height
             }

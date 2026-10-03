@@ -17,7 +17,6 @@
 
     ./graphical/niri.nix # window manager
     ./graphical/gtk.nix # gtk theming
-    ./graphical/vicinae.nix # app launcher
     ./graphical/quickshell.nix # bar and notifications
     ./graphical/idle.nix # dim and blank when idle
     ./graphical/tailscale-systray.nix # vpn tray icon
@@ -37,7 +36,6 @@
       prismlauncher
       eden
       gimp
-      obsidian
       kdePackages.kdenlive
       nvtopPackages.full
     ];

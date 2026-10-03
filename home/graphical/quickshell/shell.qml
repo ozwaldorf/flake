@@ -51,7 +51,7 @@ ShellRoot {
         }
     }
 
-    // `qs ipc call drawer open settings|info` or `close`, for a keybind: opens
+    // `qs ipc call drawer open <name>` or `close`, for a keybind: opens
     // a drawer behind the rail on every screen.
     signal drawerRequested(string name)
     signal listRequested(string name)
@@ -167,18 +167,41 @@ ShellRoot {
             property string drawer: ""
             readonly property bool panelOpen: drawer === "settings"
 
-            // The two drawers are pages side by side, the monitor against the
-            // rail and the control centre outside it: 0 shows the control
-            // centre, 1 the monitor. Switching with one already open
-            // slides between them on the same spring as the rail; opening from
+            // The drawers are pages side by side in the order of their tabs,
+            // each later one to the right: the value is the index of the page
+            // in view. Switching with one already open slides between
+            // them on the same spring as the rail; opening from
             // closed puts the page straight in place, since the desktop sliding
             // aside is reveal enough. Left where it was on close, so the page
             // is covered by the desktop coming back rather than vanishing.
             property string lastDrawer: ""
 
+            readonly property var pages: ["settings", "info", "apps", "clipboard", "keys"]
+
+            // Opened from a keybind and worked from the keyboard, so they stay
+            // out until put away rather than closing as the pointer leaves.
+            readonly property bool keyboardDrawer: keyboardHeld || drawer === "apps" || drawer === "clipboard" || drawer === "keys"
+
+            // Reached by ctrl+tab, so held from the keyboard whatever the drawer,
+            // until it is put away.
+            property bool keyboardHeld: false
+
+            function cycle(by) {
+                keyboardHeld = true;
+                drawer = pages[(pages.indexOf(drawer) + by + pages.length) % pages.length];
+            }
+
+            // How far a page sits across from view, by its place in the row. Laid
+            // out left to right on either screen, matching the tabs.
+            function pageOffset(name) {
+                return (pages.indexOf(name) - pager.value) * (Theme.drawerWidth + Theme.railInset * 2);
+            }
+
             onDrawerChanged: {
+                if (drawer === "")
+                    keyboardHeld = false;
                 if (drawer !== "") {
-                    pager.target = drawer === "info" ? 1 : 0;
+                    pager.target = pages.indexOf(drawer);
                     if (lastDrawer === "") {
                         pager.stop();
                         pager.velocity = 0;
@@ -235,7 +258,8 @@ ShellRoot {
 
             property bool settingsHovered: false
             property bool infoHovered: false
-            readonly property bool pointerInside: bar.pointerInside || settingsHovered || infoHovered
+            property bool tabsHovered: false
+            readonly property bool pointerInside: bar.pointerInside || settingsHovered || infoHovered || tabsHovered
 
             // Closing waits a little, so brushing past the drawer's edge does
             // not throw it shut.
@@ -243,7 +267,7 @@ ShellRoot {
                 id: closeTimer
                 interval: Theme.exitDelay
                 onTriggered: {
-                    if (!scope.pointerInside && !(scope.panelOpen && Niri.overviewOpen))
+                    if (!scope.pointerInside && !scope.keyboardDrawer && !(scope.panelOpen && Niri.overviewOpen))
                         scope.drawer = "";
                 }
             }
@@ -275,13 +299,24 @@ ShellRoot {
                 push: scope.anchorRight ? -bar.pushWidth : bar.pushWidth
             }
 
+            // Not while the overview is up: the control centre is held open
+            // beside it so the pointer can travel out to a window, and the tap
+            // that picks one would be spent here instead.
+            DismissCatcher {
+                modelData: scope.modelData
+                anchorRight: scope.anchorRight
+                active: scope.drawer !== "" && !Niri.overviewOpen
+                pushWidth: bar.pushWidth
+                onDismissed: scope.drawer = ""
+            }
+
             Bar {
                 id: bar
 
                 modelData: scope.modelData
                 anchorRight: scope.anchorRight
                 panelOpen: scope.panelOpen
-                drawerWidth: scope.drawer === "settings" ? settings.drawerWidth : scope.drawer === "info" ? info.drawerWidth : 0
+                drawerWidth: scope.drawer !== "" ? settings.drawerWidth : 0
                 onCornerTapped: scope.drawer = "settings"
                 onBottomTapped: scope.drawer = "info"
                 onRailTapped: scope.drawer = ""
@@ -313,8 +348,11 @@ ShellRoot {
                 anchorRight: scope.anchorRight
                 shown: scope.panelOpen
                 revealWidth: bar.pushWidth
-                pageX: (scope.anchorRight ? -1 : 1) * pager.value * (Theme.drawerWidth + Theme.railInset * 2)
+                pageX: scope.pageOffset("settings")
                 onHoverChanged: hovered => scope.settingsHovered = hovered
+                grabsKeyboard: scope.keyboardHeld
+                onCycleRequested: by => scope.cycle(by)
+                onCloseRequested: scope.drawer = ""
             }
 
             InfoPanel {
@@ -324,8 +362,53 @@ ShellRoot {
                 anchorRight: scope.anchorRight
                 shown: scope.drawer === "info"
                 revealWidth: bar.pushWidth
-                pageX: (scope.anchorRight ? 1 : -1) * (1 - pager.value) * (Theme.drawerWidth + Theme.railInset * 2)
+                pageX: scope.pageOffset("info")
                 onHoverChanged: hovered => scope.infoHovered = hovered
+                grabsKeyboard: scope.keyboardHeld
+                onCycleRequested: by => scope.cycle(by)
+                onCloseRequested: scope.drawer = ""
+            }
+
+            Launcher {
+                modelData: scope.modelData
+                anchorRight: scope.anchorRight
+                shown: scope.drawer === "apps"
+                revealWidth: bar.pushWidth
+                pageX: scope.pageOffset("apps")
+                onCloseRequested: scope.drawer = ""
+                onCycleRequested: by => scope.cycle(by)
+            }
+
+            ClipboardPanel {
+                modelData: scope.modelData
+                anchorRight: scope.anchorRight
+                shown: scope.drawer === "clipboard"
+                revealWidth: bar.pushWidth
+                pageX: scope.pageOffset("clipboard")
+                onCloseRequested: scope.drawer = ""
+                onCycleRequested: by => scope.cycle(by)
+            }
+
+            KeysPanel {
+                modelData: scope.modelData
+                anchorRight: scope.anchorRight
+                shown: scope.drawer === "keys"
+                revealWidth: bar.pushWidth
+                pageX: scope.pageOffset("keys")
+                onCloseRequested: scope.drawer = ""
+                onCycleRequested: by => scope.cycle(by)
+            }
+
+            // after the pages, so it stands over them
+            DrawerTabs {
+                modelData: scope.modelData
+                anchorRight: scope.anchorRight
+                shown: scope.drawer !== ""
+                revealWidth: bar.pushWidth
+                pages: scope.pages
+                current: scope.drawer
+                onPicked: name => scope.drawer = name
+                onHoverChanged: hovered => scope.tabsHovered = hovered
             }
 
             Toasts {

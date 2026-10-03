@@ -45,6 +45,16 @@ Singleton {
     readonly property string iconDisk: String.fromCodePoint(0xf02ca)
     readonly property string iconGpu: String.fromCodePoint(0xe266)
     readonly property string iconHost: String.fromCodePoint(0xf313)
+    readonly property string iconSearch: String.fromCodePoint(0xf002)
+    readonly property string iconCalc: String.fromCodePoint(0xf1ec)
+    readonly property string iconTerminal: String.fromCodePoint(0xf489)
+    readonly property string iconClipboard: String.fromCodePoint(0xf0ea)
+    readonly property string iconKeyboard: String.fromCodePoint(0xf11c)
+    readonly property string iconImage: String.fromCodePoint(0xf03e)
+    readonly property string iconText: String.fromCodePoint(0xf036)
+    readonly property string iconApp: String.fromCodePoint(0xf1b2)
+    readonly property string iconTrash: String.fromCodePoint(0xf1f8)
+    readonly property string iconRun: String.fromCodePoint(0xf135)
 
     // matches the niri window corner radius
     readonly property int rounding: 10
@@ -75,6 +85,9 @@ Singleton {
     // the same amount: wide enough for a chart beside each reading and the
     // month beside the date.
     readonly property int drawerWidth: 400
+
+    // the row of tabs held at the foot of an open drawer
+    readonly property int tabsHeight: 44
 
     // Margin around a drawer's panel, on the rail's side and the desktop's
     // alike: as far from either edge as the rail's marks are from the screen.

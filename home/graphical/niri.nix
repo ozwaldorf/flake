@@ -28,7 +28,11 @@ let
     '';
   };
 
-  spawn = cmd: { spawn-sh = cmd; };
+  # Titled so the shortcut helper and niri's own overlay can name them
+  spawn = title: cmd: {
+    _props.hotkey-overlay-title = title;
+    spawn-sh = cmd;
+  };
 
   workspaceBinds = lib.listToAttrs (
     lib.concatMap (
@@ -47,7 +51,6 @@ in
   home.packages = with pkgs; [
     wl-clipboard
     libnotify
-    yad
   ];
 
   programs.zsh.shellAliases.displays = "niri msg action power-off-monitors";
@@ -146,33 +149,37 @@ in
       };
 
       binds = {
-        "Mod+D" = spawn "vicinae toggle";
-        "Mod+Return" = spawn "foot";
-        "Mod+Shift+Return" = spawn "foot -a float";
-        "Mod+E" = spawn "firefox";
+        "Mod+D" = spawn "App launcher" "qs ipc call drawer toggle apps";
+        "Mod+Shift+D" = spawn "Clipboard history" "qs ipc call drawer toggle clipboard";
+        "Mod+Shift+Slash" = spawn "Keyboard shortcuts" "qs ipc call drawer toggle keys";
+        "Mod+Return" = spawn "Terminal" "foot";
+        "Mod+Shift+Return" = spawn "Floating terminal" "foot -a float";
+        "Mod+E" = spawn "Browser" "firefox";
         # Any input powers the monitors back on
         "Mod+L".power-off-monitors = { };
         # The veil is a surface quickshell owns, not a compositor feature
-        "Mod+V" = spawn "qs ipc call veil toggle";
-        "Mod+W" = spawn "qs ipc call wallpaper next";
-        "Mod+R" = spawn "export APP=$(yad --entry --text 'nix-shell -p') && nix-shell -p $APP --run $APP";
+        "Mod+V" = spawn "Toggle veil" "qs ipc call veil toggle";
+        "Mod+W" = spawn "Next wallpaper" "qs ipc call wallpaper next";
 
         "Print".screenshot-window._props = {
           write-to-disk = false;
           show-pointer = true;
         };
         "Shift+Print".screenshot._props.show-pointer = true;
-        "Ctrl+Print" = spawn "qs ipc call recorder toggle";
+        "Ctrl+Print" = spawn "Toggle screen recording" "qs ipc call recorder toggle";
 
         "Mod+Shift+E".quit._props.skip-confirmation = true;
         "Mod+Shift+Q".close-window = { };
-        "Mod+Shift+Space".spawn = lib.getExe toggleFloat;
+        "Mod+Shift+Space" = {
+          _props.hotkey-overlay-title = "Toggle floating";
+          spawn = lib.getExe toggleFloat;
+        };
         "Mod+F".fullscreen-window = { };
         # The overview with the control centre, as the shell's hot corner
         # opens them
-        "Mod+Escape" = spawn "qs ipc call drawer overview";
+        "Mod+Escape" = spawn "Overview" "qs ipc call drawer overview";
         # QMK grave escape sends grave while gui is held
-        "Mod+Grave" = spawn "qs ipc call drawer overview";
+        "Mod+Grave" = spawn "Overview" "qs ipc call drawer overview";
 
         # Tabbed columns stand in for groups
         "Mod+G".toggle-column-tabbed-display = { };
@@ -250,21 +257,6 @@ in
           window-rule._children = [
             { match._props.app-id = "^float$"; }
             { open-floating = true; }
-          ];
-        }
-        # waydroid maps at android's phone-sized default and never resizes itself
-        {
-          window-rule._children = [
-            { match._props.app-id = "^Waydroid$"; }
-            { open-floating = true; }
-            { default-column-width.fixed = 1200; }
-            { default-window-height.fixed = 800; }
-          ];
-        }
-        {
-          layer-rule._children = [
-            { match._props.namespace = "^vicinae$"; }
-            { background-effect.blur = true; }
           ];
         }
         {

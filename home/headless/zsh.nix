@@ -169,6 +169,22 @@
       '')
       ''
         fortune -s
+
+        # A command handed in by the launcher, run as though typed at the
+        # first prompt, so the shell stays once it exits
+        if [[ -n $LAUNCHER_RUN ]]; then
+          _launcher_run=$LAUNCHER_RUN
+          unset LAUNCHER_RUN
+          function _launcher-run() {
+            add-zle-hook-widget -d line-init _launcher-run
+            BUFFER=$_launcher_run
+            unset _launcher_run
+            zle accept-line
+          }
+          autoload -Uz add-zle-hook-widget
+          zle -N _launcher-run
+          add-zle-hook-widget line-init _launcher-run
+        fi
       ''
     ];
   };
