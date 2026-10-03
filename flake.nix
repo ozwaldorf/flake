@@ -98,6 +98,8 @@
               # columns that fits on screen together.
               # The overview eases each workspace's view back to its first column,
               # so every preview starts with the same window at its left.
+              # A column's lone window, when shorter than the column, is centered
+              # in it rather than held to its top.
               # Layout invariant tests assert the fade, so they are skipped.
               niri = prev.niri.overrideAttrs (old: {
                 doCheck = false;
@@ -105,6 +107,7 @@
                   ./pkgs/patches/niri-offscreen-blur.patch
                   ./pkgs/patches/niri-center-fitting-columns.patch
                   ./pkgs/patches/niri-overview-first-column.patch
+                  ./pkgs/patches/niri-center-lone-window.patch
                 ];
               });
               # Route volume writes are skipped entirely on devices that report

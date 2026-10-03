@@ -1,0 +1,17 @@
+diff -ru a/src/layout/scrolling.rs b/src/layout/scrolling.rs
+--- a/src/layout/scrolling.rs
++++ b/src/layout/scrolling.rs
+@@ -5292,6 +5292,13 @@
+ 
+         let mut origin = self.tiles_origin();
+ 
++        // A lone window shorter than its column sits in the middle of it rather than against
++        // its top.
++        if !tabbed && self.tiles.len() == 1 && matches!(self.sizing_mode(), SizingMode::Normal) {
++            let room = self.working_area.size.h - gaps * 2.;
++            origin.y += ((room - self.data[0].size.h) / 2.).max(0.);
++        }
++
+         // Chain with a dummy value to be able to get one past all tiles' Y.
+         let dummy = TileData {
+             height: WindowHeight::auto_1(),
