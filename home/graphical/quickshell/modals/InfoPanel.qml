@@ -485,7 +485,7 @@ ModalPanel {
                 }
 
                 // Both parts together, as the average of the two, on a scale
-                // from 100 to 250 degrees: a single reading of how hot the
+                // from 100 to 230 degrees: a single reading of how hot the
                 // machine as a whole is running.
                 Rectangle {
                     readonly property real average: SysMeters.fahrenheit(root.gpu ? (SysMeters.cpuTemperature + SysMeters.gpuTemperature) / 2 : SysMeters.cpuTemperature)
@@ -497,7 +497,7 @@ ModalPanel {
                     color: Qt.alpha(Theme.surface0, 0.8)
 
                     Rectangle {
-                        width: parent.width * Theme.clamp01((parent.average - 100) / 150)
+                        width: parent.width * Theme.clamp01((parent.average - 100) / 130)
                         height: parent.height
                         radius: parent.radius
                         color: heat.tint
