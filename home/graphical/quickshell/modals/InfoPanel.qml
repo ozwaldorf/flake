@@ -430,72 +430,53 @@ ModalPanel {
         Row {
             spacing: root.gap
 
-            // Temperatures as columns of mercury, the processor and, when
-            // there is one, the card beside it.
+            // Temperatures as figures, large like the battery's charge, each
+            // over its part's name: the processor and, when there is one, the
+            // card beside it. Only the heading's mark takes a colour from them.
             Well {
+                id: heat
+
+                // 30 to 100 degrees across the scale, which is the range a
+                // desktop part actually moves through
+                function level(celsius) {
+                    return Theme.clamp01((celsius - 30) / 70);
+                }
+
+                function shade(level) {
+                    return level > 0.8 ? Theme.red : level > 0.6 ? Theme.peach : level > 0.4 ? Theme.yellow : Theme.teal;
+                }
+
                 title: "Heat"
                 icon: Theme.iconCpu
-                tint: Theme.peach
+                tint: shade(level(Math.max(SysMeters.cpuTemperature, root.gpu ? SysMeters.gpuTemperature : 0)))
                 width: root.battery ? root.narrow : parent.width
                 height: 100 + root.stretch
 
                 Row {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    height: parent.height
-                    spacing: 22
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: parent.width
 
                     Repeater {
-                        model: root.gpu ? [["CPU", SysMeters.cpuTemperature, Meters.defs.cpu.fill], ["GPU", SysMeters.gpuTemperature, Meters.defs.gpu.fill]] : [["CPU", SysMeters.cpuTemperature, Meters.defs.cpu.fill]]
+                        model: root.gpu ? [["cpu", SysMeters.cpuTemperature], ["gpu", SysMeters.gpuTemperature]] : [["cpu", SysMeters.cpuTemperature]]
 
                         Column {
-                            id: thermo
+                            id: sensor
 
                             required property var modelData
 
-                            // 30 to 100 degrees across the column, which is
-                            // the range a desktop part actually moves through
-                            readonly property real level: Theme.clamp01((modelData[1] - 30) / 70)
-
-                            height: parent.height
-                            spacing: 4
+                            width: parent.width / (root.gpu ? 2 : 1)
+                            spacing: 2
 
                             Label {
-                                id: reading
-
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                text: SysMeters.fahrenheit(thermo.modelData[1]) + "°"
+                                text: SysMeters.fahrenheit(sensor.modelData[1]) + "°"
                                 figures: true
-                            }
-
-                            Rectangle {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                width: 8
-                                height: parent.height - reading.height - name.height - parent.spacing * 2
-                                radius: width / 2
-                                color: Qt.alpha(Theme.surface0, 0.8)
-
-                                Rectangle {
-                                    anchors.bottom: parent.bottom
-                                    width: parent.width
-                                    height: Math.max(width, parent.height * thermo.level)
-                                    radius: width / 2
-                                    color: thermo.level > 0.75 ? Theme.red : thermo.modelData[2]
-
-                                    Behavior on height {
-                                        NumberAnimation {
-                                            duration: Theme.levelDuration
-                                            easing.type: Easing.OutQuad
-                                        }
-                                    }
-                                }
+                                font.pixelSize: 24
                             }
 
                             Label {
-                                id: name
-
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                text: thermo.modelData[0]
+                                text: sensor.modelData[0].toUpperCase()
                                 font.pixelSize: 9
+                                font.letterSpacing: 1.2
                                 color: Theme.overlay0
                             }
                         }
