@@ -89,7 +89,8 @@ PanelWindow {
         bottom: true
     }
 
-    exclusiveZone: 0
+    // positions are screen coordinates, so the rail's zone must not inset it
+    exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
 
     // only the menu itself takes input; the rest of the screen stays clickable

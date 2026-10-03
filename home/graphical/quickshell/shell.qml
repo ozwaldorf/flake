@@ -176,6 +176,7 @@ ShellRoot {
             // resolves to the singleton, which is not creatable.
             WallpaperLayer {
                 modelData: scope.modelData
+                push: scope.anchorRight ? -bar.railWidth : bar.railWidth
             }
 
             Bar {

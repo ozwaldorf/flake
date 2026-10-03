@@ -15,7 +15,10 @@ PanelWindow {
 
     screen: modelData
     color: "transparent"
-    exclusiveZone: 0
+
+    // Laid out from the screen edge, with the rail's width already accounted
+    // for in the content, so the rail's own zone would offset it twice.
+    exclusionMode: ExclusionMode.Ignore
 
     anchors {
         left: !anchorRight

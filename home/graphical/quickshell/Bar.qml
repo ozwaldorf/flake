@@ -6,9 +6,10 @@ import Quickshell.Wayland
 import "widgets"
 import "services"
 
-// Vertical rail anchored to the outward facing screen edge. Only the sliver is
-// an exclusive zone, so tiled windows never reflow when the rail wakes; the
-// rail draws over the desktop instead of pushing it.
+// Vertical rail anchored to the outward facing screen edge. It sits behind the
+// desktop rather than over it: waking the rail widens the exclusive zone so the
+// windows move aside, the wallpaper slides with them, and the rail is revealed
+// in the gap they leave.
 EdgeWindow {
     id: bar
 
@@ -22,14 +23,28 @@ EdgeWindow {
 
     // sample the meters faster while this rail is out; released on destruction
     // so unplugging a monitor mid hover does not leave the count raised
-    onExpandedChanged: SysMeters.watch(expanded)
+    onExpandedChanged: {
+        SysMeters.watch(expanded);
+        spring.retarget();
+    }
 
     Component.onDestruction: {
         if (expanded)
             SysMeters.watch(false);
     }
 
-    exclusiveZone: Theme.sliver
+    // Top rather than under the windows: niri zooms the background and bottom
+    // layers out with the workspaces in the overview, and the rail has to stay
+    // pinned to the screen edge. The windows slide in step with the rail
+    // anyway, so they barely overlap it on the way back.
+    WlrLayershell.layer: WlrLayer.Top
+    WlrLayershell.namespace: "quickshell-bar"
+
+    // Switched outright rather than following the reveal: every change is a
+    // relayout of the whole output, and the compositor animates the windows
+    // across on its own.
+    exclusionMode: ExclusionMode.Normal
+    exclusiveZone: expanded ? Theme.rail : Theme.sliver
 
     // only the visible rail takes input; the rest of the fixed width surface
     // stays click through
@@ -45,41 +60,68 @@ EdgeWindow {
     // repositioned every frame, since its origin is derived from the width, and
     // those two commits are not atomic: the surface can present at the new size
     // before the new position lands, which shows as a gap at the screen edge.
-    //
-    // Room past the rail for the shadow it casts inward. Without it the window
-    // is exactly the rail's own width, so at full expansion the rail fills it
-    // and the shadow falls entirely outside.
-    shadowRoom: 20
+    shadowRoom: 0
 
-    implicitWidth: Theme.rail + shadowRoom
+    implicitWidth: Theme.rail
 
     // 0 collapsed, 1 expanded; every width on the rail, and the toasts beside
     // it, follow this one value
-    property real reveal: expanded ? 1 : 0
+    property real reveal: 0
 
-    // Glided rather than eased: a pointer flicking in and out of the rail
-    // turns it around mid travel, and every width below follows this one value.
-    Behavior on reveal {
-        Glide {}
+    // The windows are moved by niri's horizontal view spring when the zone
+    // changes, so the rail runs the same one: critically damped, stiffness
+    // 800, unit mass, carrying its velocity into a reversal the way niri
+    // does. Solved in closed form from the moment of each retarget rather
+    // than integrated, so frame pacing does not drift it off niri's curve.
+    FrameAnimation {
+        id: spring
+
+        readonly property real omega: Math.sqrt(800) / Theme.motionScale
+        property real target: 0
+        property real c1: 0
+        property real c2: 0
+        property real startedAt: 0
+        property real velocity: 0
+
+        function retarget() {
+            target = bar.expanded ? 1 : 0;
+            c1 = bar.reveal - target;
+            c2 = velocity + omega * c1;
+            startedAt = Date.now();
+            restart();
+        }
+
+        onTriggered: {
+            // wall clock rather than summed frame times: the first frame after a
+            // restart reports the whole idle gap as its frame time
+            const t = (Date.now() - startedAt) / 1000;
+            const decay = Math.exp(-omega * t);
+            const offset = (c1 + c2 * t) * decay;
+            velocity = (c2 - omega * (c1 + c2 * t)) * decay;
+            if (Math.abs(offset) < 0.0001 && Math.abs(velocity) < 0.01) {
+                velocity = 0;
+                bar.reveal = target;
+                stop();
+                return;
+            }
+            bar.reveal = target + offset;
+        }
     }
 
     // visible width of the rail within the fixed surface
     readonly property real railWidth: Theme.sliver + (Theme.rail - Theme.sliver) * reveal
 
     // The rail hugs the outward edge, so the content is inset from the other
-    // side, measured from the window's own edge, which reaches past the rail
-    // to give the shadow somewhere to fall.
+    // side, measured from the window's own edge.
     readonly property real railX: bar.anchorRight ? width - railWidth : 0
 
-    // Client side blur, following the visible rail rather than the surface,
-    // which is a fixed full width strip.
-    BackgroundEffect.blurRegion: Region {
-        x: bar.railX
-        y: 0
-        width: bar.railWidth
-        height: bar.height
-    }
+    // Explicitly empty rather than unset: a surface kept across a reload holds
+    // on to whatever region it was last given, and the transparent part of the
+    // strip would go on blurring the wallpaper sliding under it.
+    BackgroundEffect.blurRegion: Region {}
 
+    // Opaque: the rail is what lies behind the wallpaper, so there is nothing
+    // further back to show through it.
     Rectangle {
         id: backdrop
 
@@ -87,61 +129,41 @@ EdgeWindow {
         y: 0
         width: bar.railWidth
         height: parent.height
-        color: Theme.surfaceFill
+        color: Theme.mantle
+        clip: true
 
-        // Cast inward only: the rail runs the height of the screen against its
-        // own edge, so the other three sides have nothing to fall onto. Grows
-        // as the rail wakes, which is what makes it read as coming forward
-        // rather than only getting wider.
+        // Cast by the desktop onto the rail, along the inward edge where the
+        // wallpaper overlaps it. Deepens as the rail opens, so the desktop
+        // reads as lifting away rather than only sliding.
         Rectangle {
-            id: railShadow
+            id: deskShadow
 
-            // Barely wider on expand: spreading the same darkness over more
-            // distance reads as less of it, not more, so the depth comes from
-            // the alpha and the width only follows a little.
-            readonly property real spread: 14 + 6 * bar.reveal
+            readonly property real peak: 0.35 + 0.2 * bar.reveal
 
             anchors.top: parent.top
             anchors.bottom: parent.bottom
-            anchors.left: bar.anchorRight ? undefined : parent.right
-            anchors.right: bar.anchorRight ? parent.left : undefined
-            width: spread
+            anchors.right: bar.anchorRight ? undefined : parent.right
+            anchors.left: bar.anchorRight ? parent.left : undefined
+            width: 18
 
             // Falls away quickly rather than evenly across its width: a linear
             // ramp is still visibly dark where it ends, which reads as a band
-            // with an edge rather than a shadow fading out. A midpoint well
-            // under half the peak puts most of the falloff near the rail.
-            readonly property real peak: 0.14 + 0.16 * bar.reveal
-
+            // with an edge rather than a shadow fading out.
             gradient: Gradient {
                 orientation: Gradient.Horizontal
 
                 GradientStop {
                     position: 0
-                    color: Qt.alpha("black", bar.anchorRight ? 0 : railShadow.peak)
+                    color: Qt.alpha("black", bar.anchorRight ? deskShadow.peak : 0)
                 }
                 GradientStop {
-                    position: bar.anchorRight ? 0.65 : 0.35
-                    color: Qt.alpha("black", railShadow.peak * 0.22)
+                    position: bar.anchorRight ? 0.35 : 0.65
+                    color: Qt.alpha("black", deskShadow.peak * 0.22)
                 }
                 GradientStop {
                     position: 1
-                    color: Qt.alpha("black", bar.anchorRight ? railShadow.peak : 0)
+                    color: Qt.alpha("black", bar.anchorRight ? 0 : deskShadow.peak)
                 }
-            }
-        }
-
-        // hairline on the inward facing edge, whichever side that is
-        Rectangle {
-            anchors.right: bar.anchorRight ? undefined : parent.right
-            anchors.left: bar.anchorRight ? parent.left : undefined
-            width: 1
-            height: parent.height
-            color: Theme.surface0
-            opacity: bar.expanded ? 1 : 0
-
-            Behavior on opacity {
-                Fade {}
             }
         }
     }

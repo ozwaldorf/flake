@@ -15,6 +15,10 @@ PanelWindow {
 
     required property var modelData
 
+    // How far the rail pushes the desktop aside, signed by direction: the
+    // image slides with the windows to uncover the rail behind it.
+    property real push: 0
+
     screen: modelData
 
     // Under every other layer, including the bar's own. Opaque black rather
@@ -216,6 +220,12 @@ PanelWindow {
         // Held back until every input is loaded. The effect samples all three
         // unconditionally, and an unset one reads as black.
         visible: root.ready
+
+        // Applied here rather than on the canvas, so the push tracks the rail
+        // frame for frame instead of trailing it through the parallax easing.
+        transform: Translate {
+            x: root.push
+        }
 
         property Image fromTex: imageA
         property Image toTex: imageB
