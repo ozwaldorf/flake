@@ -59,6 +59,7 @@ Card {
 
     bottomLeftRadius: joined ? 0 : radius
     bottomRightRadius: joined ? 0 : radius
+    rimBottom: !joined
 
     Behavior on bottomLeftRadius {
         Morph {}
@@ -166,6 +167,8 @@ Card {
             text: root.status
             color: root.warn ? Theme.peach : Theme.overlay0
             elide: Text.ElideRight
+            // collapsed when there is nothing to say, so the label centres
+            visible: text !== ""
         }
     }
 

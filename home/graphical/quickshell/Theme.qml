@@ -56,12 +56,29 @@ Singleton {
     // the same surface lifted under the pointer
     readonly property color surfaceRaised: Qt.tint(surfaceFill, Qt.alpha(text, 0.06))
 
+    // Wells cut into the surface behind the desktop: darker than the drawer's
+    // ground rather than lifted off it, and only a touch lighter under the
+    // pointer, since nothing there can come forward.
+    readonly property color wellFill: Qt.rgba(0, 0, 0, 0.4)
+    readonly property color wellRaised: Qt.rgba(1, 1, 1, 0.03)
+
     // cards inside the panels, a touch tighter than the window rounding
     readonly property int cardRadius: 9
 
     readonly property int sliver: 6
     readonly property int rail: 44
     readonly property int modalWidth: 340
+
+    // Both drawers behind the rail, one width so either opens the desktop by
+    // the same amount: wide enough for a chart beside each reading and the
+    // month beside the date.
+    readonly property int drawerWidth: 400
+
+    // Margin around a drawer's panel. The rail has no visible edge against it,
+    // so spacing is read from the marks: the panel starts at the rail's edge,
+    // as far from the marks as they are from the screen, and keeps that
+    // margin again before the desktop.
+    readonly property int railInset: (rail - wsWidth) / 2
 
     // spacing scale; everything in the modals derives from these rather than
     // carrying its own magic numbers

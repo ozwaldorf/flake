@@ -60,6 +60,9 @@ in
 
     settings = {
       hotkey-overlay.skip-at-startup = { };
+      # The shell runs its own on the rail's corner pixel; niri's fired on
+      # every reach for the control centre in the corner beside it
+      gestures.hot-corners.off = { };
       # Workspaces are transparent over the wallpaper, so a shadow would only
       # outline empty space in the overview
       overview.workspace-shadow.off = { };

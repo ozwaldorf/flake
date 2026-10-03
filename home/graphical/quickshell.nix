@@ -21,13 +21,15 @@ let
 in
 {
   # curl and jq drive the wallpaper fetcher, lutgen bakes its color table,
-  # slurp picks the recorder's region
+  # slurp picks the recorder's region, fortune draws the calendar's line
+  # for the day
   home.packages = [
     pkgs.quickshell
     pkgs.curl
     pkgs.jq
     pkgs.lutgen
     pkgs.slurp
+    pkgs.fortune
   ];
 
   # symlinked out of the store so quickshell's live reload sees edits to the

@@ -31,6 +31,20 @@ Item {
     // to be set apart.
     property int axisSize: 9
 
+    // the ceiling, midpoint and floor down the side; off where the chart is
+    // too short to carry three lines of figures
+    property bool showAxis: true
+
+    // the faint ground under the plot; off where the chart bleeds into the
+    // well it sits in rather than sitting in a box of its own
+    property bool wash: true
+
+    // The area under the line fading out toward the baseline rather than one
+    // even tint, for a chart large enough to carry it.
+    property bool glow: false
+
+    property real lineWidth: 1.2
+
     implicitWidth: 132
     implicitHeight: 72
 
@@ -138,9 +152,10 @@ Item {
         id: axis
 
         anchors.right: parent.right
+        visible: root.showAxis
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        width: root.axisWidth
+        width: root.showAxis ? root.axisWidth : 0
 
         Text {
             id: maxLabel
@@ -197,15 +212,15 @@ Item {
 
         anchors.left: parent.left
         anchors.right: axis.left
-        anchors.rightMargin: Theme.spaceXs
+        anchors.rightMargin: root.showAxis ? Theme.spaceXs : 0
         anchors.top: parent.top
         anchors.bottom: parent.bottom
 
-        radius: 4
+        radius: root.wash ? 4 : 0
 
         // the wash the control centre's cards carry, here on the chart alone:
         // it is what sits on a surface rather than being one
-        color: Qt.alpha(Theme.surface0, 0.5)
+        color: root.wash ? Qt.alpha(Theme.surface0, 0.5) : "transparent"
 
         // the incoming sample slides in from past the right edge
         clip: true
@@ -221,9 +236,24 @@ Item {
             // baseline and back gives the area under the line without a second
             // traversal.
             ShapePath {
-                fillColor: Qt.alpha(root.stroke, 0.18)
                 strokeColor: root.stroke
-                strokeWidth: 1.2
+                strokeWidth: root.lineWidth
+
+                fillGradient: LinearGradient {
+                    x1: 0
+                    y1: 0
+                    x2: 0
+                    y2: plot.height
+
+                    GradientStop {
+                        position: 0
+                        color: Qt.alpha(root.stroke, root.glow ? 0.4 : 0.18)
+                    }
+                    GradientStop {
+                        position: 1
+                        color: Qt.alpha(root.stroke, root.glow ? 0 : 0.18)
+                    }
+                }
                 joinStyle: ShapePath.RoundJoin
                 capStyle: ShapePath.RoundCap
 
@@ -269,7 +299,7 @@ Item {
             ShapePath {
                 fillColor: "transparent"
                 strokeColor: root.secondStroke
-                strokeWidth: 1.2
+                strokeWidth: root.lineWidth
                 joinStyle: ShapePath.RoundJoin
                 capStyle: ShapePath.RoundCap
 

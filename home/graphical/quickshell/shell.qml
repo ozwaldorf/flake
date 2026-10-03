@@ -107,68 +107,86 @@ ShellRoot {
                 return rightmost !== null && Quickshell.screens.length > 1 && modelData.name === rightmost.name;
             }
 
-            property bool panelOpen: false
+            // Which drawer is open behind the rail, if any: "settings" for the
+            // control centre, opened from the rail's top corner, or "info" for
+            // the monitor and calendar, opened from its foot. Each opens on a
+            // hover or a tap there, and closes when the pointer leaves the rail
+            // and drawer, or on a tap on the rest of the rail.
+            //
+            // With the overview up the control centre waits for the overview
+            // to close instead, so the pointer can travel out to it and the tap
+            // that picks a window there is not spent on the drawer first.
+            property string drawer: ""
+            readonly property bool panelOpen: drawer === "settings"
 
-            // whether the pointer is on the rail's corner zone, or on the panel
+            // The drawer whose contents show. Kept after it closes, so they
+            // are covered by the desktop sliding back rather than vanishing
+            // from under it.
+            property string shownDrawer: ""
+
+            onDrawerChanged: {
+                if (drawer !== "")
+                    shownDrawer = drawer;
+            }
+
             readonly property bool cornerHovered: bar.cornerHovered
-            property bool panelHovered: false
+            readonly property bool bottomHovered: bar.bottomHovered
 
-            // Opening waits out a short dwell so a pointer passing through the
-            // corner on its way somewhere else does not flash the panel open.
-            // Closing waits longer so the pointer can travel the gap from the
-            // zone to the panel.
+            // Opening waits out a short dwell so a pointer passing through on
+            // its way somewhere else does not flash a drawer open.
             Timer {
                 id: openTimer
                 interval: 50
                 onTriggered: {
-                    if (scope.cornerHovered) {
-                        scope.panelOpen = true;
-                        graceTimer.restart();
-                    }
-                }
-            }
-
-            // Opening the panel resizes the rail under a stationary pointer,
-            // and Qt re-evaluates hover against the new geometry. That emits a
-            // spurious unhover, so ignore close requests until the layout has
-            // settled.
-            Timer {
-                id: graceTimer
-                interval: Theme.settleDelay
-            }
-
-            Timer {
-                id: closeTimer
-                interval: 320
-                onTriggered: {
-                    if (scope.panelHovered || scope.cornerHovered)
-                        return;
-                    if (graceTimer.running) {
-                        // layout still settling; re-arm rather than dismissing
-                        closeTimer.restart();
-                        return;
-                    }
-                    scope.panelOpen = false;
+                    if (scope.cornerHovered)
+                        scope.drawer = "settings";
+                    else if (scope.bottomHovered)
+                        scope.drawer = "info";
                 }
             }
 
             onCornerHoveredChanged: {
-                if (cornerHovered) {
-                    closeTimer.stop();
-                    if (!panelOpen)
-                        openTimer.restart();
-                } else {
-                    openTimer.stop();
-                    if (!panelHovered)
-                        closeTimer.restart();
+                if (cornerHovered && drawer !== "settings")
+                    openTimer.restart();
+            }
+
+            onBottomHoveredChanged: {
+                if (bottomHovered && drawer !== "info")
+                    openTimer.restart();
+            }
+
+            property bool settingsHovered: false
+            property bool infoHovered: false
+            readonly property bool pointerInside: bar.pointerInside || settingsHovered || infoHovered
+
+            // Closing waits a little, so brushing past the drawer's edge does
+            // not throw it shut.
+            Timer {
+                id: closeTimer
+                interval: Theme.exitDelay
+                onTriggered: {
+                    if (!scope.pointerInside && !(scope.panelOpen && Niri.overviewOpen))
+                        scope.drawer = "";
                 }
             }
 
-            onPanelHoveredChanged: {
-                if (panelHovered)
+            onPointerInsideChanged: {
+                if (pointerInside)
                     closeTimer.stop();
-                else if (!cornerHovered)
+                else if (drawer !== "")
                     closeTimer.restart();
+            }
+
+            Connections {
+                target: Niri
+
+                function onOverviewOpenChanged() {
+                    // the overview held the control centre open past the
+                    // pointer leaving; with it gone, so is the drawer, unless
+                    // the pointer is still on it
+                    if (!Niri.overviewOpen && scope.panelOpen && !scope.pointerInside)
+                        scope.drawer = "";
+                }
             }
 
             // Named apart from the Wallpaper singleton it draws: modals and
@@ -176,7 +194,7 @@ ShellRoot {
             // resolves to the singleton, which is not creatable.
             WallpaperLayer {
                 modelData: scope.modelData
-                push: scope.anchorRight ? -bar.railWidth : bar.railWidth
+                push: scope.anchorRight ? -bar.pushWidth : bar.pushWidth
             }
 
             Bar {
@@ -185,13 +203,34 @@ ShellRoot {
                 modelData: scope.modelData
                 anchorRight: scope.anchorRight
                 panelOpen: scope.panelOpen
+                drawerWidth: scope.drawer === "settings" ? settings.drawerWidth : scope.drawer === "info" ? info.drawerWidth : 0
+                onCornerTapped: scope.drawer = "settings"
+                onBottomTapped: scope.drawer = "info"
+                onRailTapped: scope.drawer = ""
+                onHotCornerEntered: {
+                    Niri.openOverview();
+                    scope.drawer = "settings";
+                }
             }
 
             ControlCenter {
+                id: settings
+
                 modelData: scope.modelData
                 anchorRight: scope.anchorRight
                 shown: scope.panelOpen
-                onHoverChanged: hovered => scope.panelHovered = hovered
+                revealWidth: scope.shownDrawer === "settings" ? bar.pushWidth : 0
+                onHoverChanged: hovered => scope.settingsHovered = hovered
+            }
+
+            InfoPanel {
+                id: info
+
+                modelData: scope.modelData
+                anchorRight: scope.anchorRight
+                shown: scope.drawer === "info"
+                revealWidth: scope.shownDrawer === "info" ? bar.pushWidth : 0
+                onHoverChanged: hovered => scope.infoHovered = hovered
             }
 
             Toasts {

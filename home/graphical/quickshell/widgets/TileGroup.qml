@@ -101,6 +101,7 @@ Column {
         width: parent.width
         host: root.host
         lifts: false
+        rimTop: !root.joined
 
         // Not clipped here: the bridge below reaches up out of these bounds to
         // meet the tile. The lists inside do their own clipping instead.
@@ -162,7 +163,7 @@ Column {
         // The bridge is its own rectangle above the card, so it needs its own
         // blur or it shows as an unfrosted strip across the join.
         Loader {
-            active: root.host !== null
+            active: root.host !== null && !listCard.recessed
             sourceComponent: CardBlur {
                 target: bridge
                 host: root.host

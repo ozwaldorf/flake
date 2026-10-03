@@ -102,57 +102,11 @@ Singleton {
 
     // ---- the tip ----
 
-    // Rows are numbered from the bottom, where the wide end sits against the
-    // meters. Widths shape the wedge: each row is narrower than the one below
-    // it, and the sizes vary within a row so the stack does not read as a
-    // grid. Without the GPU the top row empties rather than leaving a gap,
-    // since the pair sharing it are both the card's.
-    readonly property var tip: [
-        // row 0, against the meters: the widest
-        {
-            kind: "io",
-            row: 0,
-            width: 180
-        },
-        {
-            kind: "disk",
-            row: 0,
-            width: 134
-        },
-        {
-            kind: "memory",
-            row: 0,
-            width: 150
-        },
-        // row 1
-        {
-            kind: "network",
-            row: 1,
-            width: 220
-        },
-        {
-            kind: "cpu",
-            row: 1,
-            width: 182
-        },
-        // row 2, the narrow end
-        {
-            kind: "vram",
-            row: 2,
-            width: 134
-        },
-        {
-            kind: "gpu",
-            row: 2,
-            width: 176
-        },
-        // the apex
-        {
-            kind: "summary",
-            row: 3,
-            width: 225
-        }
-    ].filter(m => available(m.kind))
+    // The monitor's chips in reading order, laid out two to a row: who and
+    // what this is beside the load, memory beside the disk, the two rates
+    // together, and the card's pair last, so without one the grid closes up
+    // rather than leaving a gap.
+    readonly property var tip: ["summary", "cpu", "memory", "disk", "network", "io", "gpu", "vram"].filter(available)
 
     // The window of past readings a chart draws, and the second series over it
     // for the two directional readings.

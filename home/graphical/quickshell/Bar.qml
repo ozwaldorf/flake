@@ -9,24 +9,44 @@ import "services"
 // Vertical rail anchored to the outward facing screen edge. It sits behind the
 // desktop rather than over it: waking the rail widens the exclusive zone so the
 // windows move aside, the wallpaper slides with them, and the rail is revealed
-// in the gap they leave.
+// in the gap they leave. Opening a drawer widens it again, by the width of the
+// panel it holds: the control centre from the top corner, the monitor and
+// calendar from the foot.
 EdgeWindow {
     id: bar
 
-    // held open while the panel is up, so moving toward it does not collapse
-    // the rail
+    // whether the control centre is the drawer that is open, for the mark
+    // that opens it
     property bool panelOpen: false
-    readonly property bool expanded: railHovered || panelOpen
+
+    // how far the open drawer reaches past the rail, or 0 with none open; the
+    // rail is held out while one is, so moving toward it does not collapse it
+    property real drawerWidth: 0
+    readonly property bool expanded: railHovered || drawerWidth > 0
 
     // whether the pointer is on the corner zone that opens the panel
     readonly property bool cornerHovered: cornerHover.hovered
 
+    // whether the pointer is on the foot of the rail, which opens the other
+    readonly property bool bottomHovered: bottomHover.hovered
+
+    // whether the pointer is anywhere on the rail, undebounced
+    readonly property bool pointerInside: rawHover.hovered
+
+    // A tap on the corner or the foot, which open their drawers, and one
+    // anywhere else on the rail, which closes it. The workspace marks take
+    // their own clicks.
+    signal cornerTapped
+    signal bottomTapped
+    signal railTapped
+
+    // the pointer pushed into the screen's own corner, which opens the
+    // overview and the drawer together, in place of niri's hot corner
+    signal hotCornerEntered
+
     // sample the meters faster while this rail is out; released on destruction
     // so unplugging a monitor mid hover does not leave the count raised
-    onExpandedChanged: {
-        SysMeters.watch(expanded);
-        spring.retarget();
-    }
+    onExpandedChanged: SysMeters.watch(expanded)
 
     Component.onDestruction: {
         if (expanded)
@@ -44,72 +64,51 @@ EdgeWindow {
     // relayout of the whole output, and the compositor animates the windows
     // across on its own.
     exclusionMode: ExclusionMode.Normal
-    exclusiveZone: expanded ? Theme.rail : Theme.sliver
+    exclusiveZone: drawerWidth > 0 ? Theme.rail + drawerWidth : expanded ? Theme.rail : Theme.sliver
 
-    // only the visible rail takes input; the rest of the fixed width surface
-    // stays click through
+    // The rail and as much of the drawer as is out. The drawer's own window
+    // sits over it and takes the cards; this holds the hover across the empty
+    // space between and below them, so it does not read as leaving.
     mask: Region {
-        x: bar.railX
+        x: backdrop.x
         y: 0
-        width: bar.railWidth
+        width: backdrop.width
         height: bar.height
     }
 
-    // The surface stays at full rail width and the content animates inside it.
+    // The surface stays at full width and the content animates inside it.
     // Animating implicitWidth means a right anchored surface is resized and
     // repositioned every frame, since its origin is derived from the width, and
     // those two commits are not atomic: the surface can present at the new size
     // before the new position lands, which shows as a gap at the screen edge.
     shadowRoom: 0
 
-    implicitWidth: Theme.rail
+    implicitWidth: Theme.rail + Theme.drawerWidth + Theme.railInset
+
+    // On niri's spring, so the rail and the windows it pushes move as one. Two
+    // of them rather than one over the total: the rail's marks morph on its
+    // own 0 to 1, and the spring being linear, the sum still tracks niri's
+    // single retargeted one.
+    Spring {
+        id: railSpring
+        target: bar.expanded ? 1 : 0
+    }
+
+    Spring {
+        id: drawerSpring
+        target: bar.drawerWidth
+    }
 
     // 0 collapsed, 1 expanded; every width on the rail, and the toasts beside
     // it, follow this one value
-    property real reveal: 0
-
-    // The windows are moved by niri's horizontal view spring when the zone
-    // changes, so the rail runs the same one: critically damped, stiffness
-    // 800, unit mass, carrying its velocity into a reversal the way niri
-    // does. Solved in closed form from the moment of each retarget rather
-    // than integrated, so frame pacing does not drift it off niri's curve.
-    FrameAnimation {
-        id: spring
-
-        readonly property real omega: Math.sqrt(800) / Theme.motionScale
-        property real target: 0
-        property real c1: 0
-        property real c2: 0
-        property real startedAt: 0
-        property real velocity: 0
-
-        function retarget() {
-            target = bar.expanded ? 1 : 0;
-            c1 = bar.reveal - target;
-            c2 = velocity + omega * c1;
-            startedAt = Date.now();
-            restart();
-        }
-
-        onTriggered: {
-            // wall clock rather than summed frame times: the first frame after a
-            // restart reports the whole idle gap as its frame time
-            const t = (Date.now() - startedAt) / 1000;
-            const decay = Math.exp(-omega * t);
-            const offset = (c1 + c2 * t) * decay;
-            velocity = (c2 - omega * (c1 + c2 * t)) * decay;
-            if (Math.abs(offset) < 0.0001 && Math.abs(velocity) < 0.01) {
-                velocity = 0;
-                bar.reveal = target;
-                stop();
-                return;
-            }
-            bar.reveal = target + offset;
-        }
-    }
+    readonly property real reveal: railSpring.value
 
     // visible width of the rail within the fixed surface
     readonly property real railWidth: Theme.sliver + (Theme.rail - Theme.sliver) * reveal
+
+    // how far the desktop is pushed from the screen edge: the rail and as much
+    // of the drawer as is out
+    readonly property real pushWidth: railWidth + drawerSpring.value
 
     // The rail hugs the outward edge, so the content is inset from the other
     // side, measured from the window's own edge.
@@ -121,13 +120,14 @@ EdgeWindow {
     BackgroundEffect.blurRegion: Region {}
 
     // Opaque: the rail is what lies behind the wallpaper, so there is nothing
-    // further back to show through it.
+    // further back to show through it. Spans the drawer as it opens, so the
+    // panel stands on the same ground as the rail.
     Rectangle {
         id: backdrop
 
-        x: bar.railX
+        x: bar.anchorRight ? bar.width - width : 0
         y: 0
-        width: bar.railWidth
+        width: bar.pushWidth
         height: parent.height
         color: Theme.mantle
         clip: true
@@ -167,15 +167,6 @@ EdgeWindow {
             }
         }
     }
-
-    // Centre of the meter group, so the tip opens level with what it describes.
-    // Summed from the items' own geometry rather than mapped: a mapToItem call
-    // does not re-evaluate when they move.
-    readonly property real tipY: railContent.y + bottom.y + meters.y + meters.height / 2
-
-    // Centre of the clock, summed the same way, so the calendar opens level
-    // with the digits it belongs to.
-    readonly property real clockY: railContent.y + bottom.y + clock.y + clock.height / 2
 
     // widened catch area so the pointer does not have to hit 6px exactly
     HoverHandler {
@@ -220,6 +211,8 @@ EdgeWindow {
     // edge, and following the rail's width so it covers the sliver while
     // collapsed and the full width once out.
     Item {
+        id: corner
+
         x: bar.railX
         y: 0
         width: bar.railWidth
@@ -227,6 +220,54 @@ EdgeWindow {
 
         HoverHandler {
             id: cornerHover
+        }
+    }
+
+    // The corner pixels themselves, inside the corner zone: only a pointer
+    // pushed all the way in reaches them, so the drawer can be had alone.
+    Item {
+        x: bar.anchorRight ? bar.width - width : 0
+        y: 0
+        width: 2
+        height: 2
+
+        HoverHandler {
+            onHoveredChanged: {
+                if (hovered)
+                    bar.hotCornerEntered();
+            }
+        }
+    }
+
+    // Opening the monitor and calendar: the foot of the rail, from just above
+    // the meters down to the screen edge, the counterpart of the corner. Summed
+    // from the group's offsets rather than mapped, which would not follow it.
+    Item {
+        id: foot
+
+        x: bar.railX
+        y: railContent.y + bottom.y - Theme.railItemGap
+        width: bar.railWidth
+        height: bar.height - y
+
+        HoverHandler {
+            id: bottomHover
+        }
+    }
+
+    // One handler for the whole rail, split by where the tap landed: two on
+    // nested items would both see a tap on the corner.
+    TapHandler {
+        onTapped: eventPoint => {
+            const x = eventPoint.position.x;
+            if (x < bar.railX || x > bar.railX + bar.railWidth)
+                return;
+            if (eventPoint.position.y < corner.height)
+                bar.cornerTapped();
+            else if (eventPoint.position.y >= foot.y)
+                bar.bottomTapped();
+            else
+                bar.railTapped();
         }
     }
 
@@ -304,57 +345,5 @@ EdgeWindow {
                 expanded: bar.expanded
             }
         }
-
-        // One target over the whole meter group rather than one per meter: the
-        // tip shows them all, so which one the pointer is on does not matter,
-        // and travelling between them never drops it. Spans the rail so the
-        // marks are not what has to be hit.
-        //
-        // Placed by summing the group's offsets rather than by mapToItem,
-        // which is a one shot call with no dependency tracking. A Column
-        // refuses vertical anchors on its children besides, so this sits
-        // outside the columns entirely.
-        Item {
-            x: (railContent.width - width) / 2
-            y: bottom.y + meters.y
-            width: Theme.rail
-            height: meters.height
-
-            HoverHandler {
-                id: meterHover
-            }
-        }
-
-        // The clock's own target, placed the same way: the digits are two
-        // characters in a narrow strip, and the calendar is reached by aiming
-        // at the bottom of the rail rather than at them exactly.
-        Item {
-            x: (railContent.width - width) / 2
-            y: bottom.y + clock.y
-            width: Theme.rail
-            height: clock.height
-
-            HoverHandler {
-                id: clockHover
-            }
-        }
-    }
-
-    // Only while the rail is out: in the sliver the meters are six pixels wide
-    // and a panel beside them would be most of what is on screen.
-    RailTip {
-        modelData: bar.modelData
-        anchorRight: bar.anchorRight
-        markY: bar.tipY
-        shown: meterHover.hovered && bar.expanded
-    }
-
-    // Same rule as the meter tip: only while the rail is out, since collapsed
-    // the clock is a sliver of skeleton with no digits to expand on.
-    CalendarTip {
-        modelData: bar.modelData
-        anchorRight: bar.anchorRight
-        markY: bar.clockY
-        shown: clockHover.hovered && bar.expanded
     }
 }

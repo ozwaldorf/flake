@@ -77,13 +77,6 @@ ModalPanel {
             // whatever was above it.
             spacing: Theme.spaceXs
 
-            // The rows in reveal order, and those of them actually showing:
-            // the notification cards below carry on the same sequence rather
-            // than starting a second one, and a row that is hidden closes up
-            // rather than leaving its step as a pause in the middle.
-            readonly property var rows: [connectivity, brightness, audio, media, session, utility]
-            readonly property var shownRows: rows.filter(r => r.visible)
-
             // Which group holds the open list, and which entry within it. Kept
             // here rather than in each group so opening a list closes whichever
             // was already out: two at once push the rest of the panel down past
@@ -164,15 +157,15 @@ ModalPanel {
                 onRequestOpen: name => layout.openIn(session, name)
             }
 
-            // ---- tray, finished by the clear tile ----
+            // ---- tray ----
 
-            // One flow rather than a fixed row: wrapping packs every line as
-            // full as it goes, and the clear tile finishes whichever line the
-            // tray left off on rather than taking one of its own.
+            // One flow rather than a fixed row, so a long tray wraps onto as
+            // many lines as it needs.
             Flow {
                 id: utility
 
                 width: parent.width
+                visible: trayCount > 0
                 spacing: Theme.spaceXs
 
                 // Filled from the edge the rail is on, so the tray leads the
@@ -198,17 +191,6 @@ ModalPanel {
                 // A hair under the exact share, so rounding in the sum cannot
                 // push the last entry on a line over the edge and wrap it.
                 readonly property real entry: (width - (perLine - 1) * spacing) / perLine - 0.01
-
-                // How many land on the last line: what is left of it is the
-                // clear tile's, as long as its label fits there. A full line,
-                // or one with too little left for the label, puts the tile on a
-                // line of its own, which it fills.
-                readonly property int onLastLine: trayCount % perLine
-
-                readonly property real leftover: width - onLastLine * (entry + spacing) - 0.01
-                readonly property real clearNeeds: clearLabel.implicitWidth + Theme.spaceSm * 2
-
-                readonly property real clearCell: onLastLine > 0 && leftover >= clearNeeds ? leftover : width
 
                 Repeater {
                     model: SystemTray.items
@@ -320,67 +302,7 @@ ModalPanel {
                         }
                     }
                 }
-
-                // Clearing every notification, with the settings rather than on
-                // the stack it acts on: the stack is a list of things to read, and
-                // a control among them reads as one of them.
-                Card {
-                    id: clearAll
-
-                    // Present whether or not there is anything to clear: an
-                    // empty stack is worth stating, and a tile that came and
-                    // went would reflow the row under the pointer.
-                    readonly property bool has: Notifications.count > 0
-
-                    // finishes whatever line the tray left off on, or takes one
-                    // of its own when there is no room left there for it
-                    width: utility.clearCell
-                    implicitHeight: utility.entry
-                    host: root
-                    lifts: has
-                    cursorShape: has ? Qt.PointingHandCursor : Qt.ArrowCursor
-
-                    Label {
-                        id: clearLabel
-
-                        anchors.centerIn: parent
-
-                        text: clearAll.has ? "Clear " + Notifications.count + " notification" + (Notifications.count === 1 ? "" : "s") : "No new notifications"
-
-                        // dimmer with nothing to say, and only red when there
-                        // is something a click would actually discard
-                        color: !clearAll.has ? Theme.surface2 : clearAll.hovered ? Theme.red : Theme.overlay1
-
-                        Behavior on color {
-                            ColorAnimation {
-                                duration: Theme.hoverDuration
-                            }
-                        }
-                    }
-
-                    TapHandler {
-                        enabled: clearAll.has
-                        onTapped: root.clearNotifications()
-                    }
-                }
             }
-        }
-    }
-
-    // Each row arrives a step behind the one above it, sliding in from the
-    // edge the panel opened from. Declared out here rather than inside the
-    // rows: a Column lays out every child it has, and these would each take a
-    // slot of their own.
-    Repeater {
-        model: layout.rows
-
-        RevealSlide {
-            required property Item modelData
-
-            target: modelData
-            index: Math.max(0, layout.shownRows.indexOf(modelData))
-            shown: root.shown
-            fromRight: root.anchorRight
         }
     }
 
@@ -398,19 +320,18 @@ ModalPanel {
             width: parent.width
             anchorRight: root.anchorRight
             entry: model
+            recessed: true
 
-            // Each card arrives a step behind the one above it, continuing the
-            // sequence the control rows started rather than beginning a second
-            // one: the stack reads as one set coming in.
+            // Faded in on arrival, and out while the stack is being cleared, so
+            // the cards leave rather than the model emptying out from under
+            // them. Not on the panel opening or closing: the drawer uncovers
+            // and covers them where they stand.
             opacity: 0
 
-            // Driven low while the stack is being cleared as well as when the
-            // panel closes, so the cards leave the way they arrived rather
-            // than the model emptying out from under them.
             RevealSlide {
                 target: card
-                index: layout.shownRows.length + card.index
-                shown: root.shown && !root.clearing
+                index: 0
+                shown: !root.clearing
                 fromRight: root.anchorRight
 
                 // Sequenced only when the stack is being cleared, and from the
@@ -461,6 +382,66 @@ ModalPanel {
 
             TapHandler {
                 onTapped: Notifications.remove(card.model.id)
+            }
+        }
+    }
+
+    // Clearing every notification, pinned to the foot of the drawer rather
+    // than among the cards it acts on: a control in the stack reads as one
+    // more thing to read. A small button while there is something to clear,
+    // and a line saying there is nothing otherwise, in the same spot.
+    footer: Item {
+        id: foot
+
+        readonly property bool has: Notifications.count > 0 && !root.clearing
+
+        width: parent.width
+        height: clearAll.height
+
+        Card {
+            id: clearAll
+
+            anchors.horizontalCenter: parent.horizontalCenter
+            implicitWidth: clearLabel.implicitWidth + Theme.spaceSm * 2
+            implicitHeight: clearLabel.implicitHeight + Theme.spaceXs * 2
+            radius: height / 2
+            cursorShape: Qt.PointingHandCursor
+            opacity: foot.has ? 1 : 0
+            visible: opacity > 0
+
+            Behavior on opacity {
+                Fade {}
+            }
+
+            Label {
+                id: clearLabel
+
+                anchors.centerIn: parent
+                text: "Clear all"
+                color: clearAll.hovered ? Theme.red : Theme.overlay1
+
+                Behavior on color {
+                    ColorAnimation {
+                        duration: Theme.hoverDuration
+                    }
+                }
+            }
+
+            TapHandler {
+                enabled: foot.has
+                onTapped: root.clearNotifications()
+            }
+        }
+
+        Label {
+            anchors.centerIn: parent
+            text: "No new notifications"
+            color: Theme.surface2
+            opacity: foot.has ? 0 : 1
+            visible: opacity > 0
+
+            Behavior on opacity {
+                Fade {}
             }
         }
     }

@@ -23,10 +23,14 @@ Rectangle {
 
     implicitHeight: content.implicitHeight + Theme.padCard * 2
     radius: Theme.rounding
+    // Cut into the drawer when listed in it, rather than standing over the
+    // desktop as a toast does.
+    property bool recessed: false
+
     // lifts toward surface0 on hover, keeping the surface alpha rather than
     // going through Qt.lighter, which distorts translucent colours
-    color: Qt.alpha(hovered ? Theme.surface0 : Theme.base, 0.8)
-    border.width: 1
+    color: recessed ? (hovered ? Theme.wellRaised : Theme.wellFill) : Qt.alpha(hovered ? Theme.surface0 : Theme.base, 0.8)
+    border.width: recessed ? 0 : 1
     border.color: hovered ? Theme.surface2 : Theme.surface1
 
     Behavior on color {
@@ -38,6 +42,11 @@ Rectangle {
         ColorAnimation {
             duration: Theme.fadeDuration
         }
+    }
+
+    Inset {
+        target: root
+        visible: root.recessed
     }
 
     // urgency stripe, clipped so it follows the card radius rather than sitting
@@ -203,6 +212,7 @@ Rectangle {
     // rather than only changing colour
     DropShadow {
         target: root
+        visible: !root.recessed
         elevation: cardHover.hovered ? 9 : 6
         strength: cardHover.hovered ? 0.45 : 0.35
     }

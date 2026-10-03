@@ -36,6 +36,9 @@ Singleton {
     // it takes to bring the focused column fully on screen.
     property var scrollOffsets: ({})
 
+    // whether the overview is up, on any output: niri has one for all of them
+    property bool overviewOpen: false
+
     // layout gaps and struts from niri.nix, which the replay needs to match
     readonly property real gap: 10
     readonly property real strut: 10
@@ -48,6 +51,14 @@ Singleton {
                         Id: id
                     }
                 }
+            }
+        });
+    }
+
+    function openOverview(): void {
+        request({
+            Action: {
+                OpenOverview: {}
             }
         });
     }
@@ -130,7 +141,9 @@ Singleton {
     }
 
     function handle(event: var): void {
-        if (event.WorkspacesChanged) {
+        if (event.OverviewOpenedOrClosed) {
+            overviewOpen = event.OverviewOpenedOrClosed.is_open;
+        } else if (event.WorkspacesChanged) {
             syncWorkspaces(event.WorkspacesChanged.workspaces);
         } else if (event.WorkspaceActivated) {
             const {

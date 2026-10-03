@@ -158,6 +158,62 @@ Singleton {
         }
     }
 
+    // The rest of what the drawer lists about the machine: the hardware, the
+    // shell and compositor it is running, and which
+    // generation of the system that is. Read at startup and again whenever
+    // the drawer asks, since a switch moves the generation under a running
+    // session. Read as key=value lines so a field that comes up empty does
+    // not shift the rest.
+    property string hostModel: ""
+    property string cpuModel: ""
+    property string gpuModel: ""
+    property string shellRelease: ""
+    property string wmRelease: ""
+
+    // the system profile's generation, and when it was built, in epoch seconds
+    property int generation: 0
+    property real generationTime: 0
+
+    // NixOS's own version string, which carries the nixpkgs date and revision
+    property string nixosVersion: ""
+
+    function rescanHost() {
+        hostScan.running = true;
+    }
+
+    Process {
+        id: hostScan
+
+        running: true
+
+        command: ["sh", "-c", ["d=/sys/devices/virtual/dmi/id", "echo \"model=$(cat $d/sys_vendor 2>/dev/null) $(cat $d/product_name 2>/dev/null)\"", "echo \"cpu=$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2- | sed 's/^ *//') ($(nproc))\"", "echo \"gpu=$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | head -1)\"", "echo \"shell=$(quickshell --version 2>/dev/null | head -1 | cut -d' ' -f1,2)\"", "echo \"wm=$(niri --version 2>/dev/null | cut -d' ' -f1,2)\"", "g=$(readlink /nix/var/nix/profiles/system)", "echo \"generation=$(echo $g | tr -dc 0-9) $(stat -c %Y /nix/var/nix/profiles/$g)\"", "echo \"nixos=$(nixos-version 2>/dev/null)\""].join("; ")]
+
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const keys = {
+                    model: "hostModel",
+                    cpu: "cpuModel",
+                    gpu: "gpuModel",
+                    shell: "shellRelease",
+                    wm: "wmRelease",
+                    nixos: "nixosVersion"
+                };
+                for (const line of text.trim().split("\n")) {
+                    const i = line.indexOf("=");
+                    const key = line.slice(0, i);
+                    const value = line.slice(i + 1).trim();
+                    if (key === "generation") {
+                        const [number, time] = value.split(" ").map(Number);
+                        root.generation = number || 0;
+                        root.generationTime = time || 0;
+                    } else if (keys[key]) {
+                        root[keys[key]] = value;
+                    }
+                }
+            }
+        }
+    }
+
     // Seconds since boot. Its own slow timer: it is read to the minute, so a
     // faster one would redraw the same string over and over.
     property real uptime: 0

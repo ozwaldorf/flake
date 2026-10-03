@@ -22,7 +22,7 @@ ToggleTile {
             return Power.error;
         if (Power.pending !== "")
             return Power.label(Power.pending) + "...";
-        return "Suspend, restart, shut down";
+        return "";
     }
 
     warn: Power.error !== ""
