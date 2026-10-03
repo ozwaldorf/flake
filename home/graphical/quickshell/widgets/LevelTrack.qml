@@ -18,7 +18,7 @@ Item {
     // updating underneath the pointer.
     property bool live: true
 
-    property int cursorShape: Qt.ArrowCursor
+    property int cursorShape: Qt.PointingHandCursor
 
     readonly property bool dragging: drag.active
     readonly property bool hovered: hover.hovered

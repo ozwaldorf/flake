@@ -80,21 +80,27 @@ EdgeWindow {
     property Item keep: null
     signal dismissed
 
+    //
+    // Hidden rather than disabled: a MouseArea's enabled only stops it taking
+    // presses, and it still sets the arrow over everything beneath it. The kept
+    // item is cut out of it, so presses and the cursor both reach what is there.
     MouseArea {
+        id: dismissCatch
+
         anchors.fill: parent
         z: 1000
-        enabled: root.dismissable
+        visible: root.dismissable
 
-        onPressed: mouse => {
-            if (root.keep) {
-                const p = mapToItem(root.keep, mouse.x, mouse.y);
-                if (p.x >= 0 && p.y >= 0 && p.x < root.keep.width && p.y < root.keep.height) {
-                    mouse.accepted = false;
-                    return;
-                }
+        containmentMask: QtObject {
+            function contains(point: point): bool {
+                if (!root.keep)
+                    return true;
+                const p = dismissCatch.mapToItem(root.keep, point.x, point.y);
+                return !(p.x >= 0 && p.y >= 0 && p.x < root.keep.width && p.y < root.keep.height);
             }
-            root.dismissed();
         }
+
+        onPressed: root.dismissed()
     }
 
     // Mapped for good and switched by its input region instead. A surface
