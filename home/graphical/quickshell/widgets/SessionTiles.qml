@@ -3,9 +3,10 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import "../services"
 
-// Power and the screen recorder side by side, with the power actions opening
-// underneath. Only one of the two has anything to disclose, so the join is
-// always on the power tile's side.
+// Power beside the brightness, with the power actions opening over them.
+// Power takes a third, being a tile with nothing to read on it, and leads the
+// row from the rail's side; the brightness takes the rest of the width for its
+// track.
 TileGroup {
     id: root
 
@@ -13,12 +14,13 @@ TileGroup {
     // whichever side the panel opened from.
     property bool anchorRight: false
 
-    readonly property real cell: (width - tileRow.spacing) / 2
+    // the same third the audio row splits on, so the two rows line up
+    readonly property real third: (width - tileRow.spacing) / 3
 
     tileRow.layoutDirection: anchorRight ? Qt.RightToLeft : Qt.LeftToRight
 
-    joinLeft: anchorRight ? width - cell : 0
-    joinRight: anchorRight ? width : cell
+    // one height across the row, whichever of the two is taller
+    readonly property real rowHeight: Math.max(power.implicitHeight, brightness.visible ? brightness.implicitHeight : 0)
 
     // A refusal is worth showing while the list that caused it is up, but not
     // held against the next time the tile is opened.
@@ -33,17 +35,22 @@ TileGroup {
     PowerTile {
         id: power
 
-        width: root.cell
+        // the whole row when there is no backlight to share it with
+        width: brightness.visible ? root.third : root.width
+        height: root.rowHeight
         host: root.host
 
+        listName: "power"
         expanded: root.open === "power"
-        joined: root.joined
 
         onListToggled: root.toggle("power")
     }
 
-    RecorderTile {
-        width: root.cell
+    BrightnessCard {
+        id: brightness
+
+        width: root.width - root.third - root.tileRow.spacing
+        height: root.rowHeight
         host: root.host
     }
 

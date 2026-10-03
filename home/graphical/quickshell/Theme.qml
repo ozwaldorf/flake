@@ -58,9 +58,11 @@ Singleton {
 
     // Wells cut into the surface behind the desktop: darker than the drawer's
     // ground rather than lifted off it, and only a touch lighter under the
-    // pointer, since nothing there can come forward.
-    readonly property color wellFill: Qt.rgba(0, 0, 0, 0.4)
-    readonly property color wellRaised: Qt.rgba(1, 1, 1, 0.03)
+    // pointer, since nothing there can come forward. Opaque, worked out over
+    // the drawer's own ground: a fade between a translucent black and a
+    // translucent white passes through a grey lighter than either.
+    readonly property color wellFill: Qt.tint(mantle, Qt.rgba(0, 0, 0, 0.4))
+    readonly property color wellRaised: Qt.tint(mantle, Qt.rgba(1, 1, 1, 0.04))
 
     // cards inside the panels, a touch tighter than the window rounding
     readonly property int cardRadius: 9
@@ -74,10 +76,8 @@ Singleton {
     // month beside the date.
     readonly property int drawerWidth: 400
 
-    // Margin around a drawer's panel. The rail has no visible edge against it,
-    // so spacing is read from the marks: the panel starts at the rail's edge,
-    // as far from the marks as they are from the screen, and keeps that
-    // margin again before the desktop.
+    // Margin around a drawer's panel, on the rail's side and the desktop's
+    // alike: as far from either edge as the rail's marks are from the screen.
     readonly property int railInset: (rail - wsWidth) / 2
 
     // spacing scale; everything in the modals derives from these rather than
@@ -96,9 +96,9 @@ Singleton {
     // gap between workspace blocks, equal to the block size
     readonly property int wsGap: 12
 
-    // System meters: one per row down the rail, sized and spaced exactly like
-    // the workspace marks so the two groups read as one system.
-    readonly property int meterWidth: wsWidth
+    // System meters: one per row down the rail, spaced like the workspace
+    // marks but wider, so the recess each level fills reads as one.
+    readonly property int meterWidth: 16
     readonly property int meterHeight: wsFocusedLength
     readonly property int meterGap: wsGap
 

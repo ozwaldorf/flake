@@ -26,7 +26,10 @@ Rectangle {
     implicitWidth: Theme.sliver + (Theme.meterWidth - Theme.sliver) * reveal
     implicitHeight: Theme.meterHeight
     radius: 0
-    color: Theme.surface1
+
+    // Cut into the rail like the drawers' wells, so the level reads as
+    // filling a recess rather than standing on the surface.
+    color: Theme.wellFill
     clip: true
 
     Rectangle {
@@ -62,5 +65,11 @@ Rectangle {
                 easing.type: Easing.OutQuint
             }
         }
+    }
+
+    // over the fill as well as the empty part, so the rim shades whatever
+    // level reaches up under it
+    Inset {
+        target: root
     }
 }

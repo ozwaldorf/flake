@@ -17,11 +17,6 @@ ScrollList {
 
             readonly property bool waiting: Power.pending === modelData.key
 
-            // Shutting down and restarting end the session; suspend comes back
-            // from it. Only the two that do not return are marked out, and
-            // only under the pointer: at rest the list is quiet.
-            readonly property bool ends: modelData.key !== "suspend"
-
             onTapped: Power.run(modelData.key)
 
             Label {
@@ -31,7 +26,9 @@ ScrollList {
 
                 text: row.modelData.label
                 font.pixelSize: 11
-                color: !row.hovered ? Theme.subtext0 : row.ends ? Theme.red : Theme.text
+                // Every action here ends the session, so each is marked out
+                // under the pointer; at rest the list is quiet.
+                color: row.hovered ? Theme.red : Theme.subtext0
 
                 Behavior on color {
                     ColorAnimation {

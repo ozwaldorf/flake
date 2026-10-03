@@ -16,7 +16,7 @@ ModalPanel {
     id: root
 
 
-    readonly property bool live: revealWidth > Theme.rail
+    readonly property bool live: revealWidth > Theme.rail && Math.abs(pageX) < width
 
     // The readings take up whatever the head leaves them: the gap between the
     // host and the stack is shared out over the four rows of charts, so they
@@ -98,6 +98,7 @@ ModalPanel {
             lineWidth: 1.6
 
             values: root.live ? Meters.history(load.kind) : []
+            skipLeading: SysMeters.warmup
             stroke: load.def.fill
             format: Meters.format(load.kind)
             interval: SysMeters.historyInterval
@@ -199,6 +200,7 @@ ModalPanel {
                 glow: true
 
                 values: root.live ? Meters.history(flow.kind) : []
+                skipLeading: SysMeters.warmup
                 stroke: flow.def.fill
                 interval: SysMeters.historyInterval
             }
@@ -221,6 +223,7 @@ ModalPanel {
                 glow: true
 
                 values: root.live ? Meters.secondHistory(flow.kind) : []
+                skipLeading: SysMeters.warmup
                 stroke: Meters.secondFill
                 interval: SysMeters.historyInterval
 
@@ -292,8 +295,9 @@ ModalPanel {
 
         anchors.top: parent.top
         width: parent.width
-        height: sheet.y + sheet.height + padding * 2
+        height: sheet.y + sheet.height + paddingTop + padding
         padding: Theme.space
+        paddingTop: Theme.spaceSm
 
         Text {
             id: logo
@@ -357,7 +361,7 @@ ModalPanel {
             id: rule
 
             anchors.top: logo.bottom
-            anchors.topMargin: Theme.space
+            anchors.topMargin: Theme.spaceSm
             width: parent.width
             height: 1
             color: Qt.alpha(Theme.surface1, 0.6)

@@ -21,12 +21,8 @@ Singleton {
     // one it is waiting on. Usually a blink, but a polkit prompt holds here.
     property string pending: ""
 
+    // Suspend is left out: this machine does not come back from it reliably.
     readonly property var actions: [
-        {
-            key: "suspend",
-            label: "Suspend",
-            verb: "suspend"
-        },
         {
             key: "restart",
             label: "Restart",
@@ -76,9 +72,8 @@ Singleton {
             const asked = root.pending;
             root.pending = "";
 
-            // A suspend returns once the machine is back, which is a success
-            // arriving long after the panel closed. Nothing to report either
-            // way; only a refusal is worth surfacing.
+            // A success ends the session, so there is nothing to report; only
+            // a refusal is worth surfacing.
             if (exitCode === 0)
                 return;
 

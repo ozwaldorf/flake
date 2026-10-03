@@ -14,12 +14,25 @@ import "../services"
 ModalPanel {
     id: root
 
-    contentHeight: layout.implicitHeight
+    // an open list puts itself away on a press anywhere else in the panel
+    dismissable: layout.openGroup !== null
+    keep: layout.openGroup ? layout.openGroup.card : null
+    onDismissed: layout.openIn(null, "")
+
+    // The rows, or further where an open list pops out past the last of them:
+    // lists lie over what follows rather than pushing it, so the panel only
+    // grows for one that would otherwise run off its end.
+    contentHeight: Math.max(layout.implicitHeight, ...[connectivity, audio, session].map(g => g.y + g.height + g.overhang))
 
     // Set while the notification stack is on its way out, so the cards run
     // their own dismissal before the model is emptied: clearing it outright
     // takes the delegates with it and they simply disappear.
     property bool clearing: false
+
+    // opens one of the lists by name, for a keybind
+    function openList(name) {
+        layout.openNamed(name);
+    }
 
     function clearNotifications() {
         if (clearing || Notifications.count === 0)
@@ -55,7 +68,7 @@ ModalPanel {
 
         // The column is inset back by the same room, so the content stays
         // where it was and only the clip has moved outward.
-        contentHeight: layout.implicitHeight + root.slideRoom * 2
+        contentHeight: root.contentHeight + root.slideRoom * 2
         clip: true
 
         ScrollBar.vertical: ScrollBar {
@@ -90,6 +103,17 @@ ModalPanel {
                 openList = name;
             }
 
+            function openNamed(name) {
+                const group = ({
+                        wifi: connectivity,
+                        bluetooth: connectivity,
+                        speaker: audio,
+                        mic: audio,
+                        power: session
+                    })[name] ?? null;
+                openIn(group, group ? name : "");
+            }
+
             // Closed with the panel, so it comes back as it was left rather
             // than holding a list open from whenever it was last up.
             Connections {
@@ -119,11 +143,14 @@ ModalPanel {
                 onRequestOpen: name => layout.openIn(connectivity, name)
             }
 
-            BrightnessCard {
-                id: brightness
+            // power beside the brightness, sharing one row
+            SessionTiles {
+                id: session
 
                 host: root
-                width: parent.width
+                anchorRight: root.anchorRight
+                open: layout.openGroup === session ? layout.openList : ""
+                onRequestOpen: name => layout.openIn(session, name)
             }
 
             AudioTiles {
@@ -146,15 +173,11 @@ ModalPanel {
                 visible: Media.player !== null
             }
 
-            // ---- power and the recorder, sharing one row ----
+            // ---- the recorder ----
 
-            SessionTiles {
-                id: session
-
+            RecorderTile {
+                width: parent.width
                 host: root
-                anchorRight: root.anchorRight
-                open: layout.openGroup === session ? layout.openList : ""
-                onRequestOpen: name => layout.openIn(session, name)
             }
 
             // ---- tray ----

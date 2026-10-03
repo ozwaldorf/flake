@@ -40,6 +40,10 @@ EdgeWindow {
     signal bottomTapped
     signal railTapped
 
+    // a tap on the open drawer's own ground, past the rail, between and
+    // around whatever the drawer holds
+    signal drawerTapped
+
     // the pointer pushed into the screen's own corner, which opens the
     // overview and the drawer together, in place of niri's hot corner
     signal hotCornerEntered
@@ -83,7 +87,7 @@ EdgeWindow {
     // before the new position lands, which shows as a gap at the screen edge.
     shadowRoom: 0
 
-    implicitWidth: Theme.rail + Theme.drawerWidth + Theme.railInset
+    implicitWidth: Theme.rail + Theme.drawerWidth + Theme.railInset * 2
 
     // On niri's spring, so the rail and the windows it pushes move as one. Two
     // of them rather than one over the total: the rail's marks morph on its
@@ -119,51 +123,111 @@ EdgeWindow {
     // strip would go on blurring the wallpaper sliding under it.
     BackgroundEffect.blurRegion: Region {}
 
-    // Opaque: the rail is what lies behind the wallpaper, so there is nothing
-    // further back to show through it. Spans the drawer as it opens, so the
-    // panel stands on the same ground as the rail.
-    Rectangle {
+    // Three layers, front to back: the desktop, the rail, and the drawer
+    // under the rail. All opaque, since there is nothing further back to show
+    // through. Clipped to as far as the desktop has slid, which is all of
+    // them that is uncovered.
+    Item {
         id: backdrop
 
         x: bar.anchorRight ? bar.width - width : 0
         y: 0
         width: bar.pushWidth
         height: parent.height
-        color: Theme.mantle
         clip: true
 
-        // Cast by the desktop onto the rail, along the inward edge where the
-        // wallpaper overlaps it. Deepens as the rail opens, so the desktop
-        // reads as lifting away rather than only sliding.
+        // the drawer, the deepest of the three: darkest, and shaded by both
+        // layers over it
         Rectangle {
-            id: deskShadow
+            anchors.fill: parent
+            color: Theme.mantle
+        }
 
-            readonly property real peak: 0.35 + 0.2 * bar.reveal
+        // The rail, a layer up from the drawer: lighter, and casting onto the
+        // drawer as it opens out from under it.
+        Rectangle {
+            id: railLayer
 
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-            anchors.right: bar.anchorRight ? undefined : parent.right
-            anchors.left: bar.anchorRight ? parent.left : undefined
-            width: 18
+            x: bar.anchorRight ? parent.width - width : 0
+            width: bar.railWidth
+            height: parent.height
+            color: Theme.base
+        }
 
-            // Falls away quickly rather than evenly across its width: a linear
-            // ramp is still visibly dark where it ends, which reads as a band
-            // with an edge rather than a shadow fading out.
-            gradient: Gradient {
-                orientation: Gradient.Horizontal
+        // only once there is drawer for it to fall on
+        EdgeShadow {
+            x: bar.anchorRight ? railLayer.x - width : railLayer.x + railLayer.width
+            side: bar.anchorRight ? "right" : "left"
+            peak: 0.5 * Theme.clamp01((bar.pushWidth - bar.railWidth) / 24)
+        }
 
-                GradientStop {
-                    position: 0
-                    color: Qt.alpha("black", bar.anchorRight ? deskShadow.peak : 0)
-                }
-                GradientStop {
-                    position: bar.anchorRight ? 0.35 : 0.65
-                    color: Qt.alpha("black", deskShadow.peak * 0.22)
-                }
-                GradientStop {
-                    position: 1
-                    color: Qt.alpha("black", bar.anchorRight ? 0 : deskShadow.peak)
-                }
+        // The desktop, over both: at the drawer's far edge while it is out,
+        // on the rail's edge once it has closed. Light over the rail alone,
+        // which sits just under it, and deepening as the drawer opens, so the
+        // desktop reads as lifting further away the more lies beneath it.
+        EdgeShadow {
+            x: bar.anchorRight ? 0 : parent.width - width
+            side: bar.anchorRight ? "left" : "right"
+            peak: bar.recess
+        }
+
+        // The rest of the recess the bar sits in, the screen's own edges, cast
+        // the same as the desktop's so the whole of it reads as sunk below.
+        EdgeShadow {
+            x: bar.anchorRight ? parent.width - width : 0
+            side: bar.anchorRight ? "right" : "left"
+            peak: bar.recess
+        }
+
+        EdgeShadow {
+            side: "top"
+            peak: bar.recess
+        }
+
+        EdgeShadow {
+            y: parent.height - height
+            side: "bottom"
+            peak: bar.recess
+        }
+    }
+
+    // how deep the bar sits under the desktop, and so how dark the edges of
+    // its recess: light with the rail alone, deepening as a drawer opens
+    readonly property real recess: 0.2 + 0.1 * reveal + 0.25 * Theme.clamp01((pushWidth - railWidth) / Theme.drawerWidth)
+
+    // A shadow cast from an edge onto the layer beneath it, darkest along the
+    // given side. Falls away quickly rather than evenly across its depth: a
+    // linear ramp is still visibly dark where it ends, which reads as a band
+    // with an edge rather than a shadow fading out.
+    component EdgeShadow: Rectangle {
+        id: shadow
+
+        // the side it is darkest along: left, right, top or bottom
+        required property string side
+        property real peak: 0.4
+
+        readonly property bool across: side === "left" || side === "right"
+
+        // darkest at the start of the gradient rather than its end
+        readonly property bool fromStart: side === "left" || side === "top"
+
+        width: across ? 18 : parent.width
+        height: across ? parent.height : 18
+
+        gradient: Gradient {
+            orientation: shadow.across ? Gradient.Horizontal : Gradient.Vertical
+
+            GradientStop {
+                position: 0
+                color: Qt.alpha("black", shadow.fromStart ? shadow.peak : 0)
+            }
+            GradientStop {
+                position: shadow.fromStart ? 0.35 : 0.65
+                color: Qt.alpha("black", shadow.peak * 0.22)
+            }
+            GradientStop {
+                position: 1
+                color: Qt.alpha("black", shadow.fromStart ? 0 : shadow.peak)
             }
         }
     }
@@ -260,8 +324,10 @@ EdgeWindow {
     TapHandler {
         onTapped: eventPoint => {
             const x = eventPoint.position.x;
-            if (x < bar.railX || x > bar.railX + bar.railWidth)
+            if (x < bar.railX || x > bar.railX + bar.railWidth) {
+                bar.drawerTapped();
                 return;
+            }
             if (eventPoint.position.y < corner.height)
                 bar.cornerTapped();
             else if (eventPoint.position.y >= foot.y)

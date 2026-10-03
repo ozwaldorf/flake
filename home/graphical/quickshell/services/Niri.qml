@@ -43,6 +43,16 @@ Singleton {
     readonly property real gap: 10
     readonly property real strut: 10
 
+    // the output holding the focused workspace, read at the moment asked
+    function focusedOutput(): string {
+        for (let i = 0; i < workspaces.count; i++) {
+            const ws = workspaces.get(i);
+            if (ws.focused)
+                return ws.output;
+        }
+        return "";
+    }
+
     function focusWorkspace(id: int): void {
         request({
             Action: {

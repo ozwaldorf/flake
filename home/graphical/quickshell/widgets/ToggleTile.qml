@@ -42,32 +42,20 @@ Card {
     // recorder that is red while it is running.
     property color puckFill: on ? Theme.blue : Theme.surface1
 
+    // the list this opens in its group, by name
+    property string listName: ""
+
     property bool expanded: false
 
     signal toggled
+
+    // the puck, for an expanded view to show in its own header
+    readonly property Item lead: puck
     signal listToggled
 
     // whichever is taller, the puck or the two text rows, plus padding
     implicitHeight: Theme.spaceSm * 2 + Math.max(puck.implicitHeight, rows.implicitHeight)
     cursorShape: Qt.PointingHandCursor
-
-    // Squared along the bottom while a list is joined onto this tile,
-    // including the whole of its collapse: rounding the corners the moment it
-    // is asked to close leaves them curved against a list still on its way
-    // down. Eased on the same clock as the list's own travel.
-    property bool joined: expanded
-
-    bottomLeftRadius: joined ? 0 : radius
-    bottomRightRadius: joined ? 0 : radius
-    rimBottom: !joined
-
-    Behavior on bottomLeftRadius {
-        Morph {}
-    }
-
-    Behavior on bottomRightRadius {
-        Morph {}
-    }
 
     // Round puck, filled when the switch is on. This is the switch itself: the
     // state lives in the fill rather than in a separate control. It spans both

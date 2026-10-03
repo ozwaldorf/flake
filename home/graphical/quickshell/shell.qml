@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import "modals"
 import "services"
+import "widgets"
 
 ShellRoot {
     id: shell
@@ -47,6 +48,38 @@ ShellRoot {
 
         function toggle(): void {
             shell.veiled = !shell.veiled;
+        }
+    }
+
+    // `qs ipc call drawer open settings|info` or `close`, for a keybind: opens
+    // a drawer behind the rail on every screen.
+    signal drawerRequested(string name)
+    signal listRequested(string name)
+
+    // a drawer opened or put away on one screen, by its output name
+    signal drawerToggled(string name, string output)
+
+    IpcHandler {
+        target: "drawer"
+
+        function open(name: string): void {
+            shell.drawerRequested(name);
+        }
+
+        function close(): void {
+            shell.drawerRequested("");
+        }
+
+        // Opens a drawer on the focused screen, or closes it if it is the one
+        // already out there, for a keybind.
+        function toggle(name: string): void {
+            shell.drawerToggled(name, Niri.focusedOutput());
+        }
+
+        // opens one of the control centre's lists by name, or none
+        function list(name: string): void {
+            shell.drawerRequested("settings");
+            shell.listRequested(name);
         }
     }
 
@@ -119,14 +152,39 @@ ShellRoot {
             property string drawer: ""
             readonly property bool panelOpen: drawer === "settings"
 
-            // The drawer whose contents show. Kept after it closes, so they
-            // are covered by the desktop sliding back rather than vanishing
-            // from under it.
-            property string shownDrawer: ""
+            // The two drawers are pages side by side, the monitor against the
+            // rail and the control centre outside it: 0 shows the control
+            // centre, 1 the monitor. Switching with one already open
+            // slides between them on the same spring as the rail; opening from
+            // closed puts the page straight in place, since the desktop sliding
+            // aside is reveal enough. Left where it was on close, so the page
+            // is covered by the desktop coming back rather than vanishing.
+            property string lastDrawer: ""
 
             onDrawerChanged: {
-                if (drawer !== "")
-                    shownDrawer = drawer;
+                if (drawer !== "") {
+                    pager.target = drawer === "info" ? 1 : 0;
+                    if (lastDrawer === "") {
+                        pager.stop();
+                        pager.velocity = 0;
+                        pager.value = pager.target;
+                    }
+                }
+                lastDrawer = drawer;
+            }
+
+            Connections {
+                target: shell
+
+                function onDrawerRequested(name) {
+                    scope.drawer = name;
+                }
+
+                function onDrawerToggled(name, output) {
+                    if (output !== "" && scope.modelData.name !== output)
+                        return;
+                    scope.drawer = scope.drawer === name ? "" : name;
+                }
             }
 
             readonly property bool cornerHovered: bar.cornerHovered
@@ -207,19 +265,35 @@ ShellRoot {
                 onCornerTapped: scope.drawer = "settings"
                 onBottomTapped: scope.drawer = "info"
                 onRailTapped: scope.drawer = ""
+                onDrawerTapped: settings.openList("")
                 onHotCornerEntered: {
                     Niri.openOverview();
                     scope.drawer = "settings";
+                }
+
+                // Kept in the bar's window rather than out in the scope: a
+                // frame driven animation needs a window whose frames drive it.
+                Spring {
+                    id: pager
                 }
             }
 
             ControlCenter {
                 id: settings
 
+                Connections {
+                    target: shell
+
+                    function onListRequested(name) {
+                        settings.openList(name);
+                    }
+                }
+
                 modelData: scope.modelData
                 anchorRight: scope.anchorRight
                 shown: scope.panelOpen
-                revealWidth: scope.shownDrawer === "settings" ? bar.pushWidth : 0
+                revealWidth: bar.pushWidth
+                pageX: (scope.anchorRight ? -1 : 1) * pager.value * (Theme.drawerWidth + Theme.railInset * 2)
                 onHoverChanged: hovered => scope.settingsHovered = hovered
             }
 
@@ -229,7 +303,8 @@ ShellRoot {
                 modelData: scope.modelData
                 anchorRight: scope.anchorRight
                 shown: scope.drawer === "info"
-                revealWidth: scope.shownDrawer === "info" ? bar.pushWidth : 0
+                revealWidth: bar.pushWidth
+                pageX: (scope.anchorRight ? 1 : -1) * (1 - pager.value) * (Theme.drawerWidth + Theme.railInset * 2)
                 onHoverChanged: hovered => scope.infoHovered = hovered
             }
 

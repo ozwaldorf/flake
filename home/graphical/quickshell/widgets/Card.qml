@@ -16,11 +16,6 @@ Rectangle {
     // card with no host, or one over the desktop, stays raised.
     property bool recessed: host?.recessed ?? false
 
-    // whether a well shows its top and bottom rims; off along an edge that
-    // runs on into a neighbouring well
-    property bool rimTop: true
-    property bool rimBottom: true
-
     // whether the card lifts under the pointer at all
     property bool lifts: true
 
@@ -51,8 +46,6 @@ Rectangle {
     Inset {
         target: root
         visible: root.recessed
-        rimTop: root.rimTop
-        rimBottom: root.rimBottom
     }
 
     // lifts a little under the pointer, so the card reads as coming forward

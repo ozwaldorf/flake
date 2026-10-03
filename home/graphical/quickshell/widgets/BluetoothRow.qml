@@ -57,7 +57,7 @@ ListRow {
         Spinner {
             anchors.centerIn: parent
             running: root.busy
-            gapColor: root.hovered ? Theme.surface0 : Theme.base
+            gapColor: root.hovered ? Theme.surface0 : Theme.wellFill
         }
     }
 

@@ -140,6 +140,7 @@ in
         # Any input powers the monitors back on
         "Mod+L".power-off-monitors = { };
         # The veil is a surface quickshell owns, not a compositor feature
+        "Ctrl+Escape" = spawn "qs ipc call drawer toggle settings";
         "Mod+V" = spawn "qs ipc call veil toggle";
         "Mod+W" = spawn "qs ipc call wallpaper next";
         "Mod+R" = spawn "export APP=$(yad --entry --text 'nix-shell -p') && nix-shell -p $APP --run $APP";

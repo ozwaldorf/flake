@@ -53,8 +53,18 @@ Item {
     // Range of the window. A flat line has no range of its own, so it is given
     // one and centred in it rather than drawn along an edge.
     // Across both series where there are two, so one axis carries them both.
-    readonly property real rawMax: Math.max(count > 0 ? Math.max.apply(null, values) : 0, secondCount > 0 ? Math.max.apply(null, secondValues) : 0)
-    readonly property real rawMin: count > 0 ? Math.min(Math.min.apply(null, values), secondCount > 0 ? Math.min.apply(null, secondValues) : Infinity) : 0
+    // Samples at the head of the window left out of the range, though still
+    // drawn: readings taken while the source was still settling would
+    // otherwise set the scale for the whole window.
+    property int skipLeading: 0
+
+    // what the range is taken from: the window less its unsettled head, or
+    // all of it when that would leave nothing
+    readonly property var scaled: count > skipLeading ? values.slice(skipLeading) : values
+    readonly property var secondScaled: secondCount > skipLeading ? secondValues.slice(skipLeading) : secondValues
+
+    readonly property real rawMax: Math.max(scaled.length > 0 ? Math.max.apply(null, scaled) : 0, secondScaled.length > 0 ? Math.max.apply(null, secondScaled) : 0)
+    readonly property real rawMin: scaled.length > 0 ? Math.min(Math.min.apply(null, scaled), secondScaled.length > 0 ? Math.min.apply(null, secondScaled) : Infinity) : 0
 
     // Nothing above this is meaningful for the reading; a percentage stops at
     // a hundred and would otherwise be padded past it. Bytes have no such
@@ -98,7 +108,22 @@ Item {
     property real shownCeiling: ceiling
     property real shownFloor: floor
 
+    // Whether the line has been drawn against its range yet. A chart handed
+    // its whole history at once, as one is when its drawer opens, takes its
+    // range outright rather than easing to it from the empty chart's, which
+    // reads as the scale settling in front of you.
+    property bool primed: false
+
+    onCountChanged: {
+        if (count < 2)
+            primed = false;
+        else if (!primed)
+            Qt.callLater(() => primed = count > 1);
+    }
+
     Behavior on shownCeiling {
+        enabled: root.primed
+
         NumberAnimation {
             duration: Theme.levelDuration
             easing.type: Easing.OutQuad
@@ -106,6 +131,8 @@ Item {
     }
 
     Behavior on shownFloor {
+        enabled: root.primed
+
         NumberAnimation {
             duration: Theme.levelDuration
             easing.type: Easing.OutQuad

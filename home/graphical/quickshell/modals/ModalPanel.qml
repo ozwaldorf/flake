@@ -17,13 +17,17 @@ EdgeWindow {
     // over it.
     property real revealWidth: width
 
+    // How far this page sits across from its place, for drawers paged side
+    // by side: switching between them slides one out and the other in.
+    property real pageX: 0
+
     // Everything in a drawer is cut into it rather than standing on it; the
     // cards read this off their host.
     readonly property bool recessed: true
 
     // the panel's own width, and how far its drawer reaches past the rail
     property real panelWidth: Theme.drawerWidth
-    readonly property real drawerWidth: panelWidth + Theme.railInset
+    readonly property real drawerWidth: panelWidth + Theme.railInset * 2
 
     // Held against the foot of the screen rather than the head, for a panel
     // opened from the bottom of the rail.
@@ -69,6 +73,30 @@ EdgeWindow {
 
     signal hoverChanged(bool hovered)
 
+    // While something in the panel is popped out over the rest, a press
+    // anywhere in the window but on it puts it away and goes no further, and
+    // one on it goes on to it. Over everything, so it sees the press first.
+    property bool dismissable: false
+    property Item keep: null
+    signal dismissed
+
+    MouseArea {
+        anchors.fill: parent
+        z: 1000
+        enabled: root.dismissable
+
+        onPressed: mouse => {
+            if (root.keep) {
+                const p = mapToItem(root.keep, mouse.x, mouse.y);
+                if (p.x >= 0 && p.y >= 0 && p.x < root.keep.width && p.y < root.keep.height) {
+                    mouse.accepted = false;
+                    return;
+                }
+            }
+            root.dismissed();
+        }
+    }
+
     // Mapped for good and switched by its input region instead. A surface
     // mapped as the panel opens takes the pointer for its first frame, before
     // its region has applied, and the rail loses it with nothing to hand it
@@ -79,7 +107,7 @@ EdgeWindow {
     // and their blur regions with them.
     readonly property bool live: shown || fadeAnim.running
 
-    implicitWidth: Theme.rail + panelWidth + shadowRoom
+    implicitWidth: Theme.rail + Theme.railInset + panelWidth + shadowRoom
 
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
@@ -106,7 +134,7 @@ EdgeWindow {
     mask: Region {
         x: root.anchorRight ? panel.x : Theme.rail
         y: panel.y
-        width: root.live ? panel.width : 0
+        width: root.live ? panel.width + Theme.railInset : 0
         height: root.live ? root.stackHeight : 0
 
         Region {
@@ -124,13 +152,15 @@ EdgeWindow {
     Item {
         id: clipper
 
-        x: root.anchorRight ? root.width - width : 0
-        width: Math.min(root.revealWidth, root.width)
+        // Held off the rail itself, so a page sliding toward it is cut at its
+        // edge rather than drawn over it.
+        x: root.anchorRight ? root.width - Math.min(root.revealWidth, root.width) : Theme.rail
+        width: Math.max(0, Math.min(root.revealWidth, root.width) - Theme.rail)
         height: root.height
         clip: true
 
         Item {
-            x: -clipper.x
+            x: -clipper.x + root.pageX
             width: root.width
             height: root.height
 
@@ -143,7 +173,7 @@ EdgeWindow {
                 // shadow room on the outward side: anchored right the window grows
                 // leftward, so sitting at nothing puts the free room behind the rail
                 // rather than where the shadow falls.
-                x: root.anchorRight ? root.shadowRoom : Theme.rail
+                x: root.anchorRight ? root.shadowRoom : Theme.rail + Theme.railInset
                 y: root.alignBottom ? root.height - Theme.railPad - height : Theme.railPad
                 width: root.panelWidth
                 // sized to content when the panel reports one, capped to the screen

@@ -18,6 +18,9 @@ Rectangle {
     // space between the rim and what the tile holds
     property real padding: Theme.padCard
 
+    // the same at the top alone, for a tile whose head wants it tighter
+    property real paddingTop: padding
+
     default property alias content: body.data
     property alias backdrop: bleed.data
 
@@ -41,7 +44,7 @@ Rectangle {
         id: heading
 
         x: root.padding
-        y: root.padding - 2
+        y: root.paddingTop - 2
         spacing: 6
         visible: root.title !== ""
 
@@ -76,6 +79,6 @@ Rectangle {
 
         anchors.fill: parent
         anchors.margins: root.padding
-        anchors.topMargin: root.title !== "" ? root.padding + heading.height + Theme.spaceXs : root.padding
+        anchors.topMargin: root.title !== "" ? root.paddingTop + heading.height + Theme.spaceXs : root.paddingTop
     }
 }

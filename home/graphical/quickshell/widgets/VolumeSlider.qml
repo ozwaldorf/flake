@@ -23,7 +23,14 @@ Card {
     property real value: 0
     property bool muted: false
 
+    // the list this opens in its group, by name
+    property string listName: ""
+
     property bool expanded: false
+
+    // the glyph, and what it drives, for an expanded view's header
+    readonly property Item lead: glyphSlot
+    readonly property string status: Audio.label(current)
 
     signal moved(real value)
     signal muteToggled
@@ -37,25 +44,7 @@ Card {
 
     readonly property var current: isSink ? Audio.sink : Audio.source
 
-    // Set while a list is joined onto the bottom of this card, including the
-    // whole of its collapse: rounding the corners the moment it is asked to
-    // close leaves them curved against a list still on its way down.
-    property bool joined: expanded
-
     implicitHeight: body.implicitHeight + Theme.spaceSm * 2
-
-    // eased on the same clock as the list's travel, so the corner opens out as
-    // the card comes down rather than snapping once it lands
-    bottomLeftRadius: joined ? 0 : radius
-    bottomRightRadius: joined ? 0 : radius
-
-    Behavior on bottomLeftRadius {
-        Morph {}
-    }
-
-    Behavior on bottomRightRadius {
-        Morph {}
-    }
 
     // Anywhere on the card rather than over the track alone: the level is what
     // the card is for, and aiming at a four pixel rail to change it is the

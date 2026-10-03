@@ -13,9 +13,6 @@ TileGroup {
     readonly property bool bothTiles: Wifi.available && Bluetooth.available
     readonly property real cell: bothTiles ? (width - tileRow.spacing) / 2 : width
 
-    joinLeft: !bothTiles || joinedTo !== "bluetooth" ? 0 : width - cell
-    joinRight: !bothTiles || joinedTo === "bluetooth" ? width : cell
-
     // A radio going off takes its own list down with it, but must not close
     // the other tile's.
     readonly property bool wifiOn: Wifi.enabled
@@ -54,8 +51,8 @@ TileGroup {
 
         label: "Wi-Fi"
         on: Wifi.enabled
+        listName: "wifi"
         expanded: root.open === "wifi"
-        joined: root.joined && root.joinedTo === "wifi"
 
         // One line of state, in priority order: what is wrong, what is
         // happening, or what you are on.
@@ -97,8 +94,8 @@ TileGroup {
         label: "Bluetooth"
         on: Bluetooth.enabled
         status: Bluetooth.summary
+        listName: "bluetooth"
         expanded: root.open === "bluetooth"
-        joined: root.joined && root.joinedTo === "bluetooth"
 
         onToggled: Bluetooth.toggle()
         onListToggled: root.toggle("bluetooth")

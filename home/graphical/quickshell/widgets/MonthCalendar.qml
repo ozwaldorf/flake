@@ -72,18 +72,34 @@ Rectangle {
         return "th";
     }
 
-    // A fortune for the day: drawn once and kept against the date, so the
-    // drawer shows the same one all day however often it opens, and a new
-    // one with the morning. Kept to the short, attributed kinds.
+    // A fortune for the hour: drawn once and kept against the date and hour,
+    // so the drawer shows the same one however often it opens, and a new one
+    // on the hour. Kept to the short, attributed kinds, and short enough to
+    // sit beside the month in a few lines.
     property var quote: ["", ""]
 
-    onTodayChanged: fortune.running = true
+    // drawing again on the hour, which the minute clock passes through
+    readonly property int hour: clock.hours
+    onHourChanged: fortune.draw(false)
+
+    // a fresh one now, kept for the rest of the hour in place of the last
+    function redraw() {
+        fortune.draw(true);
+    }
 
     Process {
         id: fortune
 
+        // whether to draw a new one even if this hour already has one
+        property bool force: false
+
+        function draw(again) {
+            force = again;
+            running = true;
+        }
+
         running: true
-        command: ["sh", "-c", "f=\"$1\"; d=$(date +%F); mkdir -p \"$(dirname \"$f\")\"; [ \"$(head -1 \"$f\" 2>/dev/null)\" = \"$d\" ] || { echo \"$d\"; fortune -s -n 140 wisdom literature people humorists science pratchett; } > \"$f\"; tail -n +2 \"$f\"", "sh", Quickshell.statePath("fortune")]
+        command: ["sh", "-c", "f=\"$1\"; d=$(date +%F-%H); mkdir -p \"$(dirname \"$f\")\"; if [ \"$2\" = 1 ] || [ \"$(head -1 \"$f\" 2>/dev/null)\" != \"$d\" ]; then { echo \"$d\"; fortune -s -n 80 wisdom literature people humorists science pratchett; } > \"$f\"; fi; tail -n +2 \"$f\"", "sh", Quickshell.statePath("fortune"), force ? "1" : "0"]
 
         stdout: StdioCollector {
             onStreamFinished: {
@@ -136,10 +152,47 @@ Rectangle {
             }
         }
 
-        Rectangle {
-            width: 24
-            height: 1
-            color: Theme.surface1
+        // the rule between the date and the quote, and after it a way to draw
+        // another
+        Item {
+            width: parent.width
+            height: reload.height
+
+            Rectangle {
+                id: rule
+
+                anchors.verticalCenter: parent.verticalCenter
+                width: 24
+                height: 1
+                color: Theme.surface1
+            }
+
+            Text {
+                id: reload
+
+                anchors.left: rule.right
+                anchors.leftMargin: Theme.spaceSm
+                text: String.fromCodePoint(0xf021)
+                font.family: Theme.iconFont
+                font.pixelSize: 11
+                color: reloadArea.containsMouse ? Theme.text : Theme.overlay0
+
+                Behavior on color {
+                    ColorAnimation {
+                        duration: Theme.hoverDuration
+                    }
+                }
+
+                MouseArea {
+                    id: reloadArea
+
+                    anchors.fill: parent
+                    anchors.margins: -6
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.redraw()
+                }
+            }
         }
 
         Text {
@@ -151,6 +204,8 @@ Rectangle {
             lineHeight: 1.25
             color: Theme.subtext0
             wrapMode: Text.WordWrap
+            maximumLineCount: 5
+            elide: Text.ElideRight
         }
 
         Text {

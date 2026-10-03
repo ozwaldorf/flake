@@ -12,9 +12,6 @@ TileGroup {
 
     readonly property real unit: (width - tileRow.spacing) / 3
 
-    joinLeft: joinedTo === "mic" ? width - unit : 0
-    joinRight: joinedTo === "mic" ? width : unit * 2
-
     maxListHeight: 150
 
     VolumeSlider {
@@ -22,8 +19,8 @@ TileGroup {
         host: root.host
         device: "speaker"
         label: "Volume"
+        listName: "speaker"
         expanded: root.open === "speaker"
-        joined: root.joined && root.joinedTo !== "mic"
 
         value: Audio.sink?.audio?.volume ?? 0
         muted: Audio.sink?.audio?.muted ?? false
@@ -38,8 +35,8 @@ TileGroup {
         host: root.host
         device: "mic"
         label: "Mic"
+        listName: "mic"
         expanded: root.open === "mic"
-        joined: root.joined && root.joinedTo === "mic"
 
         value: Audio.source?.audio?.volume ?? 0
         muted: Audio.source?.audio?.muted ?? false

@@ -43,6 +43,14 @@ Singleton {
     readonly property int historyLength: 60
     readonly property int historyInterval: 2000
 
+    // How many of the samples at the head of the buffers were taken in the
+    // first second after the shell started. Those catch every counter mid
+    // settle, a rate measured against nothing or a load caught during the
+    // shell's own startup, so a chart leaves them out of its range; the
+    // count falls back to nothing as they roll out of the window.
+    property int warmup: 0
+    readonly property real startedAt: Date.now()
+
     Timer {
         interval: root.historyInterval
         running: true
@@ -50,6 +58,11 @@ Singleton {
         triggeredOnStart: true
 
         onTriggered: {
+            if (Date.now() - root.startedAt < 1000)
+                root.warmup++;
+            else if (root.warmup > 0 && root.cpuHistory.length >= root.historyLength)
+                root.warmup--;
+
             // In their own units where they have one, so a graph can be read
             // against the reading beside it rather than against a percentage
             // of something the axis does not name.
