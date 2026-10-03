@@ -59,7 +59,7 @@ Singleton {
     // matches the niri window corner radius
     readonly property int rounding: 10
 
-    // surface fill shared with foot: background 161616 at alpha 0.8, blurred
+    // surface fill shared with the terminal: background 161616 at alpha 0.8, blurred
     // client side via ext-background-effect-v1
     readonly property color surfaceFill: Qt.rgba(base.r, base.g, base.b, 0.8)
 

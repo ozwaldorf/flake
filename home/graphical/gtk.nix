@@ -58,7 +58,7 @@ in
             # accent, status and link colours. The prerendered png assets keep
             # fluent's own blue. Menus take their colour before the blur tweak
             # thins the surfaces, so they are set again from the thinned one,
-            # and the blur opacity is raised to match foot.
+            # and the blur opacity is raised to match the terminal.
             postPatch = old.postPatch + ''
               sed -i \
                 -e 's/#333333/#161616/' \

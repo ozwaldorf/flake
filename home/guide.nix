@@ -19,7 +19,7 @@
     ./graphical/gtk.nix # gtk theming
     ./graphical/quickshell.nix # bar and notifications
     ./graphical/idle.nix # dim and blank when idle
-    ./graphical/foot.nix # Terminal
+    ./graphical/rio.nix # Terminal
     ./graphical/vesktop # discord
     ./graphical/zed.nix # zed editor
   ];

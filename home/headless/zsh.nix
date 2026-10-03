@@ -142,7 +142,7 @@
           NIXPKGS_ALLOW_UNFREE=1 nix shell "''${@/#/nixpkgs#}"
         }
 
-        # foot integration
+        # report the working directory to the terminal (OSC 7)
         function osc7-pwd() {
             emulate -L zsh # also sets localoptions for us
             setopt extendedglob

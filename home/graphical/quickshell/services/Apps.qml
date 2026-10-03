@@ -172,7 +172,7 @@ Singleton {
         if (result.kind === "app") {
             const e = result.entry;
             record(e.id);
-            const command = e.runInTerminal ? ["foot", "-e", ...e.command] : e.command;
+            const command = e.runInTerminal ? ["rio", "-e", ...e.command] : e.command;
             Quickshell.execDetached(["niri", "msg", "action", "spawn", "--", ...command]);
         } else if (result.kind === "calc") {
             Quickshell.execDetached(["wl-copy", "--", result.title]);
@@ -180,7 +180,7 @@ Singleton {
             // Handed to the shell's own startup, which enters it at the first
             // prompt as though typed: the shell starts as it always does, and
             // stays once the command exits.
-            Quickshell.execDetached(["niri", "msg", "action", "spawn", "--", "env", `LAUNCHER_RUN=${result.title}`, "foot"]);
+            Quickshell.execDetached(["niri", "msg", "action", "spawn", "--", "env", `LAUNCHER_RUN=${result.title}`, "rio"]);
         } else if (result.kind === "run") {
             Quickshell.execDetached(["niri", "msg", "action", "spawn-sh", "--", result.title]);
         }

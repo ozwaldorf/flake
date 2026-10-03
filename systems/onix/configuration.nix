@@ -393,10 +393,10 @@
 
     gnome-disks.enable = true; # disk manager
 
-    # Add `open in wezterm` entry to nautilus
+    # Add `open in terminal` entry to nautilus
     nautilus-open-any-terminal = {
       enable = true;
-      terminal = "foot";
+      terminal = "rio";
     };
   };
 

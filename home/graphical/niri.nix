@@ -152,8 +152,8 @@ in
         "Mod+D" = spawn "App launcher" "qs ipc call drawer toggle apps";
         "Mod+Shift+D" = spawn "Clipboard history" "qs ipc call drawer toggle clipboard";
         "Mod+Shift+Slash" = spawn "Keyboard shortcuts" "qs ipc call drawer toggle keys";
-        "Mod+Return" = spawn "Terminal" "foot";
-        "Mod+Shift+Return" = spawn "Floating terminal" "foot -a float";
+        "Mod+Return" = spawn "Terminal" "rio";
+        "Mod+Shift+Return" = spawn "Floating terminal" "rio --app-id float";
         "Mod+E" = spawn "Browser" "firefox";
         # Any input powers the monitors back on
         "Mod+L".power-off-monitors = { };
@@ -252,7 +252,7 @@ in
             { popups.background-effect.blur = true; }
           ];
         }
-        # foot -a float
+        # rio --app-id float
         {
           window-rule._children = [
             { match._props.app-id = "^float$"; }
