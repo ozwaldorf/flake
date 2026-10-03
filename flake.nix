@@ -39,13 +39,6 @@
       url = "github:nix-community/neovim-nightly-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # Source only: its own flake pins hyprland git, but plugins are ABI bound
-    # to the compositor they load into, so the package is built below against
-    # the nixpkgs hyprland instead.
-    hyprcapture = {
-      url = "github:gfhdhytghd/HyprCapture";
-      flake = false;
-    };
   };
 
   outputs =
@@ -76,20 +69,6 @@
             (final: prev: {
               # Force insert flake packages that dont have builtin overlays.
               zoom-sync = inputs.zoom-sync.packages.${system}.default;
-              # Built through callPackage rather than the upstream flake output
-              # so it compiles against the nixpkgs hyprland, matching the ABI of
-              # the compositor it is loaded into.
-              # Audio finalize and process supervision tests fail in the sandbox.
-              # The patch draws the cursor into compositor desktop recordings,
-              # which otherwise ignore include_cursor.
-              hyprcapture =
-                (final.callPackage "${inputs.hyprcapture}/nix/package.nix" {
-                  src = inputs.hyprcapture;
-                }).overrideAttrs
-                  (old: {
-                    doCheck = false;
-                    patches = (old.patches or [ ]) ++ [ ./pkgs/patches/hyprcapture-record-cursor.patch ];
-                  });
               niri = prev.niri.overrideAttrs (old: {
                 # Layout invariant tests assert the upstream layout, which the
                 # patches below change, so they are skipped.

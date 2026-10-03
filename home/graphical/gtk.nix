@@ -34,10 +34,6 @@ in
       size = 24;
       x11.enable = true;
       gtk.enable = true;
-      hyprcursor = {
-        enable = true;
-        size = 24;
-      };
     };
   };
 

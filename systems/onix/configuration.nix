@@ -361,12 +361,7 @@
       enableCompletion = false;
     };
 
-    # Same for sway and niri, install to system to ensure wayland sessions are propagated correctly.
-    sway = {
-      enable = true;
-      package = pkgs.swayfx;
-      extraOptions = [ "--unsupported-gpu" ];
-    };
+    # Same for niri, install to system to ensure wayland sessions are propagated correctly.
     niri = {
       enable = true;
       # GTK portal handles file choosers well
