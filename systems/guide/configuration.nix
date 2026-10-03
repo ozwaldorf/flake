@@ -113,7 +113,7 @@
     enable = true;
     settings = {
       default_session = {
-        command = "nvidia-offload Hyprland";
+        command = "niri-session";
         user = username;
       };
     };
@@ -134,7 +134,7 @@
   xdg.portal = {
     enable = true;
     wlr.enable = true;
-    # extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
   };
 
   services.printing.enable = true;
@@ -188,12 +188,14 @@
   environment.pathsToLink = [ "/share/zsh" ];
   fonts.fontconfig.enable = true;
 
-  programs.sway = {
+  programs.niri = {
     enable = true;
-    package = pkgs.swayfx;
-    extraOptions = [ "--unsupported-gpu" ];
+    # GTK portal handles file choosers well
+    useNautilus = false;
   };
-  programs.hyprland.enable = true;
+  # The shell records through gpu-screen-recorder, whose kms server needs
+  # cap_sys_admin to read the card device
+  programs.gpu-screen-recorder.enable = true;
 
   programs.mtr.enable = true;
   programs.gnupg.agent = {
