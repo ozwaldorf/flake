@@ -96,12 +96,15 @@
               # and falls back to xray blur for the offscreen renders.
               # always-center-single-column is extended to center any set of
               # columns that fits on screen together.
+              # The overview eases each workspace's view back to its first column,
+              # so every preview starts with the same window at its left.
               # Layout invariant tests assert the fade, so they are skipped.
               niri = prev.niri.overrideAttrs (old: {
                 doCheck = false;
                 patches = (old.patches or [ ]) ++ [
                   ./pkgs/patches/niri-offscreen-blur.patch
                   ./pkgs/patches/niri-center-fitting-columns.patch
+                  ./pkgs/patches/niri-overview-first-column.patch
                 ];
               });
               # Route volume writes are skipped entirely on devices that report

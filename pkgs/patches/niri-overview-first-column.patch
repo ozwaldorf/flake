@@ -1,0 +1,81 @@
+diff -ru a/src/layout/monitor.rs b/src/layout/monitor.rs
+--- a/src/layout/monitor.rs
++++ b/src/layout/monitor.rs
+@@ -1069,7 +1069,9 @@
+             None => (),
+         }
+ 
++        let overview = self.overview_progress.as_ref().map_or(0., |p| p.clamped_value());
+         for ws in &mut self.workspaces {
++            ws.set_overview_progress(overview);
+             ws.advance_animations();
+         }
+     }
+@@ -1378,6 +1380,11 @@
+     pub(super) fn set_overview_progress(&mut self, progress: Option<&super::OverviewProgress>) {
+         let prev_render_idx = self.workspace_render_idx();
+         self.overview_progress = progress.map(OverviewProgress::from);
++
++        let overview = self.overview_progress.as_ref().map_or(0., |p| p.clamped_value());
++        for ws in &mut self.workspaces {
++            ws.set_overview_progress(overview);
++        }
+         let new_render_idx = self.workspace_render_idx();
+ 
+         // If the view jumped (can happen when going from corrected to uncorrected render_idx, for
+diff -ru a/src/layout/scrolling.rs b/src/layout/scrolling.rs
+--- a/src/layout/scrolling.rs
++++ b/src/layout/scrolling.rs
+@@ -49,6 +49,10 @@
+     /// when the resize begins, so the behavior cannot switch mid-drag.
+     resize_centers_group: bool,
+ 
++    /// How far the overview is open, from 0 closed to 1 open. While it is out the view is drawn
++    /// eased toward the first column, so every workspace preview starts from the same place.
++    overview_progress: f64,
++
+     /// Offset of the view computed from the active column.
+     ///
+     /// Any gaps, including left padding from work area left exclusive zone, is handled
+@@ -302,6 +306,7 @@
+             active_column_idx: 0,
+             interactive_resize: None,
+             resize_centers_group: false,
++            overview_progress: 0.,
+             view_offset: ViewOffset::Static(0.),
+             activate_prev_column_on_removal: None,
+             view_offset_to_restore: None,
+@@ -2351,7 +2356,18 @@
+     }
+ 
+     pub fn view_pos(&self) -> f64 {
+-        self.column_x(self.active_column_idx) + self.view_offset.current()
++        let pos = self.column_x(self.active_column_idx) + self.view_offset.current();
++        if self.overview_progress <= 0. || self.columns.is_empty() {
++            return pos;
++        }
++
++        // The first column against the left of the working area, as an unscrolled view has it.
++        let start = self.column_x(0) - self.options.layout.gaps - self.working_area.loc.x;
++        pos + (start - pos) * self.overview_progress
++    }
++
++    pub fn set_overview_progress(&mut self, progress: f64) {
++        self.overview_progress = progress.clamp(0., 1.);
+     }
+ 
+     pub fn target_view_pos(&self) -> f64 {
+diff -ru a/src/layout/workspace.rs b/src/layout/workspace.rs
+--- a/src/layout/workspace.rs
++++ b/src/layout/workspace.rs
+@@ -362,6 +362,10 @@
+         self.scale
+     }
+ 
++    pub fn set_overview_progress(&mut self, progress: f64) {
++        self.scrolling.set_overview_progress(progress);
++    }
++
+     pub fn advance_animations(&mut self) {
+         self.scrolling.advance_animations();
+         self.floating.advance_animations();
