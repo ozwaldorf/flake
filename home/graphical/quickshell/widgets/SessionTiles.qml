@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import ".."
 import "../services"
 
 // Power beside the brightness, with the power actions opening over them.
@@ -14,8 +15,8 @@ TileGroup {
     // whichever side the panel opened from.
     property bool anchorRight: false
 
-    // the same third the audio row splits on, so the two rows line up
-    readonly property real third: (width - tileRow.spacing) / 3
+    // one column of the panel's three, so this row lines up with the rest
+    readonly property real third: Theme.third(width)
 
     tileRow.layoutDirection: anchorRight ? Qt.RightToLeft : Qt.LeftToRight
 

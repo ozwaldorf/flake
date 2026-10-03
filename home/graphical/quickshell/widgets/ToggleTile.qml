@@ -137,7 +137,9 @@ Card {
         id: rows
 
         anchors.left: puck.right
-        anchors.leftMargin: Theme.spaceSm
+        // closer on a tile a third of the panel wide, so a short name still
+        // fits beside the puck and the chevron
+        anchors.leftMargin: root.width < 150 ? Theme.spaceXs : Theme.spaceSm
         anchors.right: chevron.left
         anchors.rightMargin: Theme.spaceXs
         anchors.verticalCenter: parent.verticalCenter

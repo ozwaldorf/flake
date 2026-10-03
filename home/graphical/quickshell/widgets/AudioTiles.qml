@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import ".."
 import "../services"
 
 // Volume and microphone side by side over one shared device list.
@@ -10,12 +11,12 @@ import "../services"
 TileGroup {
     id: root
 
-    readonly property real unit: (width - tileRow.spacing) / 3
+    readonly property real unit: Theme.third(width)
 
     maxListHeight: 150
 
     VolumeSlider {
-        width: root.unit * 2
+        width: root.unit * 2 + root.tileRow.spacing
         host: root.host
         device: "speaker"
         label: "Volume"

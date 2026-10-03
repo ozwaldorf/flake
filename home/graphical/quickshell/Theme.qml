@@ -203,6 +203,13 @@ Singleton {
     // width of a mark in the rail; collapsed it is the sliver width
     readonly property int wsWidth: 12
 
+    // One column of the control centre's three, across a row of the given
+    // width with the usual gap between columns: every row splits on these, so
+    // their edges line up down the panel.
+    function third(width) {
+        return (width - spaceXs * 2) / 3;
+    }
+
     function clamp01(v) {
         return Math.max(0, Math.min(1, v));
     }

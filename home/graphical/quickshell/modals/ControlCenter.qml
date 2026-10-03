@@ -173,13 +173,6 @@ ModalPanel {
                 visible: Media.player !== null
             }
 
-            // ---- the recorder ----
-
-            RecorderTile {
-                width: parent.width
-                host: root
-            }
-
             // ---- tray ----
 
             // One flow rather than a fixed row, so a long tray wraps onto as
@@ -215,6 +208,23 @@ ModalPanel {
                 // push the last entry on a line over the edge and wrap it.
                 readonly property real entry: (width - (perLine - 1) * spacing) / perLine - 0.01
 
+                // Each line is filled edge to edge however few entries it
+                // holds, the entries taking it in uneven shares so the line
+                // reads as a set of tiles rather than a grid with gaps. The
+                // shares come from a fixed run of weights, so an entry keeps
+                // its size from one opening to the next.
+                readonly property var weights: [1.0, 1.6, 1.25, 1.45, 1.1, 1.35]
+
+                function widthFor(index) {
+                    const start = Math.floor(index / perLine) * perLine;
+                    const count = Math.min(perLine, trayCount - start);
+                    let total = 0;
+                    for (let i = start; i < start + count; i++)
+                        total += weights[i % weights.length];
+                    const room = width - (count - 1) * spacing - 0.01 * count;
+                    return room * weights[index % weights.length] / total;
+                }
+
                 Repeater {
                     model: SystemTray.items
 
@@ -222,11 +232,11 @@ ModalPanel {
                         id: trayEntry
 
                         required property var modelData
+                        required property int index
 
-                        // Square, and as tall as the tile beside it so the
-                        // row reads as one band rather than icons floating
-                        // against a taller card.
-                        implicitWidth: utility.entry
+                        // As tall as the tile beside it so the row reads as
+                        // one band, and as wide as its share of the line.
+                        implicitWidth: utility.widthFor(index)
                         implicitHeight: utility.entry
                         host: root
                         cursorShape: Qt.PointingHandCursor
