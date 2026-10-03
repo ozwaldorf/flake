@@ -476,8 +476,8 @@ ModalPanel {
                     spacing: 3
 
                     Repeater {
-                        // as many as the tile has room for
-                        model: SysMeters.processes.slice(0, Math.max(1, Math.floor((processes.height - Theme.padCard * 2 - 27) / (processes.lineHeight + 3))))
+                        // the four busiest
+                        model: SysMeters.processes.slice(0, 4)
 
                         Item {
                             id: proc

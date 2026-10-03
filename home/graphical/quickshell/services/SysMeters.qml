@@ -262,7 +262,7 @@ Singleton {
     Process {
         id: processScan
 
-        command: ["sh", "-c", "top -b -n 2 -d 0.5 -o %CPU -w 512 | awk '/^top -/{n++} n==2 && $1 ~ /^[0-9]+$/ && $12 != \"top\" {print $9, $10, $12}' | head -8; nproc"]
+        command: ["sh", "-c", "top -b -n 2 -d 0.5 -o %CPU -w 512 | awk '/^top -/{n++} n==2 && $1 ~ /^[0-9]+$/ && $12 != \"top\" {print $9, $10, $12}' | head -4; nproc"]
 
         stdout: StdioCollector {
             onStreamFinished: {
