@@ -172,6 +172,16 @@ in
         # view, and Mod with the left and right buttons move and resize.
         "Mod+WheelScrollDown".focus-column-right = { };
         "Mod+WheelScrollUp".focus-column-left = { };
+        # A cooldown so one flick of the wheel moves one workspace rather than
+        # racing through several
+        "Mod+Shift+WheelScrollDown" = {
+          _props.cooldown-ms = 150;
+          focus-workspace-down = { };
+        };
+        "Mod+Shift+WheelScrollUp" = {
+          _props.cooldown-ms = 150;
+          focus-workspace-up = { };
+        };
 
         "Mod+Left".focus-column-or-monitor-left = { };
         "Mod+Right".focus-column-or-monitor-right = { };
