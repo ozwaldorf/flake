@@ -10,7 +10,6 @@
     eza
     bat
     curl
-    tree
     comma
     onefetch
     weechat
@@ -83,6 +82,8 @@
       df = "df -h"; # Human-readable sizes
       free = "free -m"; # Show sizes in MB
       clip = "wl-copy"; # clipboard pipe
+      jq = "jaq";
+      tree = "eza --tree";
       curl = "curl -s";
       commit = "git commit";
       add = "git add";
@@ -161,9 +162,9 @@
           shift
 
           case "$command" in
-            cd)           fzf --preview 'tree -C {} | head -200'   "$@" ;;
-            ssh)          fzf --preview 'dig {}'                   "$@" ;;
-            nvim)         fzf --preview 'bat -n --color=always {}' "$@" ;;
+            cd)           fzf --preview 'eza --tree --color=always {} | head -200' "$@" ;;
+            ssh)          fzf --preview 'dig {}'                                   "$@" ;;
+            nvim)         fzf --preview 'bat -n --color=always {}'                 "$@" ;;
           esac
         }
       '')

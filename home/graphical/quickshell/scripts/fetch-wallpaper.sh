@@ -49,7 +49,7 @@ response=$(curl -sfG "$API" -A "$UA" --compressed --max-time 30 \
     --data-urlencode "gsrsearch=$POOL" \
     -d prop=imageinfo -d iiprop='url|size|mime' -d "iiurlwidth=$WIDTH") || exit 1
 
-pick=$(jq -r --argjson min "$MIN_AR" --argjson max "$MAX_AR" '
+pick=$(jaq -r --argjson min "$MIN_AR" --argjson max "$MAX_AR" '
     [.query.pages[]?
      | .imageinfo[0] as $i
      | select($i != null and $i.thumburl != null)

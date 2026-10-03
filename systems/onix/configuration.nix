@@ -300,6 +300,7 @@
 
   security.rtkit.enable = true;
   security.polkit.enable = true;
+  security.sudo-rs.enable = true;
   security.pam.services.gdm.enableGnomeKeyring = true;
 
   systemd = {

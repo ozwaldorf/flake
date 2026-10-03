@@ -12,15 +12,15 @@ in
   home = {
     # Standalone gnome desktop apps
     packages = with pkgs; [
-      pavucontrol # volume control
+      pwvucontrol # volume control
       wdisplays # display control
-      gnome-system-monitor # resource monitor
+      mission-center # resource monitor
 
       nautilus # file explorer
       file-roller # archive manager
       simple-scan # document scanner
 
-      eog # photo viewer
+      loupe # photo viewer
       celluloid # video player
       evince # document viewer
       gnome-characters # character viewer

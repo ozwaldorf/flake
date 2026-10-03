@@ -10,7 +10,7 @@
       nix-tree
       ripgrep-all
       ripgrep
-      jq
+      jaq
       # xq
       gh
       bottom

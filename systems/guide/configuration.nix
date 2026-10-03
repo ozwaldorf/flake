@@ -124,6 +124,7 @@
   services.xserver.enable = true;
   services.xserver.videoDrivers = [ "nvidia" ];
   services.xserver.desktopManager.gnome.enable = true;
+  environment.gnome.excludePackages = [ pkgs.gnome-system-monitor ];
   services.xserver.desktopManager.xterm.enable = false;
   services.gnome.gnome-keyring.enable = true;
   services.xserver = {
@@ -155,6 +156,7 @@
     pulse.enable = true;
   };
   security.polkit.enable = true;
+  security.sudo-rs.enable = true;
   systemd = {
     user.services.polkit-gnome-authentication-agent-1 = {
       description = "polkit-gnome-authentication-agent-1";

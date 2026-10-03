@@ -16,11 +16,11 @@ let
     name = "niri-toggle-float";
     runtimeInputs = [
       pkgs.niri
-      pkgs.jq
+      pkgs.jaq
     ];
     text = ''
       niri msg action toggle-window-floating
-      if [ "$(niri msg -j focused-window | jq '.is_floating')" = true ]; then
+      if [ "$(niri msg -j focused-window | jaq '.is_floating')" = true ]; then
         niri msg action set-window-width 800
         niri msg action set-window-height 500
         niri msg action center-window
@@ -49,7 +49,7 @@ let
 in
 {
   home.packages = with pkgs; [
-    wl-clipboard
+    wl-clipboard-rs
     libnotify
   ];
 

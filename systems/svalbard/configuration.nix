@@ -90,6 +90,8 @@
   };
   users.groups.media = { };
 
+  security.sudo-rs.enable = true;
+
   environment.systemPackages = with pkgs; [
     vim
   ];
