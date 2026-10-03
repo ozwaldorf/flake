@@ -430,109 +430,6 @@ ModalPanel {
         Row {
             spacing: root.gap
 
-            LoadWell {
-                kind: "cpu"
-                figure: SysMeters.cpu + "%"
-                width: root.gpu ? root.narrow : parent.width
-                height: 112 + root.stretch
-            }
-
-            // the card's load, and its memory in the corner
-            LoadWell {
-                visible: root.gpu
-                kind: "gpu"
-                figure: SysMeters.gpu + "%"
-                width: root.wide
-                height: 112 + root.stretch
-                note: "VRAM  " + root.capacityNote("vram")
-                chartRight: root.blocksRoom(4)
-
-                Blocks {
-                    kind: "vram"
-                    columns: 4
-                }
-            }
-        }
-
-        Row {
-            spacing: root.gap
-
-            // The busiest processes now, each a line with its share of the
-            // processor behind it as a faint bar, so the list reads as a
-            // ranking at a glance.
-            Well {
-                id: processes
-
-                readonly property real lineHeight: 15
-
-                title: "Processes"
-                icon: Theme.iconCpu
-                tint: Theme.mauve
-                width: root.wide
-                height: 100 + root.stretch
-
-                Column {
-                    width: parent.width
-                    spacing: 3
-
-                    Repeater {
-                        // the four busiest
-                        model: SysMeters.processes.slice(0, 4)
-
-                        Item {
-                            id: proc
-
-                            required property var modelData
-
-                            width: parent.width
-                            height: processes.lineHeight
-
-                            Rectangle {
-                                width: parent.width * Theme.clamp01(proc.modelData.cpu / 100)
-                                height: parent.height
-                                radius: 3
-                                color: Qt.alpha(Meters.defs.cpu.fill, 0.18)
-                            }
-
-                            Label {
-                                anchors.left: parent.left
-                                anchors.leftMargin: 4
-                                anchors.right: share.left
-                                anchors.rightMargin: Theme.spaceXs
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: proc.modelData.name
-                                color: Theme.subtext0
-                                elide: Text.ElideRight
-                            }
-
-                            Label {
-                                id: share
-
-                                anchors.right: parent.right
-                                anchors.rightMargin: 4
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: proc.modelData.cpu.toFixed(1) + "%"
-                                figures: true
-                                color: Theme.overlay1
-                            }
-                        }
-                    }
-                }
-            }
-
-            // what is taken large, what it is out of against the heading
-            LoadWell {
-                kind: "memory"
-                figure: SysMeters.formatBytes(SysMeters.memoryUsed)
-                note: SysMeters.formatBytes(SysMeters.memoryTotal)
-                width: root.narrow
-                height: 100 + root.stretch
-            }
-        }
-
-        Row {
-            spacing: root.gap
-
             // Temperatures as columns of mercury, the processor and, when
             // there is one, the card beside it.
             Well {
@@ -730,6 +627,109 @@ ModalPanel {
                         radius: 1.5
                         color: Theme.surface2
                     }
+                }
+            }
+        }
+
+        Row {
+            spacing: root.gap
+
+            // The busiest processes now, each a line with its share of the
+            // processor behind it as a faint bar, so the list reads as a
+            // ranking at a glance.
+            Well {
+                id: processes
+
+                readonly property real lineHeight: 15
+
+                title: "Processes"
+                icon: Theme.iconCpu
+                tint: Theme.mauve
+                width: root.wide
+                height: 100 + root.stretch
+
+                Column {
+                    width: parent.width
+                    spacing: 3
+
+                    Repeater {
+                        // the four busiest
+                        model: SysMeters.processes.slice(0, 4)
+
+                        Item {
+                            id: proc
+
+                            required property var modelData
+
+                            width: parent.width
+                            height: processes.lineHeight
+
+                            Rectangle {
+                                width: parent.width * Theme.clamp01(proc.modelData.cpu / 100)
+                                height: parent.height
+                                radius: 3
+                                color: Qt.alpha(Meters.defs.cpu.fill, 0.18)
+                            }
+
+                            Label {
+                                anchors.left: parent.left
+                                anchors.leftMargin: 4
+                                anchors.right: share.left
+                                anchors.rightMargin: Theme.spaceXs
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: proc.modelData.name
+                                color: Theme.subtext0
+                                elide: Text.ElideRight
+                            }
+
+                            Label {
+                                id: share
+
+                                anchors.right: parent.right
+                                anchors.rightMargin: 4
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: proc.modelData.cpu.toFixed(1) + "%"
+                                figures: true
+                                color: Theme.overlay1
+                            }
+                        }
+                    }
+                }
+            }
+
+            // what is taken large, what it is out of against the heading
+            LoadWell {
+                kind: "memory"
+                figure: SysMeters.formatBytes(SysMeters.memoryUsed)
+                note: SysMeters.formatBytes(SysMeters.memoryTotal)
+                width: root.narrow
+                height: 100 + root.stretch
+            }
+        }
+
+        Row {
+            spacing: root.gap
+
+            LoadWell {
+                kind: "cpu"
+                figure: SysMeters.cpu + "%"
+                width: root.gpu ? root.narrow : parent.width
+                height: 112 + root.stretch
+            }
+
+            // the card's load, and its memory in the corner
+            LoadWell {
+                visible: root.gpu
+                kind: "gpu"
+                figure: SysMeters.gpu + "%"
+                width: root.wide
+                height: 112 + root.stretch
+                note: "VRAM  " + root.capacityNote("vram")
+                chartRight: root.blocksRoom(4)
+
+                Blocks {
+                    kind: "vram"
+                    columns: 4
                 }
             }
         }
