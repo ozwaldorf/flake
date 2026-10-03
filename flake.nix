@@ -107,6 +107,10 @@
                   # A column's lone window, when shorter than the column, is
                   # centered in it rather than held to its top.
                   ./pkgs/patches/niri-center-lone-window.patch
+                  # A working area change keeps the focused column against the
+                  # edge it was against, and a view that keeps it in sight still
+                  # snaps to a column edge rather than resting between them.
+                  ./pkgs/patches/niri-snap-view.patch
                 ];
               });
               # Route volume writes are skipped entirely on devices that report

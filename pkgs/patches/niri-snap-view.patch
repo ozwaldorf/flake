@@ -1,0 +1,111 @@
+diff -ru a/src/layout/scrolling.rs b/src/layout/scrolling.rs
+--- a/src/layout/scrolling.rs
++++ b/src/layout/scrolling.rs
+@@ -334,6 +334,8 @@ impl<W: LayoutElement> ScrollingSpace<W> {
+             data.update(column);
+         }
+ 
++        let prev_area = self.working_area;
++
+         self.view_size = view_size;
+         self.working_area = working_area;
+         self.parent_area = parent_area;
+@@ -342,7 +344,10 @@ impl<W: LayoutElement> ScrollingSpace<W> {
+ 
+         // Apply always-center and such right away.
+         if !self.columns.is_empty() && !self.view_offset.is_gesture() {
+-            self.animate_view_offset_to_column(None, self.active_column_idx, None);
++            let target_x = (prev_area != working_area)
++                .then(|| self.carry_view_pos(prev_area))
++                .flatten();
++            self.animate_view_offset_to_column(target_x, self.active_column_idx, None);
+         }
+     }
+ 
+@@ -605,12 +610,84 @@ impl<W: LayoutElement> ScrollingSpace<W> {
+ 
+     fn compute_new_view_offset_for_column_fit(&self, target_x: Option<f64>, idx: usize) -> f64 {
+         let col = &self.columns[idx];
+-        self.compute_new_view_offset_fit(
++        let offset = self.compute_new_view_offset_fit(
+             target_x,
+             self.column_x(idx),
+             col.width(),
+             col.sizing_mode(),
+-        )
++        );
++
++        if col.sizing_mode().is_normal() {
++            self.snap_view_offset(idx, offset)
++        } else {
++            offset
++        }
++    }
++
++    /// View position that keeps the active column where it sat in `prev_area`, now in the
++    /// current working area: flush with the same edge if it was against one, otherwise at the
++    /// same distance from the left.
++    fn carry_view_pos(&self, prev_area: Rectangle<f64, Logical>) -> Option<f64> {
++        let idx = self.active_column_idx;
++        let col = &self.columns[idx];
++        if !col.sizing_mode().is_normal() {
++            return None;
++        }
++
++        let gaps = self.options.layout.gaps;
++        let width = col.width();
++        let edges = |area: Rectangle<f64, Logical>| {
++            let padding = ((area.size.w - width) / 2.).clamp(0., gaps);
++            (
++                -padding - area.loc.x,
++                -(area.size.w - padding - width) - area.loc.x,
++            )
++        };
++
++        let (prev_left, prev_right) = edges(prev_area);
++        let (left, right) = edges(self.working_area);
++        let offset = self.view_offset.target();
++        let new_offset = if (offset - prev_left).abs() < 1. {
++            left
++        } else if (offset - prev_right).abs() < 1. {
++            right
++        } else {
++            offset - (self.working_area.loc.x - prev_area.loc.x)
++        };
++
++        Some(self.column_x(idx) + new_offset)
++    }
++
++    /// Moves a view offset that keeps column `idx` fully visible onto the nearest position that
++    /// still does and has some column flush against an edge of the working area. A view left
++    /// between columns, as a working area change does, otherwise stays there.
++    fn snap_view_offset(&self, idx: usize, offset: f64) -> f64 {
++        let area = self.working_area;
++        let gaps = self.options.layout.gaps;
++        let padding = |width: f64| ((area.size.w - width) / 2.).clamp(0., gaps);
++
++        let col_x = self.column_x(idx);
++        let width = self.columns[idx].width();
++        if area.size.w <= width {
++            return offset;
++        }
++
++        // View left edges in working area coordinates.
++        let cur = col_x + offset + area.loc.x;
++        let left = col_x - padding(width);
++        let right = col_x + width + padding(width) - area.size.w;
++
++        self.columns
++            .iter()
++            .enumerate()
++            .flat_map(|(i, col)| {
++                let x = self.column_x(i);
++                let w = col.width();
++                [x - padding(w), x + w + padding(w) - area.size.w]
++            })
++            .filter(|&v| right - 0.5 <= v && v <= left + 0.5)
++            .min_by(|a, b| (a - cur).abs().total_cmp(&(b - cur).abs()))
++            .map_or(offset, |v| v - col_x - area.loc.x)
+     }
+ 
+     fn compute_new_view_offset_for_column_centered(
