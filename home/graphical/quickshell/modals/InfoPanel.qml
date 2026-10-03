@@ -93,6 +93,9 @@ ModalPanel {
         required property string figure
         property string suffix: ""
 
+        // what is doing the work, named under the figure
+        property string detail: ""
+
         // room kept beside the chart for whatever sits in the far corner
         property real chartRight: 0
 
@@ -122,9 +125,22 @@ ModalPanel {
             limit: Meters.ceiling(load.kind)
         }
 
-        Figure {
-            value: load.figure
-            suffix: load.suffix
+        Column {
+            width: parent.width - load.chartRight
+            spacing: 2
+
+            Figure {
+                value: load.figure
+                suffix: load.suffix
+            }
+
+            Label {
+                width: parent.width
+                visible: text !== ""
+                text: load.detail
+                color: Theme.overlay1
+                elide: Text.ElideRight
+            }
         }
     }
 
@@ -287,6 +303,7 @@ ModalPanel {
         }
 
         readonly property var cpu: /^(.*) \((\d+)\)$/.exec(SysMeters.cpuModel)
+        readonly property string processor: cpu ? tidy(cpu[1]) + " · " + cpu[2] + "T" : tidy(SysMeters.cpuModel)
 
         // the nixpkgs date and revision NixOS stamps into its version
         readonly property var nixpkgs: /\.(\d{4})(\d{2})(\d{2})\.([0-9a-f]+)/.exec(SysMeters.nixosVersion)
@@ -310,7 +327,7 @@ ModalPanel {
 
         // Only what came back, so a machine without a battery or a card
         // closes up rather than listing blanks.
-        readonly property var specs: [["OS", SysMeters.osName], ["Kernel", SysMeters.kernel ? "Linux " + SysMeters.kernel : ""], ["Processor", cpu ? tidy(cpu[1]) + " \u00b7 " + cpu[2] + "T" : tidy(SysMeters.cpuModel)], ["Graphics", tidy(SysMeters.gpuModel)], ["Generation", SysMeters.generation > 0 ? "#" + SysMeters.generation + " \u00b7 " + ago(SysMeters.generationTime) : ""], ["Nixpkgs", nixpkgs ? nixpkgs[4] + " \u00b7 " + daysAgo(new Date(nixpkgs[1], nixpkgs[2] - 1, nixpkgs[3])) : ""], ["Shell", SysMeters.shellRelease], ["WM", SysMeters.wmRelease]].filter(f => f[1] !== "")
+        readonly property var specs: [["OS", SysMeters.osName], ["Kernel", SysMeters.kernel ? "Linux " + SysMeters.kernel : ""], ["Generation", SysMeters.generation > 0 ? "#" + SysMeters.generation + " \u00b7 " + ago(SysMeters.generationTime) : ""], ["Nixpkgs", nixpkgs ? nixpkgs[4] + " \u00b7 " + daysAgo(new Date(nixpkgs[1], nixpkgs[2] - 1, nixpkgs[3])) : ""], ["Shell", SysMeters.shellRelease], ["WM", SysMeters.wmRelease]].filter(f => f[1] !== "")
 
         anchors.top: parent.top
         width: parent.width
@@ -656,6 +673,7 @@ ModalPanel {
             LoadWell {
                 kind: "cpu"
                 figure: SysMeters.cpu + "%"
+                detail: host.processor
                 width: root.wide
                 height: 112 + root.stretch
             }
@@ -675,6 +693,7 @@ ModalPanel {
             visible: root.gpu
             kind: "gpu"
             figure: SysMeters.gpu + "%"
+            detail: host.tidy(SysMeters.gpuModel)
             width: parent.width
             height: 112 + root.stretch
             note: "VRAM  " + root.capacityNote("vram")
