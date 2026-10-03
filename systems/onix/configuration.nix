@@ -300,6 +300,7 @@
 
   security.rtkit.enable = true;
   security.polkit.enable = true;
+  security.polkit.enablePkexecWrapper = true; # pkexec for mission-center and others
   security.sudo-rs.enable = true;
   security.pam.services.gdm.enableGnomeKeyring = true;
 

@@ -159,6 +159,7 @@
     pulse.enable = true;
   };
   security.polkit.enable = true;
+  security.polkit.enablePkexecWrapper = true; # pkexec for mission-center and others
   security.sudo-rs.enable = true;
   systemd = {
     user.services.polkit-gnome-authentication-agent-1 = {
