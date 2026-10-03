@@ -26,11 +26,11 @@ ModalPanel {
     }
 
     // The readings take up whatever the head leaves them: the gap between the
-    // host and the stack is shared out over the four rows of charts, so they
+    // host and the stack is shared out over the five rows, so they
     // grow on a tall screen rather than leaving the middle of the drawer
     // empty.
-    readonly property real naturalStack: (112 + 100 + 100 + 112) + gap * 3
-    readonly property real stretch: Math.max(0, (layout.parent.height - host.height - gap - naturalStack) / 4)
+    readonly property real naturalStack: (100 + 112 + 112 + 112 + 165) + gap * 4
+    readonly property real stretch: Math.max(0, (layout.parent.height - host.height - gap - naturalStack) / 5)
 
     // a switch moves the generation under a running session, so the host's
     // details are read again whenever the drawer opens
@@ -73,6 +73,16 @@ ModalPanel {
             figures: true
             color: Theme.overlay0
         }
+    }
+
+    // a figure in a table column, held to its width against the right
+    component Cell: Label {
+        property real cellWidth: 0
+
+        width: cellWidth
+        horizontalAlignment: Text.AlignRight
+        figures: true
+        elide: Text.ElideRight
     }
 
     // A load: the figure now, large, over the line it has drawn lately.
@@ -643,67 +653,11 @@ ModalPanel {
         Row {
             spacing: root.gap
 
-            // The busiest processes now, each a line with its share of the
-            // processor behind it as a faint bar, so the list reads as a
-            // ranking at a glance.
-            Well {
-                id: processes
-
-                readonly property real lineHeight: 15
-
-                title: "Processes"
-                icon: Theme.iconCpu
-                tint: Theme.mauve
+            LoadWell {
+                kind: "cpu"
+                figure: SysMeters.cpu + "%"
                 width: root.wide
-                height: 100 + root.stretch
-
-                Column {
-                    width: parent.width
-                    spacing: 3
-
-                    Repeater {
-                        // the four busiest
-                        model: SysMeters.processes.slice(0, 4)
-
-                        Item {
-                            id: proc
-
-                            required property var modelData
-
-                            width: parent.width
-                            height: processes.lineHeight
-
-                            Rectangle {
-                                width: parent.width * Theme.clamp01(proc.modelData.cpu / 100)
-                                height: parent.height
-                                radius: 3
-                                color: Qt.alpha(Meters.defs.cpu.fill, 0.18)
-                            }
-
-                            Label {
-                                anchors.left: parent.left
-                                anchors.leftMargin: 4
-                                anchors.right: share.left
-                                anchors.rightMargin: Theme.spaceXs
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: proc.modelData.name
-                                color: Theme.subtext0
-                                elide: Text.ElideRight
-                            }
-
-                            Label {
-                                id: share
-
-                                anchors.right: parent.right
-                                anchors.rightMargin: 4
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: proc.modelData.cpu.toFixed(1) + "%"
-                                figures: true
-                                color: Theme.overlay1
-                            }
-                        }
-                    }
-                }
+                height: 112 + root.stretch
             }
 
             // what is taken large, what it is out of against the heading
@@ -712,34 +666,23 @@ ModalPanel {
                 figure: SysMeters.formatBytes(SysMeters.memoryUsed)
                 note: SysMeters.formatBytes(SysMeters.memoryTotal)
                 width: root.narrow
-                height: 100 + root.stretch
+                height: 112 + root.stretch
             }
         }
 
-        Row {
-            spacing: root.gap
+        // the card's load across the drawer, and its memory in the corner
+        LoadWell {
+            visible: root.gpu
+            kind: "gpu"
+            figure: SysMeters.gpu + "%"
+            width: parent.width
+            height: 112 + root.stretch
+            note: "VRAM  " + root.capacityNote("vram")
+            chartRight: root.blocksRoom(4)
 
-            LoadWell {
-                kind: "cpu"
-                figure: SysMeters.cpu + "%"
-                width: root.gpu ? root.narrow : parent.width
-                height: 112 + root.stretch
-            }
-
-            // the card's load, and its memory in the corner
-            LoadWell {
-                visible: root.gpu
-                kind: "gpu"
-                figure: SysMeters.gpu + "%"
-                width: root.wide
-                height: 112 + root.stretch
-                note: "VRAM  " + root.capacityNote("vram")
-                chartRight: root.blocksRoom(4)
-
-                Blocks {
-                    kind: "vram"
-                    columns: 4
-                }
+            Blocks {
+                kind: "vram"
+                columns: 4
             }
         }
 
@@ -765,6 +708,118 @@ ModalPanel {
                 kind: "network"
                 width: root.narrow
                 height: 112 + root.stretch
+            }
+        }
+
+        // The busiest processes, then the largest, as a table across the foot
+        // of the drawer: each line with its share of the processor behind it
+        // as a faint bar, so the list reads as a ranking at a glance. As many
+        // lines as fit, and the tile cut to them.
+        Well {
+            id: processes
+
+            readonly property real lineHeight: 15
+            readonly property real lineGap: 3
+            // the captions and padding around the lines
+            readonly property real chrome: Theme.padCard * 2 + 34
+            readonly property int count: Math.max(1, Math.floor((165 + root.stretch - chrome + lineGap) / (lineHeight + lineGap)))
+
+            // the fixed columns, right to left from the edge
+            readonly property real cpuWidth: 48
+            readonly property real memWidth: 64
+            readonly property real userWidth: 56
+
+            title: "Processes"
+            icon: Theme.iconCpu
+            tint: Theme.mauve
+            note: SysMeters.processes.length > 0 ? SysMeters.processes.filter(p => p.cpu > 0).length + " busy" : ""
+            width: parent.width
+            // to the last whole line, so no part line of slack is left under it
+            height: chrome + count * (lineHeight + lineGap) - lineGap
+
+            Column {
+                width: parent.width
+                spacing: processes.lineGap
+
+                // column captions, in the heading's own small capitals
+                Row {
+                    x: 4
+                    width: parent.width - 8
+
+                    Label {
+                        width: parent.width - processes.userWidth - processes.memWidth - processes.cpuWidth
+                        text: "NAME"
+                        font.pixelSize: 9
+                        font.letterSpacing: 1.2
+                        color: Theme.overlay0
+                    }
+
+                    Repeater {
+                        model: [["USER", processes.userWidth], ["MEM", processes.memWidth], ["CPU", processes.cpuWidth]]
+
+                        Label {
+                            required property var modelData
+
+                            width: modelData[1]
+                            horizontalAlignment: Text.AlignRight
+                            text: modelData[0]
+                            font.pixelSize: 9
+                            font.letterSpacing: 1.2
+                            color: Theme.overlay0
+                        }
+                    }
+                }
+
+                Repeater {
+                    model: SysMeters.processes.slice(0, processes.count)
+
+                    Item {
+                        id: proc
+
+                        required property var modelData
+
+                        width: parent.width
+                        height: processes.lineHeight
+
+                        Rectangle {
+                            width: parent.width * Theme.clamp01(proc.modelData.cpu / 100)
+                            height: parent.height
+                            radius: 3
+                            color: Qt.alpha(Meters.defs.cpu.fill, 0.18)
+                        }
+
+                        Row {
+                            x: 4
+                            width: parent.width - 8
+                            anchors.verticalCenter: parent.verticalCenter
+
+                            Label {
+                                width: parent.width - processes.userWidth - processes.memWidth - processes.cpuWidth
+                                text: proc.modelData.name
+                                color: Theme.subtext0
+                                elide: Text.ElideRight
+                            }
+
+                            Cell {
+                                cellWidth: processes.userWidth
+                                text: proc.modelData.user
+                                color: proc.modelData.user === "root" ? Theme.peach : Theme.overlay0
+                            }
+
+                            Cell {
+                                cellWidth: processes.memWidth
+                                text: SysMeters.formatBytes(proc.modelData.rss)
+                                color: Theme.overlay1
+                            }
+
+                            Cell {
+                                cellWidth: processes.cpuWidth
+                                text: proc.modelData.cpu.toFixed(1) + "%"
+                                color: proc.modelData.cpu > 0 ? Theme.text : Theme.overlay0
+                            }
+                        }
+                    }
+                }
             }
         }
     }

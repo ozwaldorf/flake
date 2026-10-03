@@ -236,7 +236,8 @@ Singleton {
     // life rather than what it is doing now. Only while something is showing
     // them, since it is the heaviest thing sampled here.
     //
-    // Oldest first is meaningless here; busiest first, a handful deep.
+    // Busiest first, then with the processor quiet, the largest by resident
+    // memory to fill the list out, a dozen deep in all.
     property var processes: []
     property int processWatchers: 0
 
@@ -262,20 +263,30 @@ Singleton {
     Process {
         id: processScan
 
-        command: ["sh", "-c", "top -b -n 2 -d 0.5 -o %CPU -w 512 | awk '/^top -/{n++} n==2 && $1 ~ /^[0-9]+$/ && $12 != \"top\" {print $9, $10, $12}' | head -4; nproc"]
+        // pid, cpu, mem, rss in KiB, user, name: the busiest dozen, then the
+        // largest dozen, which may repeat some of the first
+        command: ["sh", "-c", "p=$(top -b -n 2 -d 0.5 -o %CPU -w 512 -e k | awk '/^top -/{n++} n==2 && $1 ~ /^[0-9]+$/ && $12 != \"top\" {print $1, $9, $10, $6, $2, $12}'); echo \"$p\" | head -12; echo \"$p\" | sort -k4 -nr | head -12; nproc"]
 
         stdout: StdioCollector {
             onStreamFinished: {
                 const lines = text.trim().split("\n");
                 const cores = Number(lines.pop()) || 1;
-                root.processes = lines.filter(l => Number(l.split(" ")[0]) > 0).map(l => {
-                    const [cpu, mem, comm] = l.split(" ");
+                const list = lines.map(l => {
+                    const [pid, cpu, mem, rss, user, comm] = l.split(" ");
                     return {
+                        pid: Number(pid),
                         name: root.processName(comm ?? ""),
+                        user: user ?? "",
                         cpu: Number(cpu) / cores,
-                        mem: Number(mem)
+                        mem: Number(mem),
+                        rss: Number(rss) * 1024
                     };
                 });
+                // the idle part of the busiest dozen sorts arbitrarily, so
+                // only the busy ones lead and the largest follow
+                const busy = list.slice(0, 12).filter(p => p.cpu > 0);
+                const pids = new Set(busy.map(p => p.pid));
+                root.processes = busy.concat(list.slice(12).filter(p => !pids.has(p.pid))).slice(0, 12);
             }
         }
     }
