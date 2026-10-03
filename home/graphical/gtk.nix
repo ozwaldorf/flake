@@ -1,4 +1,11 @@
 { config, pkgs, ... }:
+let
+  # Foot's opacity, which the gtk windows are matched to. Fluent stacks a
+  # pane's background over the window's, so each layer takes what two of them
+  # need to reach it; menus are one layer and take it as is.
+  menu = "0.8";
+  layer = "0.55";
+in
 {
   imports = [ ./modules/pointer.nix ];
 
@@ -54,7 +61,8 @@
             # of lighter surfaces and darker views and titlebar, with its
             # accent, status and link colours. The prerendered png assets keep
             # fluent's own blue. Menus take their colour before the blur tweak
-            # thins the surfaces, so they are set again from the thinned one.
+            # thins the surfaces, so they are set again from the thinned one,
+            # and the blur opacity is raised to match foot.
             postPatch = old.postPatch + ''
               sed -i \
                 -e 's/#333333/#161616/' \
@@ -68,7 +76,8 @@
                 -e 's/#81C995/#42be65/' \
                 -e "s/^\(\$link: *\)\$blue-600;/\1if(\$variant == 'light', \$blue-600, #78a9ff);/" \
                 -e 's/\$purple-200)/#d4bbff)/' \
-                -e '/^  \$surface: .*blur_opacity/a\  $menu: $surface;' \
+                -e "s/\(blur_opacity: *if(\$variant == 'light', 0.85, \)0.5)/\1${layer})/" \
+                -e '/^  \$surface: .*blur_opacity/a\  $menu: rgba($surface, ${menu});' \
                 src/_sass/_colors.scss
             '';
             # A flat headerbar over the content takes only the window's
@@ -77,7 +86,7 @@
             postInstall = (old.postInstall or "") + ''
               for css in $out/share/themes/*/gtk-4.0/gtk{,-dark}.css; do
                 cat >> $css <<'EOF'
-              .content-pane { background-color: rgba(18, 18, 18, 0.5); }
+              .content-pane { background-color: rgba(18, 18, 18, ${layer}); }
               .content-pane .view { background-color: transparent; }
               EOF
               done
