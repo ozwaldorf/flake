@@ -123,10 +123,13 @@
 
   services.xserver.enable = true;
   services.xserver.videoDrivers = [ "nvidia" ];
-  services.xserver.desktopManager.gnome.enable = true;
-  environment.gnome.excludePackages = [ pkgs.gnome-system-monitor ];
   services.xserver.desktopManager.xterm.enable = false;
+  # Manually enable some services gnome used to
+  services.gvfs.enable = true;
+  services.udisks2.enable = true;
+  services.upower.enable = true;
   services.gnome.gnome-keyring.enable = true;
+  services.gnome.localsearch.enable = true;
   services.xserver = {
     xkb.layout = "us";
     xkb.variant = "";
@@ -199,6 +202,7 @@
   # cap_sys_admin to read the card device
   programs.gpu-screen-recorder.enable = true;
 
+  programs.gnome-disks.enable = true;
   programs.mtr.enable = true;
   programs.gnupg.agent = {
     enable = true;
