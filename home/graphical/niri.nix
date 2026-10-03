@@ -198,12 +198,12 @@ in
 
         "Mod+Left".focus-column-or-monitor-left = { };
         "Mod+Right".focus-column-or-monitor-right = { };
-        "Mod+Up".focus-window-or-monitor-up = { };
-        "Mod+Down".focus-window-or-monitor-down = { };
+        "Mod+Up".focus-window-or-workspace-up = { };
+        "Mod+Down".focus-window-or-workspace-down = { };
         "Mod+Shift+Left".move-column-left-or-to-monitor-left = { };
         "Mod+Shift+Right".move-column-right-or-to-monitor-right = { };
-        "Mod+Shift+Up".move-window-up = { };
-        "Mod+Shift+Down".move-window-down = { };
+        "Mod+Shift+Up".move-window-up-or-to-workspace-up = { };
+        "Mod+Shift+Down".move-window-down-or-to-workspace-down = { };
       }
       // workspaceBinds;
 
