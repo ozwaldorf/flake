@@ -40,8 +40,8 @@ Singleton {
     property bool overviewOpen: false
 
     // layout gaps and struts from niri.nix, which the replay needs to match
-    readonly property real gap: 10
-    readonly property real strut: 10
+    readonly property real gap: 14
+    readonly property real strut: 14
 
     // the output holding the focused workspace, read at the moment asked
     function focusedOutput(): string {

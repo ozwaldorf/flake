@@ -86,13 +86,13 @@ in
       };
 
       layout = {
-        # 10 between windows, 20 at the screen edges
-        gaps = 10;
+        # 14 between windows, 28 at the screen edges
+        gaps = 14;
         struts = {
-          left = 10;
-          right = 10;
-          top = 10;
-          bottom = 10;
+          left = 14;
+          right = 14;
+          top = 14;
+          bottom = 14;
         };
         default-column-width.proportion = 0.5;
         # Patched to center any set of columns that fits on screen together
@@ -110,6 +110,19 @@ in
         tab-indicator = {
           active-color = color "sky";
           inactive-color = color "sapphire";
+        };
+        # Cut out under the window rather than drawn behind it, so it does
+        # not darken what shows through translucent windows
+        shadow = {
+          on = { };
+          softness = 30;
+          spread = 5;
+          offset._props = {
+            x = 0;
+            y = 5;
+          };
+          draw-behind-window = false;
+          color = "${color "crust"}70";
         };
       };
 
