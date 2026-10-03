@@ -419,7 +419,9 @@ ModalPanel {
         readonly property bool has: Notifications.count > 0 && !root.clearing
 
         width: parent.width
-        height: clearAll.height
+        // the button's own height, or with nothing to clear, all the room
+        // under the panel so the line saying so sits in the middle of it
+        height: has ? clearAll.height : Math.max(clearAll.height, root.freeBelow - Theme.spaceSm)
 
         Card {
             id: clearAll

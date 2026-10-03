@@ -128,6 +128,12 @@ EdgeWindow {
     // visible stack does.
     readonly property real stackHeight: panel.height + (detachedView.height > 0 ? Theme.spaceSm + detachedView.height : 0)
 
+    // The room under the panel down to the foot of the window, for a footer
+    // that fills it rather than sitting at its bottom. Measured from the panel
+    // alone: the stack below it is capped by the footer's own room, and
+    // reading it here would chase that cap round.
+    readonly property real freeBelow: Math.max(0, height - Theme.railPad * 2 - (panel.y + panel.height))
+
     // Only the panel takes pointer input; the strip over the rail stays click
     // through so the bar keeps its own hover and tap handling. The region
     // starts at the rail edge so travelling the gap does not drop the hover.
