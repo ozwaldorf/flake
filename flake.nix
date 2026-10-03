@@ -104,10 +104,6 @@
                   # Extends always-center-single-column to center any set of
                   # columns that fits on screen together.
                   ./pkgs/patches/niri-center-fitting-columns.patch
-                  # The overview eases each workspace's view back to its first
-                  # column, so every preview starts with the same window at its
-                  # left.
-                  ./pkgs/patches/niri-overview-first-column.patch
                   # A column's lone window, when shorter than the column, is
                   # centered in it rather than held to its top.
                   ./pkgs/patches/niri-center-lone-window.patch
