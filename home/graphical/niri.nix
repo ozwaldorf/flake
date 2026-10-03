@@ -141,6 +141,8 @@ in
         "Mod+L".power-off-monitors = { };
         # The veil is a surface quickshell owns, not a compositor feature
         "Ctrl+Escape" = spawn "qs ipc call drawer toggle settings";
+        # QMK grave escape sends grave while ctrl is held
+        "Ctrl+Grave" = spawn "qs ipc call drawer toggle settings";
         "Mod+V" = spawn "qs ipc call veil toggle";
         "Mod+W" = spawn "qs ipc call wallpaper next";
         "Mod+R" = spawn "export APP=$(yad --entry --text 'nix-shell -p') && nix-shell -p $APP --run $APP";
