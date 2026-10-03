@@ -140,9 +140,6 @@ in
         # Any input powers the monitors back on
         "Mod+L".power-off-monitors = { };
         # The veil is a surface quickshell owns, not a compositor feature
-        "Ctrl+Escape" = spawn "qs ipc call drawer toggle settings";
-        # QMK grave escape sends grave while ctrl is held
-        "Ctrl+Grave" = spawn "qs ipc call drawer toggle settings";
         "Mod+V" = spawn "qs ipc call veil toggle";
         "Mod+W" = spawn "qs ipc call wallpaper next";
         "Mod+R" = spawn "export APP=$(yad --entry --text 'nix-shell -p') && nix-shell -p $APP --run $APP";
@@ -158,9 +155,11 @@ in
         "Mod+Shift+Q".close-window = { };
         "Mod+Shift+Space".spawn = lib.getExe toggleFloat;
         "Mod+F".fullscreen-window = { };
-        "Mod+Escape".toggle-overview = { };
+        # The overview with the control centre, as the shell's hot corner
+        # opens them
+        "Mod+Escape" = spawn "qs ipc call drawer overview";
         # QMK grave escape sends grave while gui is held
-        "Mod+Grave".toggle-overview = { };
+        "Mod+Grave" = spawn "qs ipc call drawer overview";
 
         # Tabbed columns stand in for groups
         "Mod+G".toggle-column-tabbed-display = { };

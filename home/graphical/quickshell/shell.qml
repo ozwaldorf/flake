@@ -59,6 +59,9 @@ ShellRoot {
     // a drawer opened or put away on one screen, by its output name
     signal drawerToggled(string name, string output)
 
+    // a drawer put out, or none, on one screen or every one
+    signal drawerSet(string name, string output)
+
     IpcHandler {
         target: "drawer"
 
@@ -68,6 +71,18 @@ ShellRoot {
 
         function close(): void {
             shell.drawerRequested("");
+        }
+
+        // The overview and the control centre together, as the hot corner
+        // opens them, or both put away if the overview is already up.
+        function overview(): void {
+            if (Niri.overviewOpen) {
+                Niri.closeOverview();
+                shell.drawerSet("", "");
+                return;
+            }
+            Niri.openOverview();
+            shell.drawerSet("settings", Niri.focusedOutput());
         }
 
         // Opens a drawer on the focused screen, or closes it if it is the one
@@ -184,6 +199,11 @@ ShellRoot {
                     if (output !== "" && scope.modelData.name !== output)
                         return;
                     scope.drawer = scope.drawer === name ? "" : name;
+                }
+
+                function onDrawerSet(name, output) {
+                    if (output === "" || scope.modelData.name === output)
+                        scope.drawer = name;
                 }
             }
 

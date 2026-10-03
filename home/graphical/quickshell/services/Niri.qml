@@ -65,6 +65,14 @@ Singleton {
         });
     }
 
+    function closeOverview(): void {
+        request({
+            Action: {
+                CloseOverview: {}
+            }
+        });
+    }
+
     function openOverview(): void {
         request({
             Action: {
