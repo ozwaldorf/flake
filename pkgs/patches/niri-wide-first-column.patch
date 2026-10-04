@@ -1,0 +1,12 @@
+diff -ru a/src/layout/workspace.rs b/src/layout/workspace.rs
+--- a/src/layout/workspace.rs
++++ b/src/layout/workspace.rs
+@@ -796,6 +796,8 @@
+             Some(Some(width)) => Some(width),
+             Some(None) => None,
+             None if is_floating => None,
++            // The first column on a workspace opens wider than the rest.
++            None if self.scrolling.is_empty() => Some(PresetSize::Proportion(2. / 3.)),
+             None => self.options.layout.default_column_width,
+         }
+     }

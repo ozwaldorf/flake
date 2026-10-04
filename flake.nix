@@ -90,6 +90,9 @@
                   # edge it was against, and a view that keeps it in sight still
                   # snaps to a column edge rather than resting between them.
                   ./pkgs/patches/niri-snap-view.patch
+                  # The first tiled window on an empty workspace opens at 2/3
+                  # width instead of the default column width.
+                  ./pkgs/patches/niri-wide-first-column.patch
                 ];
               });
               # Route volume writes are skipped entirely on devices that report
