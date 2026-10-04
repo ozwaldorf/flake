@@ -73,32 +73,6 @@
             (final: prev: {
               # Force insert flake packages that dont have builtin overlays.
               zoom-sync = inputs.zoom-sync.packages.${system}.default;
-              niri = prev.niri.overrideAttrs (old: {
-                # Layout invariant tests assert the upstream layout, which the
-                # patches below change, so they are skipped.
-                doCheck = false;
-                patches = (old.patches or [ ]) ++ [
-                  # Regular blur samples the framebuffer, so it vanishes wherever
-                  # a window is drawn offscreen: opening, closing and while
-                  # dragged. Keeps dragged windows opaque so they render
-                  # directly, and falls back to xray blur for the offscreen
-                  # renders.
-                  ./pkgs/patches/niri-offscreen-blur.patch
-                  # Extends always-center-single-column to center any set of
-                  # columns that fits on screen together.
-                  ./pkgs/patches/niri-center-fitting-columns.patch
-                  # A column's lone window, when shorter than the column, is
-                  # centered in it rather than held to its top.
-                  ./pkgs/patches/niri-center-lone-window.patch
-                  # A working area change keeps the focused column against the
-                  # edge it was against, and a view that keeps it in sight still
-                  # snaps to a column edge rather than resting between them.
-                  ./pkgs/patches/niri-snap-view.patch
-                  # The first tiled window on an empty workspace opens at 2/3
-                  # width instead of the default column width.
-                  ./pkgs/patches/niri-wide-first-column.patch
-                ];
-              });
               # Head for the bluez sink volume fix (quickshell-mirror/quickshell#808).
               # Remove once a quickshell release after v0.3.1 reaches nixpkgs.
               quickshell = inputs.quickshell.packages.${system}.default;
