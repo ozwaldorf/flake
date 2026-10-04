@@ -12,6 +12,11 @@ ShellRoot {
     // than per screen so one call covers the whole desktop.
     property bool veiled: false
 
+    // The screen whose control centre holds the overview open, or none. The
+    // overview is one for every output, so this keeps a second screen from
+    // opening its control centre when the first opens the overview.
+    property string overviewOwner: ""
+
     // `qs ipc call wallpaper next|set <path>`, driven by the keybind.
     IpcHandler {
         target: "wallpaper"
@@ -73,15 +78,14 @@ ShellRoot {
             shell.drawerRequested("");
         }
 
-        // The overview and the control centre together, as the hot corner
-        // opens them, or both put away if the overview is already up.
+        // The overview and the control centre together, or both put away if
+        // the overview is already up.
         function overview(): void {
             if (Niri.overviewOpen) {
                 Niri.closeOverview();
                 shell.drawerSet("", "");
                 return;
             }
-            Niri.openOverview();
             shell.drawerSet("settings", Niri.focusedOutput());
         }
 
@@ -208,6 +212,18 @@ ShellRoot {
                         pager.value = pager.target;
                     }
                 }
+
+                // The control centre and the overview come and go together
+                if (drawer === "settings" && lastDrawer !== "settings") {
+                    shell.overviewOwner = modelData.name;
+                    if (!Niri.overviewOpen)
+                        Niri.openOverview();
+                } else if (lastDrawer === "settings" && drawer !== "settings" && shell.overviewOwner === modelData.name) {
+                    shell.overviewOwner = "";
+                    if (Niri.overviewOpen)
+                        Niri.closeOverview();
+                }
+
                 lastDrawer = drawer;
             }
 
@@ -282,12 +298,16 @@ ShellRoot {
             Connections {
                 target: Niri
 
+                // The overview opened or closed from niri itself, by a gesture
+                // or picking a window: the control centre follows it, on the
+                // focused screen when opening
                 function onOverviewOpenChanged() {
-                    // the overview held the control centre open past the
-                    // pointer leaving; with it gone, so is the drawer, unless
-                    // the pointer is still on it
-                    if (!Niri.overviewOpen && scope.panelOpen && !scope.pointerInside)
+                    if (Niri.overviewOpen) {
+                        if (shell.overviewOwner === "" && scope.modelData.name === Niri.focusedOutput())
+                            scope.drawer = "settings";
+                    } else if (scope.panelOpen) {
                         scope.drawer = "";
+                    }
                 }
             }
 
@@ -321,10 +341,7 @@ ShellRoot {
                 onBottomTapped: scope.drawer = "info"
                 onRailTapped: scope.drawer = ""
                 onDrawerTapped: settings.openList("")
-                onHotCornerEntered: {
-                    Niri.openOverview();
-                    scope.drawer = "settings";
-                }
+                onHotCornerEntered: scope.drawer = "settings"
 
                 // Kept in the bar's window rather than out in the scope: a
                 // frame driven animation needs a window whose frames drive it.
