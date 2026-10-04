@@ -39,6 +39,51 @@ Singleton {
 
     Component.onCompleted: Quickshell.execDetached(["mkdir", "-p", dir])
 
+    // name -> true for what each run row can start: the executables on the
+    // PATH niri spawns with for a detached run, and for the terminal the
+    // interactive shell's commands, aliases, functions and builtins too.
+    // Empty until the first scan lands, which lets every command through.
+    property var pathCommands: ({})
+    property var shellCommands: ({})
+
+    function scanCommands() {
+        if (!commandScan.running)
+            commandScan.running = true;
+    }
+
+    Process {
+        id: commandScan
+
+        // The shell's own startup prints to stdout, so the names go out on fd 3
+        command: ["sh", "-c", 'IFS=:; for d in $PATH; do ls -- "$d" 2>/dev/null; done; echo --; zsh -ic \'print -l -- ${(k)commands} ${(k)aliases} ${(k)functions} ${(k)builtins} ${(k)reswords} >&3\' 3>&1 >/dev/null 2>&1']
+
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const [path, shell] = text.split("\n--\n");
+                const set = s => {
+                    const names = {};
+                    for (const n of (s ?? "").split("\n"))
+                        if (n)
+                            names[n] = true;
+                    return names;
+                };
+                root.pathCommands = set(path);
+                root.shellCommands = Object.assign(set(shell), root.pathCommands);
+            }
+        }
+    }
+
+    // The program a command line starts, past any leading assignments
+    function program(line) {
+        return line.split(/\s+/).find(w => !/^[A-Za-z_][A-Za-z0-9_]*=/.test(w)) ?? "";
+    }
+
+    // A path is taken on trust rather than checked on every keystroke
+    function runnable(line, commands) {
+        const name = program(line);
+        return name !== "" && (name.includes("/") || Object.keys(commands).length === 0 || commands[name] === true);
+    }
+
     // Weighted by age so a burst of launches last month does not outrank what
     // is in use this week.
     function frecency(id) {
@@ -156,15 +201,18 @@ Singleton {
                 entry: a.entry
             });
 
-        results.push({
-            kind: "term",
-            title: text.trim(),
-            detail: "Run in terminal"
-        }, {
-            kind: "run",
-            title: text.trim(),
-            detail: "Run detached"
-        });
+        if (runnable(text.trim(), shellCommands))
+            results.push({
+                kind: "term",
+                title: text.trim(),
+                detail: "Run in terminal"
+            });
+        if (runnable(text.trim(), pathCommands))
+            results.push({
+                kind: "run",
+                title: text.trim(),
+                detail: "Run detached"
+            });
         return results;
     }
 

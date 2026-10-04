@@ -15,6 +15,10 @@ SearchPanel {
     hints: "enter launch    tab next    esc close"
     results: live ? Apps.search(query) : []
 
+    // Rescanned per opening so a switch or a new alias shows without a reload
+    onShownChanged: if (shown)
+        Apps.scanCommands()
+
     onActivated: result => {
         Apps.activate(result);
         root.closeRequested();
