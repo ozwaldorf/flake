@@ -430,6 +430,26 @@
         "type": "github"
       }
     },
+    "quickshell": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1791027806,
+        "narHash": "sha256-uPP+R90C7CagG4H9ibYaC0kYLu7lzC/5I6g+yFMuyu8=",
+        "owner": "quickshell-mirror",
+        "repo": "quickshell",
+        "rev": "5d5d49873fe8cf1f99ddfd5006ceb2057c5c9b13",
+        "type": "github"
+      },
+      "original": {
+        "owner": "quickshell-mirror",
+        "repo": "quickshell",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "carburetor": "carburetor",
@@ -440,6 +460,7 @@
         "neovim-nightly-overlay": "neovim-nightly-overlay",
         "nixpkgs": "nixpkgs_3",
         "nixvim": "nixvim",
+        "quickshell": "quickshell",
         "zoom-sync": "zoom-sync"
       }
     },

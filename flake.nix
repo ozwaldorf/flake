@@ -35,6 +35,10 @@
       url = "github:k3d3/claude-desktop-linux-flake";
       flake = false;
     };
+    quickshell = {
+      url = "github:quickshell-mirror/quickshell";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     neovim-nightly-overlay = {
       url = "github:nix-community/neovim-nightly-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -95,15 +99,9 @@
                   ./pkgs/patches/niri-wide-first-column.patch
                 ];
               });
-              # Route volume writes are skipped entirely on devices that report
-              # no volume step, which is every bluez sink: the volume moves in
-              # qs and never reaches the card.
-              # Remove once quickshell-mirror/quickshell#808 lands.
-              quickshell = prev.quickshell.overrideAttrs (old: {
-                patches = (old.patches or [ ]) ++ [
-                  ./pkgs/patches/quickshell-pipewire-volume-step.patch
-                ];
-              });
+              # Head for the bluez sink volume fix (quickshell-mirror/quickshell#808).
+              # Remove once a quickshell release after v0.3.1 reaches nixpkgs.
+              quickshell = inputs.quickshell.packages.${system}.default;
               vimPlugins = prev.vimPlugins // {
                 catppuccin-nvim = prev.vimPlugins.catppuccin-nvim.overrideAttrs {
                   doCheck = false;
