@@ -14,7 +14,13 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property var entries: DesktopEntries.applications.values.filter(e => !e.noDisplay)
+    readonly property var entries: DesktopEntries.applications.values.filter(e => !e.noDisplay && !steamTool(e))
+
+    // Steam writes an entry for its runtimes and Proton builds as for any
+    // game, but only games are given their own icon
+    function steamTool(e) {
+        return e.icon === "steam" && e.command.some(a => a.startsWith("steam://rungameid/"));
+    }
 
     // id -> { count, last }, last in epoch seconds. Replaced rather than
     // mutated so bindings reading through it re-evaluate.
