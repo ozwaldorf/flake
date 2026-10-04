@@ -65,11 +65,6 @@
     LC_TIME = "en_US.UTF-8";
   };
 
-  services.xserver.xkb = {
-    layout = "us";
-    variant = "";
-  };
-
   services.getty.autologinUser = username;
 
   users.users.${username} = {

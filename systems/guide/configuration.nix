@@ -121,19 +121,13 @@
 
   services.sshd.enable = true;
 
-  services.xserver.enable = true;
   services.xserver.videoDrivers = [ "nvidia" ];
-  services.xserver.desktopManager.xterm.enable = false;
   # Manually enable some services gnome used to
   services.gvfs.enable = true;
   services.udisks2.enable = true;
   services.upower.enable = true;
   services.gnome.gnome-keyring.enable = true;
   services.gnome.localsearch.enable = true;
-  services.xserver = {
-    xkb.layout = "us";
-    xkb.variant = "";
-  };
 
   xdg.portal = {
     enable = true;

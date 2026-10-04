@@ -189,9 +189,7 @@
     powerOnBoot = true;
   };
 
-  services.xserver.enable = true;
   services.xserver.videoDrivers = [ "nvidia" ];
-  services.xserver.desktopManager.xterm.enable = false;
 
   services.getty.autologinUser = username;
   services.greetd = {
@@ -214,11 +212,6 @@
   services.power-profiles-daemon.enable = true;
   services.gnome.gnome-keyring.enable = true;
   services.gnome.localsearch.enable = true;
-
-  services.xserver = {
-    xkb.layout = "us";
-    xkb.variant = "";
-  };
 
   xdg.portal = {
     enable = true;
