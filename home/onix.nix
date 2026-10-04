@@ -30,7 +30,6 @@
     stateVersion = "24.05";
     packages = with pkgs; [
       lutgen
-      weechat
       beekeeper-studio
       prismlauncher
       eden
