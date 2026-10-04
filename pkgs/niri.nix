@@ -23,5 +23,9 @@ niri.overrideAttrs (old: {
     # The first tiled window on an empty workspace opens at 2/3 width instead
     # of the default column width.
     ./patches/niri-wide-first-column.patch
+    # Space a layer reserves at the left or right edge shifts the working area
+    # instead of narrowing it, so the shell's drawer slides the windows aside
+    # without resizing them.
+    ./patches/niri-shift-side-zones.patch
   ];
 })

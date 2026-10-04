@@ -1,0 +1,21 @@
+--- a/src/layout/workspace.rs
++++ b/src/layout/workspace.rs
+@@ -2063,7 +2063,17 @@
+ }
+ 
+ pub(super) fn compute_working_area(output: &Output) -> Rectangle<f64, Logical> {
+-    layer_map_for_output(output).non_exclusive_zone().to_f64()
++    let mut area = layer_map_for_output(output).non_exclusive_zone().to_f64();
++
++    // Space reserved at the left or right edge moves the area rather than narrowing it, so a side
++    // panel opening slides the windows aside instead of resizing every proportional column.
++    let width = output_size(output).w;
++    let left = area.loc.x;
++    let right = width - area.loc.x - area.size.w;
++    area.loc.x = left - right;
++    area.size.w = width;
++
++    area
+ }
+ 
+ fn compute_workspace_shadow_config(

@@ -66,9 +66,12 @@ EdgeWindow {
 
     // Switched outright rather than following the reveal: every change is a
     // relayout of the whole output, and the compositor animates the windows
-    // across on its own.
+    // across on its own. Patched niri shifts the layout by the zone rather
+    // than narrowing it, so the columns keep their widths. The sliver
+    // reserves nothing, since it fits inside niri's struts and would
+    // otherwise hold the layout off center.
     exclusionMode: ExclusionMode.Normal
-    exclusiveZone: drawerWidth > 0 ? Theme.rail + drawerWidth : expanded ? Theme.rail : Theme.sliver
+    exclusiveZone: drawerWidth > 0 ? Theme.rail + drawerWidth : expanded ? Theme.rail : 0
 
     // The rail and as much of the drawer as is out. The drawer's own window
     // sits over it and takes the cards; this holds the hover across the empty
