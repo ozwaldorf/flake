@@ -152,6 +152,7 @@ in
         "Mod+D" = spawn "App launcher" "qs ipc call drawer toggle apps";
         "Mod+Shift+D" = spawn "Clipboard history" "qs ipc call drawer toggle clipboard";
         "Mod+Shift+Slash" = spawn "Keyboard shortcuts" "qs ipc call drawer toggle keys";
+        "Mod+Tab" = spawn "System monitor" "qs ipc call drawer toggle info";
         "Mod+Return" = spawn "Terminal" "rio";
         "Mod+Shift+Return" = spawn "Floating terminal" "rio --app-id float";
         "Mod+E" = spawn "Browser" "firefox";
@@ -183,22 +184,21 @@ in
 
         # Tabbed columns stand in for groups
         "Mod+G".toggle-column-tabbed-display = { };
-        "Mod+Tab".focus-window-down-or-top = { };
         "Mod+Shift+Tab".focus-window-up-or-bottom = { };
         "Mod+Ctrl+Left".consume-or-expel-window-left = { };
         "Mod+Ctrl+Right".consume-or-expel-window-right = { };
 
         # Pan the view by one column. Mod with the middle button drags the
         # view, and Mod with the left and right buttons move and resize.
-        "Mod+WheelScrollDown".focus-column-right = { };
-        "Mod+WheelScrollUp".focus-column-left = { };
+        "Mod+Shift+WheelScrollDown".focus-column-right = { };
+        "Mod+Shift+WheelScrollUp".focus-column-left = { };
         # A cooldown so one flick of the wheel moves one workspace rather than
         # racing through several
-        "Mod+Shift+WheelScrollDown" = {
+        "Mod+WheelScrollDown" = {
           _props.cooldown-ms = 150;
           focus-workspace-down = { };
         };
-        "Mod+Shift+WheelScrollUp" = {
+        "Mod+WheelScrollUp" = {
           _props.cooldown-ms = 150;
           focus-workspace-up = { };
         };
