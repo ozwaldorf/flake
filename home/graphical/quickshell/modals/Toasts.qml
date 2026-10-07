@@ -246,43 +246,6 @@ EdgeWindow {
             onTapped: root.mediaShown = false
         }
 
-        // Arriving toasts fade up while sliding in from the rail's side, the
-        // way the control centre's rows do. Staggered by position so a burst
-        // arrives as a sequence rather than all at once, and overlapping since
-        // the step is well inside the fade.
-        add: Transition {
-            SequentialAnimation {
-                // Staggered by position within the batch, so several arriving
-                // together come in as a sequence rather than at once. The step
-                // is well inside the fade, which keeps them overlapping.
-                PauseAnimation {
-                    // the index is -1 while the transition is not running
-                    // against an item, which the stagger clamps to none
-                    duration: Theme.stagger(ViewTransition.index)
-                }
-
-                ParallelAnimation {
-                    NumberAnimation {
-                        property: "opacity"
-                        from: 0
-                        to: 1
-                        duration: Theme.fadeDuration
-                        easing.type: Easing.OutQuad
-                    }
-
-                    // in from the rail's own side, like the panel's rows
-                    NumberAnimation {
-                        property: "x"
-                        from: root.anchorRight ? Theme.spaceSm : -Theme.spaceSm
-                        to: 0
-                        duration: Theme.morphDuration
-                        easing.type: Easing.OutQuint
-                    }
-                }
-            }
-        }
-
-
         Repeater {
             model: Notifications.toasts
 
@@ -290,14 +253,42 @@ EdgeWindow {
                 id: toast
 
                 required property var model
+                required property int index
 
                 width: parent.width
                 anchorRight: root.anchorRight
                 entry: model
 
-                // The column's own transition drives both opacity and x on the
-                // way in, so neither is bound here: a binding would be
-                // destroyed by the first frame it writes.
+                // Keep the reveal independent of column moves during a burst.
+                opacity: 0
+                x: root.anchorRight ? Theme.spaceSm : -Theme.spaceSm
+                Component.onCompleted: arriving.start()
+
+                SequentialAnimation {
+                    id: arriving
+
+                    PauseAnimation {
+                        duration: Theme.stagger(toast.index)
+                    }
+
+                    ParallelAnimation {
+                        NumberAnimation {
+                            target: toast
+                            property: "opacity"
+                            to: 1
+                            duration: Theme.fadeDuration
+                            easing.type: Easing.OutQuad
+                        }
+                        NumberAnimation {
+                            target: toast
+                            property: "x"
+                            to: 0
+                            duration: Theme.morphDuration
+                            easing.type: Easing.OutQuint
+                        }
+                    }
+                }
+
                 // Whether the card is being cleared rather than left to expire:
                 // a tap is the user acting on the notification, so it goes from
                 // history too, while a timeout only takes the toast away.
@@ -313,6 +304,7 @@ EdgeWindow {
                     if (leaving.running)
                         return;
                     toast.clearing = clear ?? false;
+                    arriving.stop();
                     leaving.start();
                 }
 
