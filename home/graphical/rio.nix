@@ -34,12 +34,13 @@ in
         decorations = "Disabled";
       };
       # Rio's own new window shares the process, and closing one segfaults
-      # the vulkan renderer on nvidia and takes every window down with it
+      # the vulkan renderer on nvidia and takes every window down with it.
+      # Run detaches the child and starts it in the foreground process's cwd.
       bindings.keys = [
         {
           key = "n";
           "with" = "control | shift";
-          action = "Run(niri msg action spawn -- rio)";
+          action = "Run(rio)";
         }
       ];
       # Remote hosts rarely carry rio's terminfo
