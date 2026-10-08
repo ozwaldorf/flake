@@ -1,16 +1,19 @@
 {
   lib,
   pkgs,
+  inputs,
   hostname,
   flakeDirectory,
   ...
 }:
 {
+  # weekly prebuilt database for nix-locate, comma and the launcher
+  imports = [ inputs.nix-index-database.homeModules.nix-index ];
+
   home.packages = with pkgs; [
     eza
     bat
     curl
-    comma
     onefetch
     weechat
     (fortune.override { withOffensive = true; })
@@ -20,6 +23,7 @@
     enable = true;
     enableZshIntegration = true;
   };
+  programs.nix-index-database.comma.enable = true;
 
   programs.fzf = {
     enable = true;
