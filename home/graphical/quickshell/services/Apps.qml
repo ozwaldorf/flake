@@ -6,7 +6,8 @@ import Quickshell.Io
 
 // The launcher's results: desktop entries ranked by a fuzzy match and by how
 // often and lately each was launched, a calculator for a query that reads as
-// arithmetic, and the query itself as a shell command to fall back on.
+// arithmetic, the query itself as a shell command to fall back on, and
+// programs from nixpkgs that are not installed.
 //
 // Everything is spawned through niri rather than from the shell: the shell's
 // unit kills its whole cgroup on a restart, and would take every app launched
@@ -219,6 +220,25 @@ Singleton {
                 title: text.trim(),
                 detail: "Run detached"
             });
+
+        // Binaries from nixpkgs that are not on the PATH. Once arguments
+        // follow, the program is settled and only an exact name is offered.
+        const line = text.trim();
+        const name = program(line);
+        const args = line.slice(line.indexOf(name) + name.length).trim();
+        if (Nix.searching && Nix.wanted === name)
+            results.push({
+                kind: "searching"
+            });
+        else if (Nix.matchedPrefix === name)
+            for (const m of Nix.matches)
+                if (!pathCommands[m.bin] && (args === "" || m.bin === name))
+                    results.push({
+                        kind: "nix",
+                        bin: m.bin,
+                        attr: m.attr,
+                        args: args
+                    });
         return results;
     }
 
@@ -237,6 +257,12 @@ Singleton {
             Quickshell.execDetached(["niri", "msg", "action", "spawn", "--", "env", `LAUNCHER_RUN=${result.title}`, "rio"]);
         } else if (result.kind === "run") {
             Quickshell.execDetached(["niri", "msg", "action", "spawn-sh", "--", result.title]);
+        } else if (result.kind === "nix") {
+            // a second press on the one being fetched calls it off
+            if (Nix.isTarget(result) && Nix.error === "")
+                Nix.cancel();
+            else
+                Nix.start(result.bin, result.attr, result.args);
         }
     }
 }

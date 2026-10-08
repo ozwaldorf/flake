@@ -31,6 +31,12 @@ ModalPanel {
     // keys and what they do, set small under the list
     property string hints: ""
 
+    // What the field would read with the current entry taken: the part past
+    // what is typed shows greyed after it, and right or end at the end of
+    // the field fills it in
+    property string completion: ""
+    readonly property string ghost: completion.length > field.text.length && completion.startsWith(field.text) ? completion.slice(field.text.length) : ""
+
     property alias currentIndex: list.currentIndex
     readonly property var current: results[list.currentIndex] ?? null
 
@@ -149,6 +155,13 @@ ModalPanel {
                 case Qt.Key_PageUp:
                     root.step(-8);
                     break;
+                case Qt.Key_Right:
+                case Qt.Key_End:
+                    if (root.ghost === "" || field.cursorPosition !== field.length)
+                        return;
+                    field.text = root.completion;
+                    field.cursorPosition = field.length;
+                    break;
                 case Qt.Key_N:
                 case Qt.Key_J:
                     if (!ctrl)
@@ -178,6 +191,17 @@ ModalPanel {
                 font.pixelSize: 13
                 color: Theme.surface2
                 visible: field.text.length === 0
+            }
+
+            // Only while the typed text has not scrolled the field, where
+            // its end would no longer be where the text is drawn from
+            Text {
+                x: field.contentWidth
+                anchors.verticalCenter: parent.verticalCenter
+                visible: root.ghost !== "" && field.contentWidth + width <= field.width
+                text: root.ghost
+                font: field.font
+                color: Theme.surface2
             }
         }
 

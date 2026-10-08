@@ -26,6 +26,11 @@ Rectangle {
     property alias leading: slot.data
     property real leadSize: 28
 
+    // a track along the foot while work behind the row is under way, filled
+    // to progress, or swept while progress is -1 and there is no measure
+    property bool loading: false
+    property real progress: -1
+
     readonly property bool hovered: hover.hovered
 
     signal tapped
@@ -116,6 +121,56 @@ Rectangle {
         Behavior on color {
             ColorAnimation {
                 duration: Theme.hoverDuration
+            }
+        }
+    }
+
+    Item {
+        anchors.left: slot.right
+        anchors.leftMargin: Theme.spaceSm
+        anchors.right: parent.right
+        anchors.rightMargin: Theme.spaceSm
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 3
+        height: 2
+        visible: root.loading
+        clip: true
+
+        Rectangle {
+            anchors.fill: parent
+            radius: height / 2
+            color: Qt.alpha(Theme.surface2, 0.55)
+        }
+
+        Rectangle {
+            id: fill
+
+            readonly property bool measured: root.progress >= 0
+
+            // The sweep runs over a fraction rather than over pixels, so it
+            // follows the track as it is laid out instead of the zero width
+            // a fresh row starts at
+            property real sweep: 0
+
+            x: measured ? 0 : sweep * (parent.width + width) - width
+            width: measured ? parent.width * Theme.clamp01(root.progress) : parent.width / 4
+            height: parent.height
+            radius: height / 2
+            color: Theme.blue
+
+            Behavior on width {
+                enabled: fill.measured
+                NumberAnimation {
+                    duration: Theme.trackDuration
+                }
+            }
+
+            NumberAnimation on sweep {
+                running: root.loading && !fill.measured
+                from: 0
+                to: 1
+                duration: Theme.spinDuration * 1.5
+                loops: Animation.Infinite
             }
         }
     }

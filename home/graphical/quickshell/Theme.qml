@@ -55,6 +55,7 @@ Singleton {
     readonly property string iconApp: String.fromCodePoint(0xf1b2)
     readonly property string iconTrash: String.fromCodePoint(0xf1f8)
     readonly property string iconRun: String.fromCodePoint(0xf135)
+    readonly property string iconNix: String.fromCodePoint(0xf313)
 
     // matches the niri window corner radius
     readonly property int rounding: 10
