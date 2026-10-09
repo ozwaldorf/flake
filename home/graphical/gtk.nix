@@ -7,7 +7,7 @@ let
   layer = "0.55";
 in
 {
-  imports = [ ./modules/pointer.nix ];
+  # imports = [ ./modules/pointer.nix ];
 
   home = {
     # Standalone gnome desktop apps
@@ -29,8 +29,10 @@ in
 
     pointerCursor = {
       enable = true;
-      package = pkgs.bibata-cursors;
-      name = "Bibata-Modern-Classic";
+      # package = pkgs.bibata-cursors;
+      # name = "Bibata-Modern-Classic";
+      package = pkgs.oreo-cursors-plus;
+      name = "oreo_spark_black_bordered_cursors";
       size = 24;
       x11.enable = true;
       gtk.enable = true;

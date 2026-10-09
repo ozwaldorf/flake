@@ -62,6 +62,8 @@ in
     portalPackage = null;
 
     settings = {
+      # Avoid ghosting when animated cursor images change on the hardware plane.
+      debug.disable-cursor-plane = { };
       hotkey-overlay.skip-at-startup = { };
       # The shell runs its own on the rail's corner pixel; niri's fired on
       # every reach for the control centre in the corner beside it

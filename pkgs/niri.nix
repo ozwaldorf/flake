@@ -5,6 +5,8 @@ niri.overrideAttrs (old: {
   # change, so they are skipped.
   doCheck = false;
   patches = (old.patches or [ ]) ++ [
+    # Play named cursor transitions once, reversing the same asset on return.
+    ./patches/niri-cursor-transitions.patch
     # Regular blur samples the framebuffer, so it vanishes wherever a window is
     # drawn offscreen: opening, closing and while dragged. Keeps dragged
     # windows opaque so they render directly, and falls back to xray blur for
