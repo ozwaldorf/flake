@@ -18,9 +18,20 @@ Singleton {
     // then by index
     readonly property ListModel workspaces: ListModel {}
 
-    // workspace, scrolling column and tile width of every open window, keyed by
-    // window id; the column is null for floating windows
+    // workspace, scrolling column, tile and tile width, title and app id of
+    // every open window, keyed by window id; the column is null for floating
+    // windows
     property var windowInfo: ({})
+
+    // winId, wsId, output, title, appId, urgent, active, shown, lead; ordered
+    // by output, workspace and then column, floating windows last. Active is
+    // the window focused on its workspace while that workspace is the one
+    // shown on its output, and lead marks the first of a workspace after
+    // another's on the same output.
+    readonly property ListModel windows: ListModel {}
+
+    // number of windows on each output, keyed by output name
+    property var windowCounts: ({})
 
     // focused window of every workspace, keyed by workspace id
     property var activeWindow: ({})
@@ -60,6 +71,16 @@ Singleton {
                     reference: {
                         Id: id
                     }
+                }
+            }
+        });
+    }
+
+    function focusWindow(id: int): void {
+        request({
+            Action: {
+                FocusWindow: {
+                    id
                 }
             }
         });
@@ -195,16 +216,25 @@ Singleton {
             const w = event.WindowOpenedOrChanged.window;
             windowInfo[w.id] = info(w);
             refresh();
+        } else if (event.WindowUrgencyChanged) {
+            const w = windowInfo[event.WindowUrgencyChanged.id];
+            if (w)
+                w.urgent = event.WindowUrgencyChanged.urgent;
+            refresh();
         } else if (event.WindowClosed) {
             delete windowInfo[event.WindowClosed.id];
             refresh();
         } else if (event.WindowLayoutsChanged) {
             for (const [id, layout] of event.WindowLayoutsChanged.changes) {
-                if (windowInfo[id])
+                const w = windowInfo[id];
+                if (w)
                     windowInfo[id] = Object.assign(info({
                         layout
                     }), {
-                        ws: windowInfo[id].ws
+                        ws: w.ws,
+                        title: w.title,
+                        appId: w.appId,
+                        urgent: w.urgent
                     });
             }
             refresh();
@@ -228,7 +258,11 @@ Singleton {
         return {
             ws: w.workspace_id,
             col: w.layout?.pos_in_scrolling_layout?.[0] ?? null,
-            width: w.layout?.tile_size?.[0] ?? 0
+            tile: w.layout?.pos_in_scrolling_layout?.[1] ?? 0,
+            width: w.layout?.tile_size?.[0] ?? 0,
+            title: w.title ?? "",
+            appId: w.app_id ?? "",
+            urgent: w.is_urgent ?? false
         };
     }
 
@@ -275,6 +309,76 @@ Singleton {
             };
         }
         views = next;
+
+        syncWindows();
+    }
+
+    // Moves surviving rows into place rather than replacing them, as for the
+    // workspaces, so a window keeps its delegate for as long as it is open.
+    function syncWindows(): void {
+        const rows = [];
+        for (const id in windowInfo) {
+            const w = windowInfo[id];
+            const ws = find(w.ws);
+            if (!ws)
+                continue;
+            rows.push({
+                winId: Number(id),
+                wsId: ws.wsId,
+                output: ws.output,
+                title: w.title,
+                appId: w.appId,
+                urgent: w.urgent,
+                active: ws.active && activeWindow[ws.wsId] === Number(id),
+                shown: ws.active,
+                lead: false,
+                // sort keys only
+                idx: ws.idx,
+                col: w.col ?? Infinity,
+                tile: w.tile
+            });
+        }
+        rows.sort((a, b) => a.output.localeCompare(b.output) || a.idx - b.idx || a.col - b.col || a.tile - b.tile || a.winId - b.winId);
+
+        const counts = {};
+        rows.forEach((row, i) => {
+            const prev = rows[i - 1];
+            row.lead = prev !== undefined && prev.output === row.output && prev.wsId !== row.wsId;
+            counts[row.output] = (counts[row.output] ?? 0) + 1;
+        });
+        windowCounts = counts;
+
+        const ids = new Set(rows.map(row => row.winId));
+        for (let i = windows.count - 1; i >= 0; i--) {
+            if (!ids.has(windows.get(i).winId))
+                windows.remove(i);
+        }
+
+        const keys = ["wsId", "output", "title", "appId", "urgent", "active", "shown", "lead"];
+        rows.forEach((row, target) => {
+            let current = -1;
+            for (let i = target; i < windows.count; i++) {
+                if (windows.get(i).winId === row.winId) {
+                    current = i;
+                    break;
+                }
+            }
+            if (current < 0) {
+                const fresh = {
+                    winId: row.winId
+                };
+                for (const key of keys)
+                    fresh[key] = row[key];
+                windows.insert(target, fresh);
+                return;
+            }
+            if (current !== target)
+                windows.move(current, target, 1);
+            for (const key of keys) {
+                if (windows.get(target)[key] !== row[key])
+                    windows.setProperty(target, key, row[key]);
+            }
+        });
     }
 
     // Advances the workspace's replayed scroll to the focused column and

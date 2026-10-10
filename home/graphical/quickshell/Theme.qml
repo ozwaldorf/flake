@@ -87,6 +87,14 @@ Singleton {
     // month beside the date.
     readonly property int drawerWidth: 400
 
+    // The window list along the foot of the screen: as deep as the rail is
+    // wide, with each entry inset from it by the same margin all round.
+    readonly property int taskBar: rail
+    readonly property int taskEntryHeight: taskBar - spaceXs * 2
+    readonly property int taskEntryWidth: 200
+    readonly property int taskIconSize: 16
+    readonly property int taskGap: 4
+
     // the row of tabs held at the foot of an open drawer
     readonly property int tabsHeight: 44
 

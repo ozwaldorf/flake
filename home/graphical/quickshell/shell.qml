@@ -350,6 +350,15 @@ ShellRoot {
                 }
             }
 
+            // after the rail, so its zone is laid out inside the rail's
+            // rather than cutting the rail short
+            TaskBar {
+                modelData: scope.modelData
+                anchorRight: scope.anchorRight
+                push: bar.pushWidth
+                recess: bar.recess
+            }
+
             ControlCenter {
                 id: settings
 
