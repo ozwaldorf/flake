@@ -1,16 +1,16 @@
 diff --git a/src/cursor.rs b/src/cursor.rs
-index a856de9..ede3820 100644
+index a856de9..69eb5f3 100644
 --- a/src/cursor.rs
 +++ b/src/cursor.rs
 @@ -4,6 +4,7 @@ use std::env;
  use std::fs::File;
  use std::io::Read;
  use std::rc::Rc;
-+use std::time::Instant;
++use std::time::{Duration, Instant};
  
  use anyhow::{anyhow, Context};
  use smithay::backend::allocator::Fourcc;
-@@ -20,11 +21,42 @@ static FALLBACK_CURSOR_DATA: &[u8] = include_bytes!("../resources/cursor.rgba");
+@@ -20,11 +21,62 @@ static FALLBACK_CURSOR_DATA: &[u8] = include_bytes!("../resources/cursor.rgba");
  
  type XCursorCache = HashMap<(CursorIcon, i32), Option<Rc<XCursor>>>;
  
@@ -18,6 +18,7 @@ index a856de9..ede3820 100644
 +
 +type TransitionAsset = (String, bool, Rc<XCursor>);
 +
++#[derive(Clone, Copy)]
 +struct CursorTransition {
 +    from: CursorIcon,
 +    to: CursorIcon,
@@ -25,6 +26,8 @@ index a856de9..ede3820 100644
 +    position: f64,
 +    reverse: bool,
 +    duration_ms: f64,
++    /// Latest requested cursor, played once this transition finishes.
++    queued: Option<CursorIcon>,
 +}
 +
 +impl CursorTransition {
@@ -41,6 +44,23 @@ index a856de9..ede3820 100644
 +            position < 1.
 +        }
 +    }
++
++    fn target(&self) -> CursorIcon {
++        if self.reverse {
++            self.from
++        } else {
++            self.to
++        }
++    }
++
++    fn finished_at(&self) -> Instant {
++        let distance = if self.reverse {
++            self.position
++        } else {
++            1. - self.position
++        };
++        self.started + Duration::from_secs_f64(distance * self.duration_ms / 1000.)
++    }
 +}
 +
  pub struct CursorManager {
@@ -53,7 +73,7 @@ index a856de9..ede3820 100644
  }
  
  impl CursorManager {
-@@ -38,6 +70,8 @@ impl CursorManager {
+@@ -38,6 +90,8 @@ impl CursorManager {
              size,
              current_cursor: CursorImageStatus::default_named(),
              named_cursor_cache: Default::default(),
@@ -62,7 +82,7 @@ index a856de9..ede3820 100644
          }
      }
  
-@@ -47,6 +81,8 @@ impl CursorManager {
+@@ -47,6 +101,8 @@ impl CursorManager {
          self.theme = CursorTheme::load(theme);
          self.size = size;
          self.named_cursor_cache.get_mut().clear();
@@ -71,12 +91,13 @@ index a856de9..ede3820 100644
      }
  
      /// Checks if the cursor WlSurface is alive, and if not, cleans it up.
-@@ -80,20 +116,63 @@ impl CursorManager {
+@@ -80,20 +136,65 @@ impl CursorManager {
      }
  
      fn get_render_cursor_named(&self, icon: CursorIcon, scale: i32) -> RenderCursor {
-+        if let Some(transition) = &self.transition {
-+            let now = Instant::now();
++        let now = Instant::now();
++        let transition = self.current_transition(now);
++        if let Some(transition) = &transition {
 +            if transition.active_at(now) {
 +                if let Some((name, reverse, cursor)) =
 +                    self.get_transition(transition.from, transition.to, scale)
@@ -100,8 +121,7 @@ index a856de9..ede3820 100644
 -                icon,
 +                name: icon.name().to_owned(),
                  scale,
-+                frame: self
-+                    .transition
++                frame: transition
 +                    .as_ref()
 +                    .filter(|_| cursor.images.len() > 1)
 +                    .map(|transition| {
@@ -110,7 +130,9 @@ index a856de9..ede3820 100644
 +                        } else {
 +                            1. - transition.position
 +                        };
-+                        let elapsed = transition.started.elapsed().as_millis() as f64;
++                        let elapsed = now
++                            .saturating_duration_since(transition.started)
++                            .as_millis() as f64;
 +                        cursor
 +                            .frame((elapsed - distance * transition.duration_ms).max(0.) as u32)
 +                            .0
@@ -127,17 +149,17 @@ index a856de9..ede3820 100644
      }
  
      pub fn is_current_cursor_animated(&self, scale: i32) -> bool {
++        let now = Instant::now();
 +        if self
-+            .transition
-+            .as_ref()
-+            .is_some_and(|t| t.active_at(Instant::now()))
++            .current_transition(now)
++            .is_some_and(|t| t.active_at(now))
 +        {
 +            return true;
 +        }
          match &self.current_cursor {
              CursorImageStatus::Hidden => false,
              CursorImageStatus::Surface(_) => false,
-@@ -151,9 +230,71 @@ impl CursorManager {
+@@ -151,9 +252,103 @@ impl CursorManager {
  
      /// Set new cursor image provider.
      pub fn set_cursor_image(&mut self, cursor: CursorImageStatus) {
@@ -148,14 +170,19 @@ index a856de9..ede3820 100644
 +            if from == to {
 +                return;
 +            }
-+            if let Some(mut transition) = self.transition.take().filter(|t| t.active_at(now)) {
-+                // Reverse from the currently displayed position; never queue transitions.
++            let current = self.current_transition(now);
++            if let Some(mut transition) = current.filter(|t| t.active_at(now)) {
++                // Reverse from the currently displayed position, or play the latest other
++                // cursor once this transition finishes.
 +                if *to == transition.from || *to == transition.to {
 +                    transition.position = transition.position_at(now);
 +                    transition.started = now;
 +                    transition.reverse = *to == transition.from;
-+                    self.transition = Some(transition);
++                    transition.queued = None;
++                } else {
++                    transition.queued = Some(*to);
 +                }
++                self.transition = Some(transition);
 +            } else if let Some((_, _, asset)) = self.get_transition(*from, *to, 1) {
 +                self.transition = Some(CursorTransition {
 +                    from: *from,
@@ -164,7 +191,10 @@ index a856de9..ede3820 100644
 +                    position: 0.,
 +                    reverse: false,
 +                    duration_ms: asset.animation_duration as f64,
++                    queued: None,
 +                });
++            } else {
++                self.transition = None;
 +            }
 +        } else {
 +            self.transition = None;
@@ -172,6 +202,30 @@ index a856de9..ede3820 100644
          self.current_cursor = cursor;
      }
  
++    /// The transition at `now`, with a finished one replaced by its queued successor.
++    fn current_transition(&self, now: Instant) -> Option<CursorTransition> {
++        let transition = self.transition?;
++        let Some(queued) = transition.queued.filter(|_| !transition.active_at(now)) else {
++            return Some(transition);
++        };
++        let from = transition.target();
++        let Some((_, _, asset)) = self.get_transition(from, queued, 1) else {
++            return Some(CursorTransition {
++                queued: None,
++                ..transition
++            });
++        };
++        Some(CursorTransition {
++            from,
++            to: queued,
++            started: transition.finished_at(),
++            position: 0.,
++            reverse: false,
++            duration_ms: asset.animation_duration as f64,
++            queued: None,
++        })
++    }
++
 +    fn get_transition(
 +        &self,
 +        from: CursorIcon,
@@ -209,7 +263,7 @@ index a856de9..ede3820 100644
      /// Load the cursor with the given `name` from the file system picking the closest
      /// one to the given `size`.
      fn load_xcursor(theme: &CursorTheme, name: &str, size: i32) -> anyhow::Result<XCursor> {
-@@ -170,15 +311,18 @@ impl CursorManager {
+@@ -170,15 +365,18 @@ impl CursorManager {
  
          let mut images = parse_xcursor(&buf).context("error parsing cursor icon file")?;
  
@@ -233,7 +287,7 @@ index a856de9..ede3820 100644
  
          Ok(XCursor {
              images,
-@@ -219,13 +363,14 @@ pub enum RenderCursor {
+@@ -219,13 +417,14 @@ pub enum RenderCursor {
          surface: WlSurface,
      },
      Named {
@@ -250,7 +304,7 @@ index a856de9..ede3820 100644
  
  #[derive(Default)]
  pub struct CursorTextureCache {
-@@ -239,14 +384,14 @@ impl CursorTextureCache {
+@@ -239,14 +438,14 @@ impl CursorTextureCache {
  
      pub fn get(
          &self,
@@ -267,7 +321,7 @@ index a856de9..ede3820 100644
              .or_insert_with(|| {
                  cursor
                      .frames()
-@@ -312,7 +457,219 @@ impl XCursor {
+@@ -312,7 +511,260 @@ impl XCursor {
      }
  
      /// Get hotspot for the given `image`.
@@ -343,7 +397,7 @@ index a856de9..ede3820 100644
 +    }
 +
 +    #[test]
-+    fn repeated_requests_keep_start_time_and_third_shape_cancels() {
++    fn repeated_requests_keep_start_time_and_third_shape_queues() {
 +        let mut manager = manager();
 +        manager.set_cursor_image(CursorImageStatus::Named(CursorIcon::Text));
 +        manager.transition.as_mut().unwrap().duration_ms = 100_000.;
@@ -351,7 +405,48 @@ index a856de9..ede3820 100644
 +        manager.set_cursor_image(CursorImageStatus::Named(CursorIcon::Text));
 +        assert_eq!(manager.transition.as_ref().unwrap().started, started);
 +        manager.set_cursor_image(CursorImageStatus::Named(CursorIcon::Pointer));
-+        assert!(manager.transition.is_none());
++        manager.set_cursor_image(CursorImageStatus::Named(CursorIcon::Wait));
++        let transition = manager.transition.as_ref().unwrap();
++        assert_eq!(transition.started, started);
++        assert_eq!(transition.to, CursorIcon::Text);
++        assert_eq!(transition.queued, Some(CursorIcon::Wait));
++        manager.set_cursor_image(CursorImageStatus::Named(CursorIcon::Default));
++        let transition = manager.transition.as_ref().unwrap();
++        assert!(transition.reverse);
++        assert_eq!(transition.queued, None);
++    }
++
++    #[test]
++    fn queued_shape_plays_when_transition_finishes() {
++        let mut manager = manager();
++        manager.transition_cache.borrow_mut().insert(
++            (CursorIcon::Text, CursorIcon::Pointer, 1),
++            Some(("pointer-to-text".into(), true, asset())),
++        );
++        manager.set_cursor_image(CursorImageStatus::Named(CursorIcon::Text));
++        manager.set_cursor_image(CursorImageStatus::Named(CursorIcon::Pointer));
++        let started = manager.transition.as_ref().unwrap().started;
++        manager.transition.as_mut().unwrap().started -= Duration::from_millis(150);
++        let now = Instant::now();
++        let next = manager.current_transition(now).unwrap();
++        assert_eq!(
++            (next.from, next.to, next.queued),
++            (CursorIcon::Text, CursorIcon::Pointer, None)
++        );
++        assert_eq!(next.started, started - Duration::from_millis(50));
++        assert!(next.active_at(now));
++        assert!(manager.is_current_cursor_animated(1));
++        match manager.get_render_cursor(1) {
++            RenderCursor::Named { name, .. } => assert_eq!(name, "pointer-to-text"),
++            _ => panic!("expected queued transition"),
++        }
++        manager.set_cursor_image(CursorImageStatus::Named(CursorIcon::Text));
++        let transition = manager.transition.as_ref().unwrap();
++        assert_eq!(
++            (transition.from, transition.to),
++            (CursorIcon::Text, CursorIcon::Pointer)
++        );
++        assert!(transition.reverse);
 +    }
 +
 +    #[test]
