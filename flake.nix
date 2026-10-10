@@ -31,6 +31,10 @@
       url = "github:ozwaldorf/zoom-sync";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    animated-cursors = {
+      url = "github:ozwaldorf/animated-cursors";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     codex-desktop-linux = {
       url = "github:ilysenko/codex-desktop-linux";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -77,6 +81,10 @@
             (final: prev: {
               # Force insert flake packages that dont have builtin overlays.
               zoom-sync = inputs.zoom-sync.packages.${system}.default;
+              animated-shapes-cursors = inputs.animated-cursors.packages.${system}.shapes;
+              animated-dot-cursors = inputs.animated-cursors.packages.${system}.dot;
+              animated-fluid-cursors = inputs.animated-cursors.packages.${system}.fluid;
+
               # Head for the bluez sink volume fix (quickshell-mirror/quickshell#808).
               # Remove once a quickshell release after v0.3.1 reaches nixpkgs.
               quickshell = inputs.quickshell.packages.${system}.default;

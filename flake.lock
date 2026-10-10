@@ -1,5 +1,25 @@
 {
   "nodes": {
+    "animated-cursors": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1791652072,
+        "narHash": "sha256-JZRlWxxwGf65ken2g0SGeqhfTTNSWMXEzxZx9OKj2kA=",
+        "owner": "ozwaldorf",
+        "repo": "animated-cursors",
+        "rev": "b79686b2386e468c6eb62212b8601be2016fc0b2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ozwaldorf",
+        "repo": "animated-cursors",
+        "type": "github"
+      }
+    },
     "bdwgc": {
       "flake": false,
       "locked": {
@@ -472,6 +492,7 @@
     },
     "root": {
       "inputs": {
+        "animated-cursors": "animated-cursors",
         "carburetor": "carburetor",
         "claude-desktop": "claude-desktop",
         "codex-desktop-linux": "codex-desktop-linux",

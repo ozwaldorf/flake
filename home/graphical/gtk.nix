@@ -31,9 +31,9 @@ in
       enable = true;
       # package = pkgs.bibata-cursors;
       # name = "Bibata-Modern-Classic";
-      package = pkgs.oreo-cursors-plus;
-      name = "oreo_spark_black_bordered_cursors";
-      size = 24;
+      package = pkgs.animated-dot-cursors;
+      name = "animated_dot_cursors";
+      size = 48;
       x11.enable = true;
       gtk.enable = true;
     };
