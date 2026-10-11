@@ -30,6 +30,15 @@
     enableZshIntegration = true;
   };
 
+  # command corrector, invoked as `fuck` after a failed command
+  programs.pay-respects = {
+    enable = true;
+    options = [
+      "--alias"
+      "fuck"
+    ];
+  };
+
   programs.zsh = {
     enable = true;
 
@@ -92,11 +101,9 @@
       commit = "git commit";
       add = "git add";
       rebase = "git stash && git pull --rebase && git stash pop";
-      ytop = "ytop -spfa";
       n = "nvim";
       c = "cargo";
       wq = "exit";
-      fuck = "thefuck";
       switch = "sudo nixos-rebuild switch --flake ${flakeDirectory}\\#${hostname}";
       # Always run from the latest hourly builds
       claude = "nix run github:sadjow/claude-code-nix -- --dangerously-skip-permissions";
