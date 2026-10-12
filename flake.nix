@@ -100,7 +100,7 @@
           ];
           config = {
             allowUnfree = true;
-            permittedInsecurePackages = [ "beekeeper-studio-6.1.1" ];
+            permittedInsecurePackages = [ "beekeeper-studio-6.1.4" ];
           };
         };
       # Derive flake outputs for packages on all systems
