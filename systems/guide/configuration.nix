@@ -184,7 +184,12 @@
 
   fonts.packages = with pkgs; [ nerd-fonts.fira-code ];
 
-  programs.zsh.enable = true;
+  programs.zsh = {
+    enable = true;
+    enableCompletion = false;
+    promptInit = ""; # starship draws the prompt
+    enableLsColors = false; # home-manager sources a prebuilt LS_COLORS
+  };
   environment.pathsToLink = [ "/share/zsh" ];
   fonts.fontconfig.enable = true;
 
@@ -211,6 +216,7 @@
   programs.direnv = {
     enable = true;
     direnvrcExtra = "export SHELL=$SHELL";
+    enableZshIntegration = false; # home-manager sources a prebuilt hook
   };
 
   nix.settings.auto-optimise-store = true;

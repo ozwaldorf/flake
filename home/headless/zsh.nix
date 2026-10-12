@@ -1,11 +1,25 @@
 {
+  config,
   lib,
   pkgs,
   inputs,
   hostname,
   flakeDirectory,
+  osConfig ? { },
   ...
 }:
+let
+  # Init scripts generated at build time rather than by a process per shell
+  initScript =
+    name: script:
+    pkgs.runCommand "${name}-init.zsh" { } ''
+      export HOME=$TMPDIR
+      ${script}
+    '';
+
+  starship = lib.getExe config.programs.starship.package;
+  direnv = osConfig.programs.direnv or { enable = false; };
+in
 {
   # weekly prebuilt database for nix-locate, comma and the launcher
   imports = [ inputs.nix-index-database.homeModules.nix-index ];
@@ -16,7 +30,9 @@
     curl
     onefetch
     weechat
-    (fortune.override { withOffensive = true; })
+    # without recode, whose charset tables cost ~17ms per run for a no-op
+    # UTF-8 to UTF-8 conversion
+    ((fortune.override { withOffensive = true; }).overrideAttrs { buildInputs = [ ]; })
   ];
 
   programs.nix-index = {
@@ -25,14 +41,18 @@
   };
   programs.nix-index-database.comma.enable = true;
 
+  # zsh init for these is sourced from build-time scripts below
+  programs.starship.enableZshIntegration = false;
+
   programs.fzf = {
     enable = true;
-    enableZshIntegration = true;
+    enableZshIntegration = false;
   };
 
   # command corrector, invoked as `fuck` after a failed command
   programs.pay-respects = {
     enable = true;
+    enableZshIntegration = false;
     options = [
       "--alias"
       "fuck"
@@ -62,6 +82,21 @@
     autocd = true;
     enableVteIntegration = true;
     # enableCompletion = false; # autocomplete will compinit on its own
+
+    # Key the dump on the system and user profiles so -C can skip the
+    # audit and rescan, while a switch still starts a fresh dump
+    completionInit = ''
+      autoload -U compinit
+      () {
+        local dir=''${XDG_CACHE_HOME:-$HOME/.cache}/zsh
+        local dump=$dir/zcompdump-''${''${''${:-/run/current-system}:A:t}[1,32]}-''${''${''${:-/etc/profiles/per-user/$USER}:A:t}[1,32]}
+        if [[ ! -e $dump ]]; then
+          mkdir -p $dir
+          rm -f $dir/zcompdump-*(N)
+        fi
+        compinit -C -d $dump
+      }
+    '';
 
     plugins = [
       {
@@ -118,13 +153,37 @@
     };
 
     initContent = lib.mkMerge [
+      (lib.mkOrder 550 ''
+        source ${initScript "dircolors" "${pkgs.coreutils}/bin/dircolors -b > $out"}
+      '')
+      (lib.mkIf direnv.enable (
+        lib.mkOrder 550 ''
+          source ${initScript "direnv" "${lib.getExe direnv.package} hook zsh > $out"}
+        ''
+      ))
+      (lib.mkOrder 910 ''
+        if [[ $options[zle] = on ]]; then
+          source ${initScript "fzf" "${lib.getExe config.programs.fzf.package} --zsh > $out"}
+        fi
+      '')
+      ''
+        if [[ $TERM != "dumb" ]]; then
+          source ${initScript "starship" ''
+            export STARSHIP_CONFIG=${config.home.file.${config.programs.starship.configPath}.source}
+            ${starship} init zsh --print-full-init | grep -v '^PROMPT2=' > $out
+            printf 'PROMPT2=%q\n' "$(${starship} prompt --continuation)" >> $out
+          ''}
+        fi
+        source ${
+          initScript "pay-respects" "${lib.getExe config.programs.pay-respects.package} zsh ${lib.escapeShellArgs config.programs.pay-respects.options} > $out"
+        }
+      ''
       (lib.mkBefore ''
         ## Options section
         setopt interactive_comments                                     # Enable autocomplete
         setopt complete_aliases                                         # Complete aliased commands
         setopt correct                                                  # Auto correct mistakes
         setopt extendedglob                                             # Extended globbing. Allows using regular expressions with *
-        setopt nocaseglob                                               # Case insensitive globbing
         setopt rcexpandparam                                            # Array expension with parameters
         setopt nocheckjobs                                              # Don't warn about running processes when exiting
         setopt numericglobsort                                          # Sort filenames numerically when it makes sense
@@ -198,6 +257,11 @@
           add-zle-hook-widget line-init _launcher-run
         fi
       ''
+      # Case insensitive globbing, set last since it makes compinit and the
+      # plugins' globs scan all of /nix/store
+      (lib.mkAfter ''
+        setopt nocaseglob
+      '')
     ];
   };
 }

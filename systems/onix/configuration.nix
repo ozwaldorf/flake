@@ -353,6 +353,8 @@
     zsh = {
       enable = true;
       enableCompletion = false;
+      promptInit = ""; # starship draws the prompt
+      enableLsColors = false; # home-manager sources a prebuilt LS_COLORS
     };
 
     # Same for niri, install to system to ensure wayland sessions are propagated correctly.
@@ -382,6 +384,7 @@
       enable = true;
       # re-use system shell
       direnvrcExtra = "export SHELL=$SHELL";
+      enableZshIntegration = false; # home-manager sources a prebuilt hook
     };
 
     gnome-disks.enable = true; # disk manager

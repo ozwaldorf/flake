@@ -101,6 +101,8 @@
     zsh = {
       enable = true;
       enableCompletion = false;
+      promptInit = ""; # starship draws the prompt
+      enableLsColors = false; # home-manager sources a prebuilt LS_COLORS
     };
   };
 
