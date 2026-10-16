@@ -31,8 +31,8 @@ in
       enable = true;
       # package = pkgs.bibata-cursors;
       # name = "Bibata-Modern-Classic";
-      package = pkgs.animated-dot-cursors;
-      name = "animated_dot_cursors";
+      package = pkgs.animated-hand-cursors;
+      name = "animated_hand_cursors";
       size = 48;
       x11.enable = true;
       gtk.enable = true;

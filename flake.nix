@@ -84,6 +84,7 @@
               animated-shapes-cursors = inputs.animated-cursors.packages.${system}.shapes;
               animated-dot-cursors = inputs.animated-cursors.packages.${system}.dot;
               animated-fluid-cursors = inputs.animated-cursors.packages.${system}.fluid;
+              animated-hand-cursors = inputs.animated-cursors.packages.${system}.hand;
 
               # Head for the bluez sink volume fix (quickshell-mirror/quickshell#808).
               # Remove once a quickshell release after v0.3.1 reaches nixpkgs.
