@@ -7,6 +7,10 @@ niri.overrideAttrs (old: {
   patches = (old.patches or [ ]) ++ [
     # Play named cursor transitions once, reversing the same asset on return.
     ./patches/niri-cursor-transitions.patch
+    # Named cursors tilt around their hotspot on a spring following the
+    # horizontal pointer velocity, trailing behind motion like a dragged object.
+    # Programmatic pointer warps glide the drawn cursor to its new position.
+    ./patches/niri-cursor-physics.patch
     # Regular blur samples the framebuffer, so it vanishes wherever a window is
     # drawn offscreen: opening, closing and while dragged. Keeps dragged
     # windows opaque so they render directly, and falls back to xray blur for
