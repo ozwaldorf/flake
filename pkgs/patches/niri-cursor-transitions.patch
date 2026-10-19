@@ -1,16 +1,17 @@
 diff --git a/src/cursor.rs b/src/cursor.rs
-index a856de9..69eb5f3 100644
+index 309205a6..63fe9374 100644
 --- a/src/cursor.rs
 +++ b/src/cursor.rs
-@@ -4,6 +4,7 @@ use std::env;
+@@ -4,7 +4,7 @@ use std::env;
  use std::fs::File;
  use std::io::Read;
  use std::rc::Rc;
+-use std::time::Duration;
 +use std::time::{Duration, Instant};
  
  use anyhow::{anyhow, Context};
  use smithay::backend::allocator::Fourcc;
-@@ -20,11 +21,62 @@ static FALLBACK_CURSOR_DATA: &[u8] = include_bytes!("../resources/cursor.rgba");
+@@ -24,11 +24,62 @@ static FALLBACK_CURSOR_DATA: &[u8] = include_bytes!("../resources/cursor.rgba");
  
  type XCursorCache = HashMap<(CursorIcon, i32), Option<Rc<XCursor>>>;
  
@@ -73,7 +74,7 @@ index a856de9..69eb5f3 100644
  }
  
  impl CursorManager {
-@@ -38,6 +90,8 @@ impl CursorManager {
+@@ -42,6 +93,8 @@ impl CursorManager {
              size,
              current_cursor: CursorImageStatus::default_named(),
              named_cursor_cache: Default::default(),
@@ -82,7 +83,7 @@ index a856de9..69eb5f3 100644
          }
      }
  
-@@ -47,6 +101,8 @@ impl CursorManager {
+@@ -51,6 +104,8 @@ impl CursorManager {
          self.theme = CursorTheme::load(theme);
          self.size = size;
          self.named_cursor_cache.get_mut().clear();
@@ -91,7 +92,7 @@ index a856de9..69eb5f3 100644
      }
  
      /// Checks if the cursor WlSurface is alive, and if not, cleans it up.
-@@ -80,20 +136,65 @@ impl CursorManager {
+@@ -84,20 +139,65 @@ impl CursorManager {
      }
  
      fn get_render_cursor_named(&self, icon: CursorIcon, scale: i32) -> RenderCursor {
@@ -159,7 +160,7 @@ index a856de9..69eb5f3 100644
          match &self.current_cursor {
              CursorImageStatus::Hidden => false,
              CursorImageStatus::Surface(_) => false,
-@@ -151,9 +252,103 @@ impl CursorManager {
+@@ -155,9 +255,103 @@ impl CursorManager {
  
      /// Set new cursor image provider.
      pub fn set_cursor_image(&mut self, cursor: CursorImageStatus) {
@@ -263,7 +264,7 @@ index a856de9..69eb5f3 100644
      /// Load the cursor with the given `name` from the file system picking the closest
      /// one to the given `size`.
      fn load_xcursor(theme: &CursorTheme, name: &str, size: i32) -> anyhow::Result<XCursor> {
-@@ -170,15 +365,18 @@ impl CursorManager {
+@@ -174,15 +368,18 @@ impl CursorManager {
  
          let mut images = parse_xcursor(&buf).context("error parsing cursor icon file")?;
  
@@ -287,7 +288,7 @@ index a856de9..69eb5f3 100644
  
          Ok(XCursor {
              images,
-@@ -219,13 +417,14 @@ pub enum RenderCursor {
+@@ -223,13 +420,14 @@ pub enum RenderCursor {
          surface: WlSurface,
      },
      Named {
@@ -299,12 +300,12 @@ index a856de9..69eb5f3 100644
      },
  }
  
--type TextureCache = HashMap<(CursorIcon, i32), Vec<MemoryRenderBuffer>>;
-+type TextureCache = HashMap<(String, i32), Vec<MemoryRenderBuffer>>;
+-type TextureCache = HashMap<(CursorIcon, i32, bool), Vec<MemoryRenderBuffer>>;
++type TextureCache = HashMap<(String, i32, bool), Vec<MemoryRenderBuffer>>;
  
  #[derive(Default)]
  pub struct CursorTextureCache {
-@@ -239,14 +438,14 @@ impl CursorTextureCache {
+@@ -253,7 +451,7 @@ impl CursorTextureCache {
  
      pub fn get(
          &self,
@@ -313,15 +314,16 @@ index a856de9..69eb5f3 100644
          scale: i32,
          cursor: &XCursor,
          idx: usize,
+@@ -261,7 +459,7 @@ impl CursorTextureCache {
      ) -> MemoryRenderBuffer {
          self.cache
              .borrow_mut()
--            .entry((icon, scale))
-+            .entry((name, scale))
+-            .entry((icon, scale, padded))
++            .entry((name, scale, padded))
              .or_insert_with(|| {
                  cursor
                      .frames()
-@@ -312,7 +511,260 @@ impl XCursor {
+@@ -487,13 +685,273 @@ impl XCursor {
      }
  
      /// Get hotspot for the given `image`.
@@ -329,13 +331,14 @@ index a856de9..69eb5f3 100644
 -        (image.xhot as i32, image.yhot as i32).into()
 +    pub fn hotspot(image: &Image) -> Point<f64, Physical> {
 +        (image.xhot as f64, image.yhot as f64).into()
-+    }
-+}
-+
-+#[cfg(test)]
-+mod tests {
-+    use super::*;
+     }
+ }
+ 
+ #[cfg(test)]
+ mod tests {
 +    use std::time::Duration;
++
++    use super::*;
 +
 +    #[test]
 +    fn padded_frames_preserve_hotspot_at_fractional_output_scale() {
@@ -526,6 +529,12 @@ index a856de9..69eb5f3 100644
 +        ));
 +        std::fs::create_dir(&directory).unwrap();
 +        std::fs::create_dir(directory.join("cursors")).unwrap();
++        // Self-inheritance prevents fallback to installed themes.
++        std::fs::write(
++            directory.join("index.theme"),
++            format!("[Icon Theme]\nInherits={}\n", directory.display()),
++        )
++        .unwrap();
 +        // Two one-pixel frames with different delays.
 +        let words = [
 +            0x72756358u32,
@@ -582,13 +591,53 @@ index a856de9..69eb5f3 100644
 +            .get_transition(CursorIcon::Default, CursorIcon::Pointer, 1)
 +            .is_none());
 +        std::fs::remove_dir_all(directory).unwrap();
-     }
- }
++    }
++}
++
++#[cfg(test)]
++mod physics_tests {
+     use super::*;
+ 
+     #[test]
+diff --git a/src/handlers/image_copy_capture.rs b/src/handlers/image_copy_capture.rs
+index 2f36d672..8896f70c 100644
+--- a/src/handlers/image_copy_capture.rs
++++ b/src/handlers/image_copy_capture.rs
+@@ -161,11 +161,14 @@ fn cursor_capture_size(niri: &Niri, output: &Output) -> Size<i32, BufferCoords>
+         RenderCursor::Named {
+             scale: buffer_scale,
+             cursor,
++            frame,
+             ..
+         } => {
+             // All frames are the same size since CursorManager::load_xcursor()
+             // picks one size and rejects frames which differ.
+-            let (_idx, frame) = cursor.frame(niri.start_time.elapsed().as_millis() as u32);
++            let frame = frame
++                .map(|idx| &cursor.frames()[idx])
++                .unwrap_or_else(|| cursor.frame(niri.start_time.elapsed().as_millis() as u32).1);
+             // The image is loaded at the integer scale but drawn at the fractional one, so it
+             // ends up smaller than its own buffer whenever the two differ.
+             let logical = Size::<f64, Logical>::from((
+@@ -204,9 +207,12 @@ pub fn cursor_capture_hotspot(niri: &Niri, output: &Output) -> Point<i32, Buffer
+         RenderCursor::Named {
+             scale: buffer_scale,
+             cursor,
++            frame,
+             ..
+         } => {
+-            let (_idx, frame) = cursor.frame(niri.start_time.elapsed().as_millis() as u32);
++            let frame = frame
++                .map(|idx| &cursor.frames()[idx])
++                .unwrap_or_else(|| cursor.frame(niri.start_time.elapsed().as_millis() as u32).1);
+             // Same rescaling as in cursor_capture_size().
+             XCursor::hotspot(frame)
+                 .to_f64()
 diff --git a/src/niri.rs b/src/niri.rs
-index ec40e01..ce3c761 100644
+index 0b8a077b..167126c4 100644
 --- a/src/niri.rs
 +++ b/src/niri.rs
-@@ -3722,16 +3722,19 @@ impl Niri {
+@@ -4043,14 +4043,17 @@ impl Niri {
                  );
              }
              RenderCursor::Named {
@@ -598,21 +647,18 @@ index ec40e01..ce3c761 100644
                  cursor,
 +                frame,
              } => {
--                let (idx, frame) = cursor.frame(self.start_time.elapsed().as_millis() as u32);
--                let hotspot = XCursor::hotspot(frame).to_logical(scale);
-+                let (idx, frame) = frame
+-                let (idx, image) = cursor.frame(self.start_time.elapsed().as_millis() as u32);
++                let (idx, image) = frame
 +                    .map(|idx| (idx, &cursor.frames()[idx]))
 +                    .unwrap_or_else(|| cursor.frame(self.start_time.elapsed().as_millis() as u32));
-+                let hotspot = XCursor::hotspot(frame).to_logical(scale as f64);
-                 let pointer_pos =
-                     (pointer_pos - hotspot.to_f64()).to_physical_precise_round(output_scale);
- 
--                let texture = self.cursor_texture_cache.get(icon, scale, &cursor, idx);
-+                let texture = self.cursor_texture_cache.get(name, scale, &cursor, idx);
-                 match MemoryRenderBufferRenderElement::from_buffer(
-                     renderer,
-                     pointer_pos,
-@@ -3941,9 +3944,10 @@ impl Niri {
+                 let texture = self
+                     .cursor_texture_cache
+-                    .get(icon, scale, &cursor, idx, true);
++                    .get(name, scale, &cursor, idx, true);
+                 let pad = crate::cursor::cursor_padding(image, scale);
+                 let hotspot = crate::cursor::XCursor::hotspot(image).to_f64()
+                     + Point::from((pad as f64, pad as f64));
+@@ -4280,9 +4283,10 @@ impl Niri {
  
                      // For simplicity, we always use frame 0 for this computation. Let's hope the
                      // hotspot doesn't change between frames.
@@ -625,3 +671,24 @@ index ec40e01..ce3c761 100644
                      let bbox = bbox_from_surface_tree(surface, surface_pos);
  
                      if let Some(mut overlap) = geo.intersection(bbox) {
+@@ -6009,14 +6013,15 @@ impl Niri {
+                 );
+             }
+             RenderCursor::Named {
+-                icon,
++                name,
+                 scale,
+                 cursor,
++                frame,
+             } => {
+-                let (idx, _frame) = cursor.frame(self.start_time.elapsed().as_millis() as u32);
+-                let texture = self
+-                    .cursor_texture_cache
+-                    .get(icon, scale, &cursor, idx, false);
++                let idx = frame.unwrap_or_else(|| {
++                    cursor.frame(self.start_time.elapsed().as_millis() as u32).0
++                });
++                let texture = self.cursor_texture_cache.get(name, scale, &cursor, idx, false);
+                 match MemoryRenderBufferRenderElement::from_buffer(
+                     renderer,
+                     Point::<f64, _>::from((0., 0.)),

@@ -27,6 +27,10 @@
     };
 
     # Applications
+    niri = {
+      url = "github:niri-wm/niri";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     zoom-sync = {
       url = "github:ozwaldorf/zoom-sync";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -81,6 +85,7 @@
             (final: prev: {
               # Force insert flake packages that dont have builtin overlays.
               zoom-sync = inputs.zoom-sync.packages.${system}.default;
+              niri = inputs.niri.packages.${system}.default;
               animated-shapes-cursors = inputs.animated-cursors.packages.${system}.shapes;
               animated-dot-cursors = inputs.animated-cursors.packages.${system}.dot;
               animated-fluid-cursors = inputs.animated-cursors.packages.${system}.fluid;
