@@ -51,7 +51,6 @@
     ];
     shell = pkgs.zsh;
     packages = with pkgs; [
-      firefox
       chromium
       expressvpn
       qmk
@@ -90,6 +89,7 @@
   boot = rec {
     loader = {
       systemd-boot.enable = true;
+      systemd-boot.configurationLimit = 2;
       efi.canTouchEfiVariables = true;
     };
     plymouth = {
@@ -403,6 +403,19 @@
 
   environment.sessionVariables = {
     NIXOS_OZONE_WL = "1";
+    LIBVA_DRIVER_NAME = "nvidia";
+    NVD_BACKEND = "direct";
+    # nvidia-vaapi-driver cannot run inside firefox's RDD sandbox
+    MOZ_DISABLE_RDD_SANDBOX = "1";
+  };
+
+  programs.firefox = {
+    enable = true;
+    preferences = {
+      "media.ffmpeg.vaapi.enabled" = true;
+      "media.hardware-video-decoding.force-enabled" = true;
+      "widget.dmabuf.force-enabled" = true;
+    };
   };
 
   # This value determines the NixOS release from which the default
