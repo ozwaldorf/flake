@@ -35,12 +35,16 @@ let
   # Slot j is tiled on the same monitor and workspace as slot i. A window
   # still waiting for its place (nw) counts for nobody else: the rest do not
   # make room for where it sits until place_new puts it where it goes.
-  same =
+  # From then on the auto shape counts it (counted), but the others only make
+  # room for it once it shows (nhold), in the same frame as the camera.
+  counted =
     i: j:
     if i == j then
       "(win.${S i}.place >= 0)"
     else
       "(win.${S j}.place >= 0 and nw != ${S j} and win.${S j}.screen == win.${S i}.screen and win.${S j}.pool == win.${S i}.pool)";
+  same =
+    i: j: if i == j then counted i j else "(${counted i j} and not (nhold > 0.5 and nwl == ${S j}))";
   # ...and in the same row.
   sameRow = i: j: if i == j then same i j else "(${same i j} and rpos.${S j} == rpos.${S i})";
   # ...as the focused window.
@@ -117,8 +121,8 @@ in
   ${perSlot (i: "    let m.ht.${S i} = " + sum (j: "${same i j} * r.head.${S j} * hp.${S j}"))}
   ${perSlot (i: "    let r.w.${S i} = " + sum (j: "${sameRow i j} * wp.${S j}"))}
   ${perSlot (i: "    let c.before.${S i} = " + sumOthers i (j: "${sameRow i j} * ${before i j} * wp.${S j}"))}
-  ${perSlot (i: "    let o.idx.${S i} = " + sumOthers i (j: "${same i j} * ${ordBefore i j}"))}
-  ${perSlot (i: "    let m.k.${S i} = " + sum (j: same i j))}
+  ${perSlot (i: "    let o.idx.${S i} = " + sumOthers i (j: "${counted i j} * ${ordBefore i j}"))}
+  ${perSlot (i: "    let m.k.${S i} = " + sum (j: counted i j))}
 
       // Members of a row follow its head's height, so whichever of them
       // heads it next keeps it.
@@ -172,6 +176,17 @@ in
       let tgy.${n} = if(tht.${n} <= ha.${n} + 0.5, 0, if(r.idx.${n} < 0.5, (ha.${n} - tht.${n}) / 2, if(r.idx.${n} > r.cnt.${n} - 1.5, (tht.${n} - ha.${n}) / 2, ly.${n} + th.${n} / 2)))''
   )}
 
+      // the window taking the place of a focused one that closes (below)
+  ${perSlot (
+    i:
+    let
+      n = S i;
+    in
+    "    let cl.k.${n} = if(win.${n}.open and win.${n}.place >= 0 and win.${n}.screen == cl.sc and win.${n}.pool == cl.pool, if(rpos.${n} == cl.rpos, if(cpos.${n} > cl.cpos, cpos.${n} - cl.cpos, 1000 + cl.cpos - cpos.${n}), 100000 + abs(rpos.${n} - cl.rpos) * 1000 + cpos.${n}), 1000000000) + ${n} * 0.001"
+  )}
+      let cl.min = ${minOf all (j: "cl.k.${S j}")}
+      let cl.target = ${sum (j: "${S j} * if(abs(cl.k.${S j} - cl.min) < 0.0005, 1, 0)")}
+
       // per monitor: what is shown, and where the camera goes
   ${perMon (s: "    let m.count.${S s} = " + sum (shownOn s))}
       // The window there that had the keyboard last, for crossing monitors.
@@ -200,8 +215,10 @@ in
     ''
       // the camera's window: the one it was put on while still here, or the
       // last with the keyboard. A new window, until it has its place and the
-      // shape has settled, holds it on the window it was opened from.
-      let cam.c.${n} = if((nw >= 0 and cam.a.${n} == nw) or (nhold > 0.5 and cam.a.${n} == nwl), if(lf == cam.a.${n}, lf.prev, lf), cam.a.${n})
+      // shape has settled, holds it on the window it was opened from. One
+      // closing goes straight to the one taking its place, from the frame it
+      // closes, not by whatever pleamar-wm focused meanwhile.
+      let cam.c.${n} = if(cl.pending and cl.sc == ${n} and cl.min < 100000000, cl.target, if((nw >= 0 and cam.a.${n} == nw) or (nhold > 0.5 and cam.a.${n} == nwl), if(lf == cam.a.${n}, lf.prev, lf), cam.a.${n}))
       let cam.k.${n} = if(cam.c.${n} >= 0 and ${pick "max(cam.c.${n}, 0)" (shownOn s)}, cam.c.${n}, m.topslot.${n})
       let cam.tx.${n} = if(cam.k.${n} >= 0, ${pick "max(cam.k.${n}, 0)" (j: "tgx.${j}")}, 0) + ofs.x.${n}
       let cam.ty.${n} = if(cam.k.${n} >= 0, ${pick "max(cam.k.${n}, 0)" (j: "tgy.${j}")}, 0) + ofs.y.${n}
@@ -428,14 +445,15 @@ in
           cpos.${n} = if(abs(${cnt} - 3) < 0.5, if(${k} < 1.5, ${k}, 0), if(abs(${cnt} - 4) < 0.5, mod(${k}, 2), ${k}))
           wp.${n} = if(${cnt} < 1.5, 0.6667, 0.5)
           hp.${n} = if(abs(${cnt} - 3) < 0.5, 0.6667, if(${cnt} > 2.5, 0.5, 1))
+          nhold = 0
       }''
   )}
 
       // the window that just opened, and the one that had the keyboard before it
       fact nw = -1
       fact nwt = 0
-      // nwl, nhold: the last window placed, held a moment while the auto
-      // shape settles around it.
+      // nwl, nhold: the last window placed, held while the auto shape is made
+      // around it. Making it lets go (above); this, if none is made.
       fact nwl = -1
       fact nhold = 0
       on still nhold for 60ms while nhold > 0.5 { nhold = 0 }
@@ -464,7 +482,7 @@ in
       let n.newrow = n.ok and n.rc > 2.5 and n.m < 6.5
       on place_new {
           nwl = nw
-          nhold = 1
+          nhold = if(${pickMon "n.sc" (s: "auto.${s}")} and n.m > 1.5 and n.m < 3.5, 1, 0)
           nw = -1
           newpan = 1
       }
@@ -492,15 +510,6 @@ in
           cl.pending = true
       }''
   )}
-  ${perSlot (
-    i:
-    let
-      n = S i;
-    in
-    "    let cl.k.${n} = if(win.${n}.open and win.${n}.place >= 0 and win.${n}.screen == cl.sc and win.${n}.pool == cl.pool, if(rpos.${n} == cl.rpos, if(cpos.${n} > cl.cpos, cpos.${n} - cl.cpos, 1000 + cl.cpos - cpos.${n}), 100000 + abs(rpos.${n} - cl.rpos) * 1000 + cpos.${n}), 1000000000) + ${n} * 0.001"
-  )}
-      let cl.min = ${minOf all (j: "cl.k.${S j}")}
-      let cl.target = ${sum (j: "${S j} * if(abs(cl.k.${S j} - cl.min) < 0.0005, 1, 0)")}
       on still win.focus for 50ms while cl.pending and cl.min < 100000000 {
           pan = 1
           focus win(cl.target)
