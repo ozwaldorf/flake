@@ -53,7 +53,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     pleamar-wm = {
-      url = "github:k4ditano/pleamar-wm";
+      # Menus placed at fractional scale and blurred, until k4ditano/pleamar-wm#24 is merged
+      url = "github:ozwaldorf/pleamar-wm/menu-scale-blur";
       inputs.nixpkgs.follows = "nixpkgs";
       # Built against pleamar as a path dependency
       inputs.pleamar.follows = "pleamar";

@@ -198,6 +198,9 @@ let
     # Dimmed by the idle watcher at five minutes, dark at ten
     idle off-after 600
 
+    # Blur behind every window's menus, not only the ones that ask
+    blur menus on
+
     # rio --app-id float
     window app=float float size 800x500
   '';
