@@ -1,0 +1,23 @@
+// What each monitor's copy of a surface works out for itself: which monitor
+// it is, its size, how far its rail is out, and where its ground starts.
+// Included in every surface copied per monitor, since a let at the scene's
+// level is worked out once, for the first monitor.
+part Screen {
+    let me = screen.index
+    let Ws = pick(me, mw.0, mw.1, mw.2, mw.3)
+    let Hs = pick(me, mh.0, mh.1, mh.2, mh.3)
+    // the height a drawer page has, under its top inset and above the tabs
+    let pg.h = Hs - inset - (inset + tabsh + 8)
+    let reveal = pick(me, rv.0, rv.1, rv.2, rv.3)
+    let here = dmon == me
+    let railw = sliver + (rail - sliver) * reveal
+    let push = railw + if(here, dw, 0)
+    // Monitors past the first carry the rail on their right edge, the drawer
+    // opening leftwards from it: rox is where the rail and drawer start on
+    // the surface, rx where the rail sits among them.
+    let right = me > 0
+    let rox = if(right, Ws - push, 0)
+    let rx = if(right, push - railw, 0)
+    // How deep the recess looks: deeper as the drawer opens.
+    let recess = 0.2 + 0.1 * reveal + 0.25 * clamp((push - railw) / pagew, 0, 1)
+}

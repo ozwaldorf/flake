@@ -1,0 +1,1 @@
+../../gen/keybinds.luau

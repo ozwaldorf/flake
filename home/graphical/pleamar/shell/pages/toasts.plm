@@ -1,0 +1,108 @@
+// Toasts: notices beside the rail on the monitor with the keyboard, each for
+// its own while (ten seconds unless the app says, never when critical), and
+// the song that just started above them. Held back while the control centre
+// is open, which lists them all.
+part Toasts {
+    // Filled by logic/toasts.luau from the notifications as they arrive.
+    model ts.cards max 6 { app: text; title: text; body: text; hasbody: bool; urgency: number; gone: bool }
+    event ts_dismiss ->
+
+    // The song: shown on a track change for ten seconds, longer while hovered.
+    service media as ts.mp { playing: bool; title: text; artist: text; player: text; art: text }
+    image ts.art = from ts.mp.art, 56, 56
+    fact ts.song = false
+    fact ts.songhover = false
+    prop ts.songp = 0 ~200ms
+    follow ts.songp = if(ts.song and page != 1, 1, 0)
+
+    let ts.w = 340
+
+    surface toasts {
+        // its own names for what the rail works out (see taskbar.plm)
+        let ts.me = screen.index
+        let ts.W = pick(ts.me, mw.0, mw.1, mw.2, mw.3)
+        let ts.railw = sliver + (rail - sliver) * pick(ts.me, rv.0, rv.1, rv.2, rv.3)
+        // beside the rail, whichever side it is on
+        let ts.x = if(ts.me > 0, ts.W - ts.railw - 8 - ts.w, ts.railw + 8)
+        // the whole monitor, so the toasts can sit on either side
+        size: full, full
+        anchor: left
+        screens: each
+        level: overlay
+
+        column {
+            at: ts.x, 12
+            gap: 14
+            show: ts.me == focmon and page != 1
+
+            // the song
+            group {
+                show: ts.songp > 0.01
+                size: ts.w, 76
+                opacity: ts.songp
+                move: -14 * (1 - ts.songp), 0
+                body {
+                    color: base
+                    glass: 45%
+                    frost: 100%
+                    refraction: 0
+                    dispersion: 0
+                    ripple: 0
+                    shadow: 0, 6, 24, 35%, crust
+                    box { from: 0, 0; size: ts.w, 76; corner: 10 }
+                }
+                box { from: 0.5, 0.5; size: ts.w - 1, 75; corner: 10; stroke: 1; color: if(ts.songz.hover > 0.5, surface2, surface1) }
+                box { from: 10, 10; size: 56, 56; corner: 28; color: surface0 }
+                group {
+                    clip ellipse { at: 38, 38; radius: 28 }
+                    image ts.art { at: 10, 10; size: 56, 56 }
+                }
+                text ts.mp.title { at: 80, 26; anchor: left center; size: 11; color: text; family: "Berkeley Mono"; width: ts.w - 94; lines: 1 }
+                text ts.mp.artist { at: 80, 46; anchor: left center; size: 10; color: overlay2; family: "Berkeley Mono"; width: ts.w - 94; lines: 1 }
+                zone box ts.songz { from: 0, 0; size: ts.w, 76; corner: 10; cursor: pointer; label: "Now playing" }
+                on enter ts.songz { ts.songhover = true }
+                on leave ts.songz { ts.songhover = false }
+                on press ts.songz { ts.song = false }
+            }
+
+            // the notices
+            for n in ts.cards { ToastCard(n) }
+        }
+    }
+
+    // A notice, as tall as what it says.
+    component ToastCard(n: record) {
+        size: ts.w, words.height + 28
+        prop shown = 0 ~200ms
+        follow shown = if(n.gone, 0, 1)
+        prop slide = 14 ~quint
+        follow slide = 0
+        group {
+            opacity: shown
+            move: -slide, 0
+            body {
+                color: base
+                glass: 45%
+                frost: 100%
+                refraction: 0
+                dispersion: 0
+                ripple: 0
+                shadow: 0, 6, 24, 35%, crust
+                box { from: 0, 0; size: ts.w, words.height + 28; corner: 10 }
+            }
+            box { from: 0.5, 0.5; size: ts.w - 1, words.height + 27; corner: 10; stroke: 1; color: if(hit.hover > 0.5, surface2, surface1) }
+            // The accent bar on the rail's side: red critical, grey low.
+            box { from: 0, 0; size: 4, words.height + 28; corner: 2; color: if(n.urgency > 1.5, red, if(n.urgency < 0.5, surface2, yellow)) }
+            column words {
+                at: 14, 14
+                gap: 6
+                text "{upper(n.app)}" { size: 9; color: overlay0; family: "Berkeley Mono"; width: ts.w - 40; lines: 1 }
+                text n.title { size: 12; color: text; family: "Berkeley Mono"; width: ts.w - 28; lines: 2 }
+                text n.body { show: n.hasbody; size: 11; color: overlay2; family: "Berkeley Mono"; width: ts.w - 28; lines: 4 }
+            }
+            text ic.close { at: ts.w - 16, 16; anchor: center; size: 11; color: overlay1; family: "FiraCode Nerd Font"; opacity: hit.hover }
+            zone box hit { from: 0, 0; size: ts.w, words.height + 28; corner: 10; cursor: pointer; label: "{n.title}" }
+            on press hit { emit ts_dismiss(n.index) }
+        }
+    }
+}

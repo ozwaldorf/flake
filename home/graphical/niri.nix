@@ -192,18 +192,8 @@ in
 
         # Pan the view by one column. Mod with the middle button drags the
         # view, and Mod with the left and right buttons move and resize.
-        "Mod+Shift+WheelScrollDown".focus-column-right = { };
-        "Mod+Shift+WheelScrollUp".focus-column-left = { };
-        # A cooldown so one flick of the wheel moves one workspace rather than
-        # racing through several
-        "Mod+WheelScrollDown" = {
-          _props.cooldown-ms = 150;
-          focus-workspace-down = { };
-        };
-        "Mod+WheelScrollUp" = {
-          _props.cooldown-ms = 150;
-          focus-workspace-up = { };
-        };
+        "Mod+WheelScrollDown".focus-column-right = { };
+        "Mod+WheelScrollUp".focus-column-left = { };
 
         "Mod+Left".focus-column-or-monitor-left = { };
         "Mod+Right".focus-column-or-monitor-right = { };

@@ -47,6 +47,17 @@
       url = "github:k3d3/claude-desktop-linux-flake";
       flake = false;
     };
+    pleamar = {
+      url = "github:k4ditano/pleamar";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    pleamar-wm = {
+      url = "github:k4ditano/pleamar-wm";
+      inputs.nixpkgs.follows = "nixpkgs";
+      # Built against pleamar as a path dependency: the fork with the scene
+      # defined blur, on the revision pleamar-wm's own lock pins
+      inputs.pleamar.url = "git+file:///home/oz/Code/pkg/pleamar?ref=dual-kawase";
+    };
     quickshell = {
       url = "github:quickshell-mirror/quickshell";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -94,6 +105,8 @@
               # Head for the bluez sink volume fix (quickshell-mirror/quickshell#808).
               # Remove once a quickshell release after v0.3.1 reaches nixpkgs.
               quickshell = inputs.quickshell.packages.${system}.default;
+              pleamar = inputs.pleamar.packages.${system}.default;
+              pleamar-wm = inputs.pleamar-wm.packages.${system}.default;
               vimPlugins = prev.vimPlugins // {
                 catppuccin-nvim = prev.vimPlugins.catppuccin-nvim.overrideAttrs {
                   doCheck = false;

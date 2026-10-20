@@ -1,0 +1,833 @@
+// A scrolling window manager after niri: windows sit in columns on a strip
+// that glides to keep the focused column in view, workspaces are stacked per
+// monitor and slide vertically, and any set of columns that fits on screen is
+// centred. Columns can hold several windows, stacked or tabbed.
+//
+// The column bookkeeping is generated (gen/columns.plm, from columns.nix); this
+// file draws, animates and takes the mouse. Keys are keys.conf's.
+language 0.4
+import "../gen/theme.plm"
+
+scene Session {
+    surface { size: full, full; screens: each max 4 }
+    windows win max 16
+
+    let gap = 14
+    let strut = 14
+    let radius = 10
+    // niri's own spring: stiffness 800, critically damped.
+    spring niri = 800, 57
+    // Workspace switches: 400 ms, settling like OutQuint.
+    spring slide = 260, 32
+
+    // The frosting behind the windows' glass (blur.wgsl): dual kawase, five
+    // halvings and four doublings back, then a grade. values: tap reach,
+    // noise, saturation, brightness.
+    blur = file "blur.wgsl" {
+        passes: down 0.5 repeat 5, up 2 repeat 4, grade 1
+        values: 3, 0.02, 1, 1
+        reach: 64
+    }
+
+    // the pointer's monitor, the view of each strip
+    fact mon = 0
+    // The monitor with the keyboard, even when it shows no window: the one
+    // of the focused window, or the one the pointer went onto.
+    fact kmon = 0
+    // The room the shell's rail and drawer take on each monitor, signed: from
+    // the left edge, or (negative) the right. The shell says it (room_set),
+    // since its surfaces cannot reserve room per monitor.
+    fact room.0 = 0
+    fact room.1 = 0
+    fact room.2 = 0
+    fact room.3 = 0
+    on change f.sc while win.focus >= 0 { kmon = f.sc }
+    on change win.focus while win.focus >= 0 { kmon = f.sc }
+    on change mon { kmon = mon }
+    // Onto a monitor showing no window: nothing keeps the keyboard.
+    on change mon while pick(mon, m.topslot.0, m.topslot.1, m.topslot.2, m.topslot.3) < 0 { focus win(-1) }
+    // The keyboard moved by key or a window opened: the strip follows it. A
+    // window focused by the pointer is left where it is (niri's max scroll 0%).
+    fact pan = 0
+    fact newpan = 0
+    on still pan for 400ms while pan > 0.5 { pan = 0 }
+    on still newpan for 600ms while newpan > 0.5 { newpan = 0 }
+
+    // the overview: every workspace of a monitor, zoomed out. One per
+    // monitor, opened on the one with the keyboard (or the one the shell
+    // names: overview_on and overview_off take the monitor).
+    fact ov.0 = false
+    fact ov.1 = false
+    fact ov.2 = false
+    fact ov.3 = false
+    prop ovp.0 = 0 ~niri
+    prop ovp.1 = 0 ~niri
+    prop ovp.2 = 0 ~niri
+    prop ovp.3 = 0 ~niri
+    event overview
+    event overview_on
+    event overview_off
+    repeat s in 0..4 {
+        follow ovp.$s = if(ov.$s, 1, 0)
+        on overview while kmon == s { toggle ov.$s }
+        on overview_on(v) while v == s { ov.$s = true }
+        on overview_off(v) while v == s { ov.$s = false }
+        on key Escape while ov.$s { ov.$s = false }
+    }
+
+    // dragging with Super held: 1 moves, 2 pans the strip, 3 resizes
+    // Super held, as the compositor says.
+    fact keys.super = 0
+    fact dslot = -1
+    fact dmode = 0
+    fact g.x = 0
+    fact g.y = 0
+    fact g.w = 0
+    fact g.h = 0
+    // which sides a resize moves: -1 the left or top, 1 the right or bottom
+    fact g.ex = 0
+    fact g.ey = 0
+    fact g.v = 0
+    // a carried window: where in it the pointer holds it, where the pointer
+    // is (on the monitor it is over), and the window under it
+    fact g.ox = 0
+    fact g.oy = 0
+    fact g.px = 0
+    fact g.py = 0
+    // the monitor the drag started on, and where each copy sits (see desk)
+    fact g.hs = 0
+    fact org.0 = 0
+    fact org.1 = 0
+    fact org.2 = 0
+    fact org.3 = 0
+    fact dropj = -1
+    fact t.c = 0
+    fact t.r = 0
+    fact wcool = 0
+    on still wcool for 150ms while wcool > 0.5 { wcool = 0 }
+
+    include "../gen/columns.plm"
+    // each monitor's left edge on the desktop, the monitors side by side in
+    // their order: a carried window is drawn on all of them, shifted by this
+    let mx.0 = 0
+    let mx.1 = W.0
+    let mx.2 = mx.1 + W.1
+    let mx.3 = mx.2 + W.2
+
+    // each monitor: how far its strip has glided, and which workspace it
+    // shows, both on springs
+    repeat s in 0..4 {
+        follow vx.$s = view.$s
+        follow wsv.$s = win.shown.$s
+        // A workspace shown on the monitor with the keyboard gives it to the
+        // window there that had it last.
+        on still win.pool.$s for 60ms while kmon == s and m.topslot.$s >= 0 and (win.focus < 0 or (f.sc == s and f.pool != win.pool.$s)) { focus win(m.topslot.$s) }
+    }
+    // The keyboard handed to a window out of sight (closing one gives it to
+    // the last window, wherever it is): let go, so the rule below gives it
+    // to one that is shown.
+    on still win.focus for 100ms while f.live and not f.vis { focus win(-1) }
+    // Nobody has the keyboard while windows are shown where it is.
+    on still win.focus for 80ms while win.focus < 0 and pick(kmon, m.topslot.0, m.topslot.1, m.topslot.2, m.topslot.3) >= 0 { focus win(pick(kmon, m.topslot.0, m.topslot.1, m.topslot.2, m.topslot.3)) }
+
+    let me = screen.index
+    // this monitor's overview
+    let ov = pick(me, ov.0, ov.1, ov.2, ov.3)
+    let ovp = pick(me, ovp.0, ovp.1, ovp.2, ovp.3)
+    let Wm = screen.width
+    let Hm = screen.height
+
+    // the wallpaper: two slots crossfading, already graded to the
+    // palette and cropped to 16:9 by the logic. It drifts with the strip and
+    // the workspace (parallax), and slides with the shell's drawer.
+    permissions { run: "pleamar-wallpaper", "pleamar", "sh" }
+    text wall.a = ""
+    text wall.b = ""
+    // A path the shell asks for (`text wall.req ...`, then `emit wall_set`).
+    text wall.req = ""
+    fact wall.pick = 0
+    prop wall.mix = 0 ~1600ms
+    follow wall.mix = wall.pick
+    event wall_next ->
+    event wall_set ->
+    image wall.ia = from wall.a, 1920, 1080
+    image wall.ib = from wall.b, 1920, 1080
+    // While the next one is fetched and graded, what is up breathes.
+    fact wall.busy = false
+    fact wall.ph = 0
+    every 700ms while wall.busy { wall.ph = 1 - wall.ph }
+    prop wall.pulse = 0 ~700ms
+    follow wall.pulse = if(wall.busy, wall.ph, 0)
+    let wall.lit = 1 - 0.35 * wall.pulse
+    // The wallpaper's parallax and push, one set of springs per monitor: a
+    // spring followed from every monitor's copy is one value they fight over.
+    prop wv.x.0 = 0.5 ~400ms
+    prop wv.x.1 = 0.5 ~400ms
+    prop wv.x.2 = 0.5 ~400ms
+    prop wv.x.3 = 0.5 ~400ms
+    prop wv.y.0 = 0 ~400ms
+    prop wv.y.1 = 0 ~400ms
+    prop wv.y.2 = 0 ~400ms
+    prop wv.y.3 = 0 ~400ms
+    prop wv.p.0 = 0 ~niri
+    prop wv.p.1 = 0 ~niri
+    prop wv.p.2 = 0 ~niri
+    prop wv.p.3 = 0 ~niri
+    repeat s in 0..4 {
+        let wv.span.$s = T.$s - avail.$s
+        follow wv.x.$s = if(wv.span.$s > 1, clamp(vx.$s / max(wv.span.$s, 1), 0, 1), 0.5)
+        follow wv.y.$s = if(win.pools.$s > 1.5, clamp((wsv.$s - 1) / (win.pools.$s - 1), 0, 1), 0)
+        follow wv.p.$s = win.reserved.$s.left - win.reserved.$s.right + room.$s
+    }
+    let wv.w = max(Wm, Hm * 16 / 9) * 1.06
+    let wv.h = wv.w * 9 / 16
+    let wv.ox = (Wm - wv.w) * pick(me, wv.x.0, wv.x.1, wv.x.2, wv.x.3) + pick(me, wv.p.0, wv.p.1, wv.p.2, wv.p.3)
+    let wv.oy = (Hm - wv.h) * pick(me, wv.y.0, wv.y.1, wv.y.2, wv.y.3)
+    image wall.ia { at: wv.ox, wv.oy; size: wv.w, wv.h; opacity: (1 - wall.mix) * wall.lit }
+    image wall.ib { at: wv.ox, wv.oy; size: wv.w, wv.h; opacity: wall.mix * wall.lit }
+
+    // what the shell is told: the workspaces of each monitor, which
+    // monitor has the keyboard, whether the overview is open
+    text monname.0 = ""
+    text monname.1 = ""
+    text monname.2 = ""
+    text monname.3 = ""
+    event ws_report ->
+    event focus_report ->
+    event ov_report ->
+    repeat s in 0..4 {
+        let code.$s = s + 4 * (win.shown.$s + 16 * (win.pools.$s + 16 * ws.occ.$s))
+        on change code.$s { emit ws_report(code.$s) }
+        on shell_hello { emit ws_report(code.$s) }
+    }
+    on change kmon { emit focus_report(kmon) }
+    // each monitor's size, which the shell's named surfaces cannot read per
+    // monitor: s + 4 * the width, and s + 4 * the height (event values are
+    // 32-bit floats, so the two are not packed into one)
+    event width_report ->
+    event height_report ->
+    repeat s in 0..4 {
+        let wcode.$s = s + 4 * floor(W.$s + 0.5)
+        let hcode.$s = s + 4 * floor(H.$s + 0.5)
+        on change wcode.$s { emit width_report(wcode.$s) }
+        on change hcode.$s { emit height_report(hcode.$s) }
+        on shell_hello {
+            emit width_report(wcode.$s)
+            emit height_report(hcode.$s)
+        }
+    }
+    // the monitor the pointer is on, plus 4 while a window is being dragged
+    event ptr_report ->
+    let ptr.code = mon + 4 * if(dmode > 0.5, 1, 0)
+    on change ptr.code { emit ptr_report(ptr.code) }
+    // each monitor's overview: s + 4 while open
+    repeat s in 0..4 {
+        on change ov.$s { emit ov_report(s + 4 * if(ov.$s, 1, 0)) }
+        on shell_hello { emit ov_report(s + 4 * if(ov.$s, 1, 0)) }
+    }
+    event shell_hello
+    on shell_hello {
+        emit focus_report(kmon)
+        emit ptr_report(ptr.code)
+    }
+    // the shell's task bar: told again whenever what it shows, or the order
+    // windows sit in, changes (the logic sorts and sends it)
+    event tb_dirty ->
+    event tb_focus
+    // a shell that just started is sent the list even if it has not changed
+    event tb_hello ->
+    on shell_hello { emit tb_hello }
+    repeat i in 0..16 {
+        on change win.$i.open { emit tb_dirty }
+        on change win.$i.focused { emit tb_dirty }
+        on change win.$i.urgent { emit tb_dirty }
+        on change win.$i.screen { emit tb_dirty }
+        on change win.$i.workspace { emit tb_dirty }
+        on change cpos.$i { emit tb_dirty }
+        on change rpos.$i { emit tb_dirty }
+        // Picked in the task bar: its workspace shown, and the keyboard.
+        on tb_focus(v) while v == i {
+            workspace win.$i.workspace on win.$i.screen
+            focus win.$i
+            pan = 1
+        }
+    }
+
+    // the overview's workspace cards, under the windows
+    let wsy.me = pick(me, wsv.0, wsv.1, wsv.2, wsv.3)
+    let zoom = 1 - 0.6 * ovp
+    let ovgap = 90 * ovp
+    zone box desk { from: 0, 0; size: Wm, Hm }
+    on enter desk { mon = screen.index }
+    // Where each monitor's copy sits in the scene, learnt while the pointer
+    // rests on it: during a drag pointer.y is measured from the copy the
+    // press was on, so it is corrected by the difference.
+    repeat s in 0..4 {
+        on hover desk for 200ms while screen.index == s { org.$s = cursor.y - pointer.y }
+    }
+    on press desk while ov { ov.$screen = false }
+    // Super and a drag on empty desk pans the strip.
+    on press desk while keys.super > 0.5 and not ov {
+        dmode = 2
+        dslot = -1
+        g.v = pick(me, view.0, view.1, view.2, view.3)
+    }
+    repeat s in 0..4 {
+        on drag desk while dmode == 2 and dslot < 0 and me == s { sco.$s = clamp(g.v - drag.dx, 0, max(T.$s - avail.$s, 0)) }
+    }
+    on release desk { dmode = 0 }
+    // The wheel in the overview goes through the workspaces.
+    on scroll desk while ov and wcool < 0.5 {
+        wcool = 1
+        workspace max(pick(me, win.shown.0, win.shown.1, win.shown.2, win.shown.3) - sign(wheel), 1) on me
+    }
+    // With Super, the wheel goes through the windows: down to the next column,
+    // and past the last one to the next workspace; up the other way. One
+    // step per notch, with the cooldown so a flick does not race.
+    on scroll desk while keys.super > 0.5 and not ov and wcool < 0.5 and wheel < 0 and f.on and f.col < f.ncol - 1.5 and f.right >= 0 {
+        wcool = 1
+        pan = 1
+        focus win(f.right)
+    }
+    on scroll desk while keys.super > 0.5 and not ov and wcool < 0.5 and wheel < 0 and win.focus >= 0 and (not f.on or f.col > f.ncol - 1.5) {
+        wcool = 1
+        pan = 1
+        workspace f.ws + 1 on f.sc
+    }
+    on scroll desk while keys.super > 0.5 and not ov and wcool < 0.5 and wheel > 0 and f.on and f.col > 0.5 and f.left >= 0 {
+        wcool = 1
+        pan = 1
+        focus win(f.left)
+    }
+    on scroll desk while keys.super > 0.5 and not ov and wcool < 0.5 and wheel > 0 and win.focus >= 0 and (not f.on or f.col < 0.5) and f.ws > 1.5 {
+        wcool = 1
+        pan = 1
+        workspace f.ws - 1 on f.sc
+    }
+    // No window with the keyboard: the workspaces of the monitor under it.
+    on scroll desk while keys.super > 0.5 and not ov and wcool < 0.5 and win.focus < 0 {
+        wcool = 1
+        workspace max(p.ws - sign(wheel), 1) on me
+    }
+
+    group {
+        pivot: Wm / 2, Hm / 2
+        scale: zoom
+
+        repeat k in 1..11 {
+            let cy = (k - wsy.me) * (Hm + ovgap)
+            group {
+                show: ovp > 0.01 and k <= pick(me, win.pools.0, win.pools.1, win.pools.2, win.pools.3) and abs(k - wsy.me) < 3
+                opacity: ovp
+                box { from: 0, cy; size: Wm, Hm; corner: 18; color: mantle; opacity: 60% }
+                box { from: 0, cy; size: Wm, Hm; corner: 18; stroke: 2; color: mix(surface1, blue, k == pick(me, win.shown.0, win.shown.1, win.shown.2, win.shown.3)) }
+                zone box card.$k { from: 0, cy; size: Wm, Hm; corner: 18; cursor: pointer; active: ov }
+            }
+            on press card.$k while ov {
+                workspace k on me
+                ov.$screen = false
+            }
+        }
+
+        // the windows
+        repeat i in 0..16 {
+            let sc = win.$i.screen
+            let Ws = pick(sc, W.0, W.1, W.2, W.3)
+            let Hs = pick(sc, H.0, H.1, H.2, H.3)
+            let Ax = pick(sc, Ax.0, Ax.1, Ax.2, Ax.3)
+            let Wa = pick(sc, Wa.0, Wa.1, Wa.2, Wa.3)
+            let Ay = pick(sc, Ay.0, Ay.1, Ay.2, Ay.3)
+            let Ha = pick(sc, Ha.0, Ha.1, Ha.2, Ha.3)
+            let avail = pick(sc, avail.0, avail.1, avail.2, avail.3)
+            let T = pick(sc, T.0, T.1, T.2, T.3)
+            let view = pick(sc, view.0, view.1, view.2, view.3)
+            let glide = pick(sc, vx.0, vx.1, vx.2, vx.3)
+            let wsoff = (win.$i.workspace - pick(sc, wsv.0, wsv.1, wsv.2, wsv.3)) * (Hs + ovgap)
+
+            let tiled = win.$i.place >= 0
+            let tabbed = c.tab.$i > 0.5
+            let rows = max(c.rows.$i, 1)
+            // Where the column puts it.
+            let colx = (Wa - gap) * c.before.$i
+            let colw = max((Wa - gap) * c.cw.$i - gap, 40)
+            let rowh = if(tabbed, Ha, (Ha - (rows - 1) * gap) / rows)
+            let tx = Ax + gap + colx - glide
+            let ty = Ay + if(tabbed, 0, c.row.$i * (rowh + gap))
+            // Floating: where it was put; a dialog in the middle at its own size.
+            fact fx.$i = 0
+            fact fy.$i = 0
+            fact fw.$i = 0
+            fact fh.$i = 0
+            let flo = win.$i.floating or win.$i.dialog
+            let dw = max(win.$i.width, 120)
+            let dh = max(win.$i.height, 80)
+            let fgw = if(win.$i.dialog, dw, max(fw.$i, 200))
+            let fgh = if(win.$i.dialog, dh, max(fh.$i, 120))
+            let fgx = if(win.$i.dialog or fw.$i < 1, Ax + (Wa - fgw) / 2, fx.$i)
+            let fgy = if(win.$i.dialog or fw.$i < 1, (Hs - fgh) / 2, fy.$i)
+            let full = win.$i.fullscreen
+            // A tiled window being carried leaves its place and follows the mouse.
+            let lifted = dmode == 1 and dslot == i and tiled
+            // where the pointer's monitor sits from this window's, for a
+            // carried window: it is kept in its own monitor's coordinates
+            let dmx = pick(mon, mx.0, mx.1, mx.2, mx.3) - pick(sc, mx.0, mx.1, mx.2, mx.3)
+            let goal.x = if(full, 0, if(flo, fgx, if(lifted, g.px + dmx - g.ox, tx)))
+            let goal.y = if(full, 0, if(flo, fgy, if(lifted, g.py - g.oy, ty))) + wsoff
+            let goal.w = if(full, Ws, if(flo, fgw, colw))
+            let goal.h = if(full, Hs, if(flo, fgh, rowh))
+
+            follow x.$i = goal.x
+            follow y.$i = goal.y
+            follow w.$i = goal.w
+            follow h.$i = goal.h
+            // A window that opens grows in where it goes; one that closes
+            // shrinks and fades from where it was.
+            prop seen.$i = 0 ~150ms
+            follow seen.$i = if(win.$i.open, 1, 0)
+            on change win.$i.open while win.$i.open {
+                x.$i: goal.x ~0ms
+                y.$i: goal.y ~0ms
+                w.$i: goal.w ~0ms
+                h.$i: goal.h ~0ms
+                seen.$i: 0 ~0ms
+                stamp.$i = stamp.top + 1
+                stamp.top = stamp.top + 1
+                // Past the end of the strip until it is placed (place_new).
+                cpos.$i = 1000 + i
+                rpos.$i = 0
+                tb.$i = 0
+                nw = if(win.$i.dialog or win.$i.floating, nw, i)
+                nwt = nwt + 1
+            }
+            on change win.$i.focused while win.$i.focused {
+                stamp.$i = stamp.top + 1
+                stamp.top = stamp.top + 1
+            }
+            // Floated by the toggle: 800 by 500, in the middle of its monitor.
+            on toggle_float while win.focus == i and not win.$i.floating {
+                fw.$i = 800
+                fh.$i = 500
+                fx.$i = Ax + (Wa - 800) / 2
+                fy.$i = (Hs - 500) / 2
+            }
+            // Floated by a window rule: in the middle at the size it asked for.
+            on change win.$i.floating while win.$i.floating and fw.$i < 1 {
+                fw.$i = max(win.$i.width, 800)
+                fh.$i = max(win.$i.height, 500)
+                fx.$i = Ax + (Wa - max(win.$i.width, 800)) / 2
+                fy.$i = (Hs - max(win.$i.height, 500)) / 2
+            }
+            on change win.$i.open while not win.$i.open { fw.$i = 0 }
+
+            // The strip follows the keyboard: the focused column fully in view,
+            // moving as little as it takes.
+            repeat s in 0..4 {
+                on change win.$i.focused while win.$i.focused and tiled and sc == s and (pan > 0.5 or newpan > 0.5) {
+                    sco.$s = clamp(min(max(max(view, 0), colx + colw - avail), colx), 0, max(T - avail, 0))
+                }
+                on change c.before.$i while win.$i.focused and tiled and sc == s and (pan > 0.5 or newpan > 0.5) {
+                    sco.$s = clamp(min(max(max(view, 0), colx + colw - avail), colx), 0, max(T - avail, 0))
+                }
+                on change c.cw.$i while win.$i.focused and tiled and sc == s {
+                    sco.$s = clamp(min(max(max(view, 0), colx + colw - avail), colx), 0, max(T - avail, 0))
+                }
+            }
+
+            let here = sc == me and abs(wsoff) < (Hs + ovgap) * 2.5
+            // In a tabbed column only its last focused window is shown.
+            let tabshown = not tiled or not tabbed or c.beat.$i < 0.5
+            let lit = win.$i.focused
+            prop litp.$i = 0 ~160ms
+            follow litp.$i = if(lit, 1, 0)
+            prop liftp.$i = 0 ~160ms
+            follow liftp.$i = if(lifted, 1, 0)
+            prop dropp.$i = 0 ~120ms
+            follow dropp.$i = if(dmode == 1 and dropj == i, 1, 0)
+            let x = x.$i
+            let y = y.$i
+            let w = w.$i
+            let h = h.$i
+            let r = if(full, 0, radius)
+            group {
+                z: if(full, 100000, if(win.$i.dialog, 60000, if(lifted, 90000, if(win.$i.floating, 1000 + stamp.$i, 0))))
+                // Carried, it is drawn on every monitor, shifted by where each
+                // sits from its own, so it shows across the boundary.
+                show: if(dmode == 1 and dslot == i, true, here) and seen.$i > 0.005 and tabshown
+                move: if(dmode == 1 and dslot == i, pick(sc, mx.0, mx.1, mx.2, mx.3) - pick(me, mx.0, mx.1, mx.2, mx.3), 0), 0
+                opacity: seen.$i
+                pivot: x + w / 2, y + h / 2
+                scale: (0.5 + 0.5 * seen.$i) * (1 - 0.05 * liftp.$i)
+                // Blur what shows through a translucent window, and a soft
+                // shadow cut out around it.
+                body {
+                    color: base
+                    glass: if(full, 0, 100%)
+                    refraction: 0
+                    dispersion: 0
+                    ripple: 0
+                    frost: 100%
+                    // none of the glass's own colouring: it shows the blur as it is
+                    tint: 0
+                    vivid: 100%
+                    mirror: 0
+                    highlight: 0
+                    shadow: 0, 5, 30, 44% * (1 - full), crust
+                    box { from: x, y; size: w, h; corner: r }
+                }
+                group {
+                    clip box { from: x, y; size: w, h; corner: r }
+                    window win.$i { at: x, y; size: w, h; ask: if(win.$i.dialog, 0, goal.w), if(win.$i.dialog, 0, goal.h); show: win.$i.open }
+                }
+                box { from: x, y; size: w, h; corner: r; stroke: 1; color: mix(base, text, litp.$i); opacity: 1 - full }
+                // where a carried window would land: this one, marked
+                box { from: x, y; size: w, h; corner: r; color: blue; opacity: 16% * dropp.$i }
+                box { from: x, y; size: w, h; corner: r; stroke: 2; color: blue; opacity: dropp.$i }
+            }
+            // Tabs: a bar beside the column, one segment per window in it.
+            box {
+                from: x - 9, y + c.row.$i * h / rows
+                size: 4, h / rows - 3
+                corner: 2
+                color: if(c.beat.$i < 0.5, sky, sapphire)
+                opacity: if(here and tiled and tabbed and not full, seen.$i, 0)
+            }
+
+            // The keyboard follows the pointer, without moving the strip, and only
+            // once the strip and the window have settled, so windows sliding under a
+            // still pointer do not take it.
+            on enter win.$i while not win.$i.focused and dmode < 0.5 and not ov and abs(glide - view) < 2 and abs(x.$i - goal.x) < 2 and abs(y.$i - goal.y) < 2 {
+                mon = screen.index
+                focus win.$i
+            }
+            // In the overview a window is picked with a click.
+            zone box pickw.$i { from: x, y; size: w, h; cursor: pointer; active: ov and here and tabshown and win.$i.open }
+            on press pickw.$i {
+                workspace win.$i.workspace on sc
+                focus win.$i
+                ov.$screen = false
+            }
+            // and its column scrolled into view, even if it already had the keyboard
+            repeat s in 0..4 {
+                on press pickw.$i while tiled and sc == s {
+                    sco.$s = clamp(min(max(max(view, 0), colx + colw - avail), colx), 0, max(T - avail, 0))
+                }
+            }
+            // and so is one picked in the task bar
+            repeat s in 0..4 {
+                on tb_focus(v) while v == i and tiled and sc == s {
+                    sco.$s = clamp(min(max(max(view, 0), colx + colw - avail), colx), 0, max(T - avail, 0))
+                }
+            }
+
+            // With Super held the window is a handle: its edges and corners
+            // stretch it, the rest carries it. A tiled window stretches from
+            // its sides only (a column's rows share its height). Only the left
+            // button: pleamar reports no drag or release for the others.
+            let edgex = max(min(w / 5, 120), 40)
+            let edgey = max(min(h / 5, 120), 40)
+            // Held while a drag of it lasts, wherever the pointer went.
+            let handle = ((keys.super > 0.5 and here) or dslot == i) and win.$i.open and not full and not ov
+            zone box grab.$i { from: x, y; size: w, h; cursor: grab; active: handle }
+            zone box grabl.$i { from: x, y; size: edgex, h; cursor: ew_resize; active: handle }
+            zone box grabr.$i { from: x + w - edgex, y; size: edgex, h; cursor: ew_resize; active: handle }
+            zone box grabt.$i { from: x, y; size: w, edgey; cursor: ns_resize; active: handle and flo }
+            zone box grabb.$i { from: x, y + h - edgey; size: w, edgey; cursor: ns_resize; active: handle and flo }
+            zone box grabtl.$i { from: x, y; size: edgex, edgey; cursor: nwse_resize; active: handle and flo }
+            zone box grabtr.$i { from: x + w - edgex, y; size: edgex, edgey; cursor: nesw_resize; active: handle and flo }
+            zone box grabbl.$i { from: x, y + h - edgey; size: edgex, edgey; cursor: nesw_resize; active: handle and flo }
+            zone box grabbr.$i { from: x + w - edgex, y + h - edgey; size: edgex, edgey; cursor: nwse_resize; active: handle and flo }
+            // Carried from the middle: the edge bands are on top and take
+            // their own presses.
+            on press grab.$i while pointer.x >= x + edgex and pointer.x < x + w - edgex and (not flo or (pointer.y >= y + edgey and pointer.y < y + h - edgey)) {
+                focus win.$i
+                dslot = i
+                dmode = 1
+                g.hs = sc
+                g.ox = pointer.x - if(flo, fgx, x.$i)
+                g.oy = pointer.y - if(flo, fgy, y.$i - wsoff)
+                g.px = pointer.x
+                g.py = pointer.y
+                dropj = -1
+            }
+            // The pointer is told in the coordinates of the monitor it is on,
+            // so the window is held by where it was grabbed, drawn on the
+            // monitor the pointer is over, and given to it when let go.
+            on drag grab.$i while dmode == 1 {
+                g.px = pointer.x
+                g.py = pointer.y + pick(g.hs, org.0, org.1, org.2, org.3) - pick(mon, org.0, org.1, org.2, org.3)
+            }
+            on drag grab.$i while dmode == 1 and flo {
+                fx.$i = pointer.x + dmx - g.ox
+                fy.$i = pointer.y + pick(g.hs, org.0, org.1, org.2, org.3) - pick(mon, org.0, org.1, org.2, org.3) - g.oy
+                fw.$i = fgw
+                fh.$i = fgh
+            }
+            // Carried over another tiled window: that one is marked, and on
+            // letting go the two trade places on the strip.
+            on drag grab.$i while dmode == 1 and tiled { dropj = -1 }
+            repeat j in 0..16 {
+                on drag grab.$i while dmode == 1 and tiled and mon == sc and j != i and win.$j.place >= 0 and win.$j.screen == sc and win.$j.pool == win.$i.pool and pointer.x >= x.$j and pointer.x < x.$j + w.$j and pointer.y >= y.$j and pointer.y < y.$j + h.$j { dropj = j }
+                on release grab.$i while dmode == 1 and tiled and dropj == j {
+                    t.c = cpos.$i
+                    t.r = rpos.$i
+                    cpos.$i = cpos.$j
+                    rpos.$i = rpos.$j
+                    cpos.$j = t.c
+                    rpos.$j = t.r
+                }
+            }
+            // Let go on another monitor: it goes there, its place turned into
+            // that monitor's coordinates at once, so it does not glide across.
+            on release grab.$i while dmode == 1 and mon != sc {
+                fx.$i = fx.$i - dmx
+                x.$i: x.$i - dmx ~0ms
+                send win(i) to mon
+            }
+            on release grab.$i {
+                dmode = 0
+                dslot = -1
+                dropj = -1
+            }
+
+            // Stretched by an edge or a corner: g.ex, g.ey say which sides
+            // move (-1 the left or top, 1 the right or bottom), the others
+            // stay put. Only while the pointer is on its monitor: off it, the
+            // pointer is told in another monitor's coordinates (its y off by
+            // where that copy sits), and the size holds until it comes back.
+            // The y is checked too, since the move that crosses arrives before
+            // the monitor under the pointer changes.
+            on press grabl.$i {
+                focus win.$i
+                dslot = i
+                dmode = 3
+                g.x = fgx
+                g.y = fgy
+                g.w = if(flo, fgw, c.cw.$i)
+                g.h = fgh
+                g.v = view
+                g.ex = -1
+                g.ey = 0
+            }
+            on drag grabl.$i while dmode == 3 and flo and mon == sc and pointer.y >= 0 and pointer.y <= Hs {
+                fw.$i = if(g.ex == 0, g.w, max(g.w + g.ex * drag.dx, 200))
+                fh.$i = if(g.ey == 0, g.h, max(g.h + g.ey * drag.dy, 120))
+                fx.$i = if(g.ex < 0, g.x + g.w - fw.$i, g.x)
+                fy.$i = if(g.ey < 0, g.y + g.h - fh.$i, g.y)
+            }
+            on release grabl.$i {
+                dmode = 0
+                dslot = -1
+            }
+            on press grabr.$i {
+                focus win.$i
+                dslot = i
+                dmode = 3
+                g.x = fgx
+                g.y = fgy
+                g.w = if(flo, fgw, c.cw.$i)
+                g.h = fgh
+                g.v = view
+                g.ex = 1
+                g.ey = 0
+            }
+            on drag grabr.$i while dmode == 3 and flo and mon == sc and pointer.y >= 0 and pointer.y <= Hs {
+                fw.$i = if(g.ex == 0, g.w, max(g.w + g.ex * drag.dx, 200))
+                fh.$i = if(g.ey == 0, g.h, max(g.h + g.ey * drag.dy, 120))
+                fx.$i = if(g.ex < 0, g.x + g.w - fw.$i, g.x)
+                fy.$i = if(g.ey < 0, g.y + g.h - fh.$i, g.y)
+            }
+            on release grabr.$i {
+                dmode = 0
+                dslot = -1
+            }
+            on press grabt.$i {
+                focus win.$i
+                dslot = i
+                dmode = 3
+                g.x = fgx
+                g.y = fgy
+                g.w = if(flo, fgw, c.cw.$i)
+                g.h = fgh
+                g.v = view
+                g.ex = 0
+                g.ey = -1
+            }
+            on drag grabt.$i while dmode == 3 and flo and mon == sc and pointer.y >= 0 and pointer.y <= Hs {
+                fw.$i = if(g.ex == 0, g.w, max(g.w + g.ex * drag.dx, 200))
+                fh.$i = if(g.ey == 0, g.h, max(g.h + g.ey * drag.dy, 120))
+                fx.$i = if(g.ex < 0, g.x + g.w - fw.$i, g.x)
+                fy.$i = if(g.ey < 0, g.y + g.h - fh.$i, g.y)
+            }
+            on release grabt.$i {
+                dmode = 0
+                dslot = -1
+            }
+            on press grabb.$i {
+                focus win.$i
+                dslot = i
+                dmode = 3
+                g.x = fgx
+                g.y = fgy
+                g.w = if(flo, fgw, c.cw.$i)
+                g.h = fgh
+                g.v = view
+                g.ex = 0
+                g.ey = 1
+            }
+            on drag grabb.$i while dmode == 3 and flo and mon == sc and pointer.y >= 0 and pointer.y <= Hs {
+                fw.$i = if(g.ex == 0, g.w, max(g.w + g.ex * drag.dx, 200))
+                fh.$i = if(g.ey == 0, g.h, max(g.h + g.ey * drag.dy, 120))
+                fx.$i = if(g.ex < 0, g.x + g.w - fw.$i, g.x)
+                fy.$i = if(g.ey < 0, g.y + g.h - fh.$i, g.y)
+            }
+            on release grabb.$i {
+                dmode = 0
+                dslot = -1
+            }
+            on press grabtl.$i {
+                focus win.$i
+                dslot = i
+                dmode = 3
+                g.x = fgx
+                g.y = fgy
+                g.w = if(flo, fgw, c.cw.$i)
+                g.h = fgh
+                g.v = view
+                g.ex = -1
+                g.ey = -1
+            }
+            on drag grabtl.$i while dmode == 3 and flo and mon == sc and pointer.y >= 0 and pointer.y <= Hs {
+                fw.$i = if(g.ex == 0, g.w, max(g.w + g.ex * drag.dx, 200))
+                fh.$i = if(g.ey == 0, g.h, max(g.h + g.ey * drag.dy, 120))
+                fx.$i = if(g.ex < 0, g.x + g.w - fw.$i, g.x)
+                fy.$i = if(g.ey < 0, g.y + g.h - fh.$i, g.y)
+            }
+            on release grabtl.$i {
+                dmode = 0
+                dslot = -1
+            }
+            on press grabtr.$i {
+                focus win.$i
+                dslot = i
+                dmode = 3
+                g.x = fgx
+                g.y = fgy
+                g.w = if(flo, fgw, c.cw.$i)
+                g.h = fgh
+                g.v = view
+                g.ex = 1
+                g.ey = -1
+            }
+            on drag grabtr.$i while dmode == 3 and flo and mon == sc and pointer.y >= 0 and pointer.y <= Hs {
+                fw.$i = if(g.ex == 0, g.w, max(g.w + g.ex * drag.dx, 200))
+                fh.$i = if(g.ey == 0, g.h, max(g.h + g.ey * drag.dy, 120))
+                fx.$i = if(g.ex < 0, g.x + g.w - fw.$i, g.x)
+                fy.$i = if(g.ey < 0, g.y + g.h - fh.$i, g.y)
+            }
+            on release grabtr.$i {
+                dmode = 0
+                dslot = -1
+            }
+            on press grabbl.$i {
+                focus win.$i
+                dslot = i
+                dmode = 3
+                g.x = fgx
+                g.y = fgy
+                g.w = if(flo, fgw, c.cw.$i)
+                g.h = fgh
+                g.v = view
+                g.ex = -1
+                g.ey = 1
+            }
+            on drag grabbl.$i while dmode == 3 and flo and mon == sc and pointer.y >= 0 and pointer.y <= Hs {
+                fw.$i = if(g.ex == 0, g.w, max(g.w + g.ex * drag.dx, 200))
+                fh.$i = if(g.ey == 0, g.h, max(g.h + g.ey * drag.dy, 120))
+                fx.$i = if(g.ex < 0, g.x + g.w - fw.$i, g.x)
+                fy.$i = if(g.ey < 0, g.y + g.h - fh.$i, g.y)
+            }
+            on release grabbl.$i {
+                dmode = 0
+                dslot = -1
+            }
+            on press grabbr.$i {
+                focus win.$i
+                dslot = i
+                dmode = 3
+                g.x = fgx
+                g.y = fgy
+                g.w = if(flo, fgw, c.cw.$i)
+                g.h = fgh
+                g.v = view
+                g.ex = 1
+                g.ey = 1
+            }
+            on drag grabbr.$i while dmode == 3 and flo and mon == sc and pointer.y >= 0 and pointer.y <= Hs {
+                fw.$i = if(g.ex == 0, g.w, max(g.w + g.ex * drag.dx, 200))
+                fh.$i = if(g.ey == 0, g.h, max(g.h + g.ey * drag.dy, 120))
+                fx.$i = if(g.ex < 0, g.x + g.w - fw.$i, g.x)
+                fy.$i = if(g.ey < 0, g.y + g.h - fh.$i, g.y)
+            }
+            on release grabbr.$i {
+                dmode = 0
+                dslot = -1
+            }
+            // A tiled window's sides set the width of its column's head.
+            repeat j in 0..16 {
+                on drag grabl.$i while dmode == 3 and mon == sc and pointer.y >= 0 and pointer.y <= Hs and tiled and c.head.$j and win.$j.place >= 0 and win.$j.screen == sc and win.$j.pool == win.$i.pool and cpos.$j == cpos.$i {
+                    wp.$j = clamp(g.w - drag.dx / max(Wa - gap, 1), 0.1, 1)
+                }
+                on drag grabr.$i while dmode == 3 and mon == sc and pointer.y >= 0 and pointer.y <= Hs and tiled and c.head.$j and win.$j.place >= 0 and win.$j.screen == sc and win.$j.pool == win.$i.pool and cpos.$j == cpos.$i {
+                    wp.$j = clamp(g.w + drag.dx / max(Wa - gap, 1), 0.1, 1)
+                }
+            }
+            // Stretched from the left, the strip scrolls by what the column
+            // grew, so its right edge stays where it was.
+            repeat s in 0..4 {
+                on change c.cw.$i while dmode == 3 and dslot == i and tiled and g.ex < 0 and sc == s {
+                    sco.$s = clamp(g.v + (c.cw.$i - g.w) * (Wa - gap), 0, max(T - avail, 0))
+                }
+            }
+        }
+    }
+
+    // actions, bound in keys.conf
+    event close
+    event fullscreen
+    event toggle_float
+    event workspace
+    event move_to_workspace
+    event focus_left
+    event focus_right
+    event focus_up
+    event focus_down
+    event focus_cycle
+    event move_left
+    event move_right
+    event move_up
+    event move_down
+    event consume_left
+    event consume_right
+    event toggle_tabbed
+    on close while win.focus >= 0 { close win(win.focus) }
+    on fullscreen while win.focus >= 0 { fullscreen win(win.focus) }
+    on toggle_float while win.focus >= 0 and not f.on and pick(f, win.0.floating, win.1.floating, win.2.floating, win.3.floating, win.4.floating, win.5.floating, win.6.floating, win.7.floating, win.8.floating, win.9.floating, win.10.floating, win.11.floating, win.12.floating, win.13.floating, win.14.floating, win.15.floating) > 0.5 { tile win(win.focus) }
+    on toggle_float while win.focus >= 0 and f.on { float win(win.focus) }
+    // on the monitor with the keyboard, even one showing no window
+    on workspace(v) {
+        pan = 1
+        workspace v on kmon
+    }
+    // From the shell's rail: monitor + 4 * workspace.
+    event workspace_on
+    on workspace_on(c) {
+        pan = 1
+        workspace floor(c / 4) on mod(c, 4)
+    }
+    // The workspace goes with the window, as niri does.
+    on move_to_workspace(v) while win.focus >= 0 {
+        send win(win.focus) to workspace v
+        workspace v on f.sc
+    }
+    on still nwt for 80ms while nw >= 0 { emit place_new }
+}

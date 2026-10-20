@@ -1,0 +1,44 @@
+// The drawer's cards, as Quickshell's Well: a tile cut into the surface, a
+// dark lip under its top edge and a faint light along its bottom one, and a
+// heading of icon, spaced capitals and a note set against it.
+part Cards {
+    component Well(x: number, y: number, w: number, h: number) {
+        box { from: x, y; size: w, h; corner: 9; color: mix(mantle, crust, 0.4) }
+        group {
+            mask: x, y to x, y + 7
+            opacity: 45%
+            box { from: x, y; size: w, h; corner: 9; color: crust }
+        }
+        group {
+            mask: x, y + h to x, y + h - 1.5
+            opacity: 6%
+            box { from: x, y; size: w, h; corner: 9; color: text }
+        }
+    }
+
+    // The heading: its centre 19 below the card's top, the body from 35.
+    component Heading(x: number, y: number, w: number, title: text, icon: text, tint: color, note: text = "") {
+        text icon { at: x + 14, y + 19; anchor: left center; size: 11; color: tint; family: "FiraCode Nerd Font" }
+        text title { at: x + 30, y + 19; anchor: left center; size: 9; color: overlay1; family: "Berkeley Mono"; letter_move: letter * 1.2, 0 }
+        text note { at: x + w - 14, y + 19; anchor: right center; size: 10; color: overlay0; family: "Berkeley Mono" }
+    }
+
+    // A capacity as a block of marks lit from the bottom right corner, right
+    // to left along a row and then up, with its corner at (right, bottom).
+    component Blocks(right: number, bottom: number, cols: number, rows: number, share: number, tint: color) {
+        repeat k in 0..60 {
+            box {
+                show: k < cols * rows
+                from: right - 10 - mod(k, cols) * 13, bottom - 10 - floor(k / cols) * 13
+                size: 10, 10
+                corner: 2
+                color: if(k < round(share * cols * rows), tint, mix(mantle, surface0, 0.8))
+            }
+        }
+    }
+
+    // Small spaced capitals, as a caption over a value.
+    component Caption(x: number, y: number, words: text, size: number = 9) {
+        text words { at: x, y; anchor: left center; size: size; color: overlay0; family: "Berkeley Mono"; letter_move: letter * 1.2, 0 }
+    }
+}

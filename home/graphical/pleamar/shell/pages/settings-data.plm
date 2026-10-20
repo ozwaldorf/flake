@@ -1,0 +1,67 @@
+// The control centre's data: models and services live at the scene level,
+// outside the per-monitor rail surface, which copies what is inside it.
+part SettingsData {
+    model ccnets max 12 { ssid: text; strength: number; secure: bool; known: bool; active: bool }
+    service network as ccnet { online: bool; kind: none | wired | wifi = none; name: text; strength: number; wifi: bool; networks: ccnets }
+    model ccbts max 12 { name: text; address: text; paired: bool; connected: bool; battery: number }
+    service bluetooth as ccbt { present: bool; powered: bool; discovering: bool; devices: ccbts }
+    model ccouts max 10 { id: text; name: text; default: bool }
+    model ccins max 10 { id: text; name: text; default: bool }
+    service audio as ccau { volume: number; muted: bool; input: number; input_muted: bool; outputs: ccouts; inputs: ccins }
+    service brightness as ccbri { present: bool; level: number }
+    service media as ccmd { playing: bool; title: text; artist: text; length: number; position: number; rate: number; art: text; player: text }
+    model cctrays max 16 { key: text; title: text; icon: image 20, 20 }
+    service tray { list: cctrays }
+    model ccmenu max 24 { label: text; enabled: bool = true; separator: bool; checked: number = -1 }
+
+    // What the logic writes and hears: also scene level, so it can see them.
+    text cc.user = ""
+    text cc.wifi.status = "Off"
+    text cc.btstatus = "Off"
+    text cc.out.name = ""
+    text cc.in.name = ""
+    text cc.fortune = ""
+    text cc.fortune.src = ""
+    text cc.pw = ""
+    text cc.power.status = "Session"
+    fact cc.askpw = false
+    fact cc.hasmedia = false
+    fact cc.pending = -1
+    fact cc.menuopen = false
+    text cc.ic.wifi = ""
+    text cc.ic.bt = ""
+    text cc.ic.power = ""
+    text cc.ic.sun = ""
+    text cc.ic.vol = ""
+    text cc.ic.mic = ""
+    text cc.ic.chev = ""
+    text cc.ic.lock = ""
+    text cc.ic.prev = ""
+    text cc.ic.play = ""
+    text cc.ic.next = ""
+    text cc.ic.bell = ""
+    event cc.wifi_toggle ->
+    event cc.bt_toggle ->
+    event cc.wifi_pick ->
+    event cc.bt_pick ->
+    event cc.bt_forget ->
+    event cc.out_pick ->
+    event cc.in_pick ->
+    event cc.vol_set ->
+    event cc.vol_step ->
+    event cc.mic_set ->
+    event cc.mic_step ->
+    event cc.mute ->
+    event cc.mic_mute ->
+    event cc.bri_set ->
+    event cc.bri_step ->
+    event cc.power ->
+    event cc.media ->
+    event cc.tray_act ->
+    event cc.tray_menu ->
+    event cc.menu_pick ->
+    event cc.dismiss ->
+    event cc.clear ->
+    event cc.pick_list
+    image cc.art = from ccmd.art, 58, 58
+}

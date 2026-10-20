@@ -1,0 +1,52 @@
+// The launcher: apps by fuzzy match and use, a calculator, and commands run
+// in a terminal or detached. Its state and keys are in search.plm; the logic
+// (logic/apps.luau) ranks; this draws.
+part AppsPage {
+    // The search panels' geometry, shared by the clipboard and keys pages.
+    let sp.fieldh = 44
+    let sp.listy = pg.y + sp.fieldh + 8
+    let sp.listh = pg.h - sp.fieldh - 8 - 22
+    let sp.hinty = pg.y + pg.h - 9
+    let ap.step = 45
+
+    // the field
+    Well(pg.x, pg.y, pagew, sp.fieldh)
+    text ic.search { at: pg.x + 26, pg.y + 22; anchor: center; size: 13; color: overlay1; family: "FiraCode Nerd Font" }
+    // The rest of the top app's name, ghosted behind what is typed.
+    text ap.ghost { at: pg.x + 47, pg.y + 21; anchor: left center; size: 13; color: surface2; family: "Berkeley Mono"; width: 300; lines: 1 }
+    input ap.q { at: pg.x + 47, pg.y + 13; width: 300; size: 13; color: text; family: "Berkeley Mono"; placeholder: "Search apps, calculate, run"; selection: surface2 }
+    text "{ap.n}" { at: pg.x + pagew - 21, pg.y + 22; anchor: right center; size: 10; color: overlay0; family: "Berkeley Mono" }
+
+    // the list
+    Well(pg.x, sp.listy, pagew, sp.listh)
+    column ap.list ~quint {
+        at: pg.x + 5, sp.listy + 5
+        view: pagew - 10, sp.listh - 10
+        step: ap.step
+        gap: 1
+        for r in aprows {
+            group {
+                size: pagew - 10, 44
+                prop apon = 0 ~160ms
+                follow apon = if(ap.sel == r.index, 1, 0)
+                box { from: 0, 0; size: pagew - 10, 44; corner: 6; color: surface0; opacity: apon }
+                image r.icon { at: 8, 8; size: 28, 28; show: r.kind < 0.5 }
+                text r.glyph {
+                    at: 22, 22; anchor: center; size: 18; family: "FiraCode Nerd Font"
+                    color: pick(r.kind, text, yellow, green, teal, overlay1, sapphire, red)
+                    show: r.kind > 0.5
+                }
+                text r.title { at: 50, 15; anchor: left center; size: 12; color: text; family: "Berkeley Mono"; width: 260; lines: 1 }
+                text r.detail { at: 50, 31; anchor: left center; size: 10; color: overlay1; family: "Berkeley Mono"; width: 260; lines: 1 }
+                text r.hint { at: pagew - 22, 22; anchor: right center; size: 10; color: overlay0; family: "Berkeley Mono"; opacity: apon }
+                // A fetch's progress.
+                box { from: 46, 41; size: (pagew - 78) * clamp(r.progress, 0, 1), 2; color: sapphire; show: r.progress >= 0 }
+                zone box hit { from: 0, 0; size: pagew - 10, 44; cursor: pointer; label: "{r.title}" }
+                on enter hit { ap.sel = r.index }
+                on press hit { emit ap_go(r.index) }
+            }
+        }
+    }
+    on change ap.sel { ap.list.scroll: clamp(ap.list.scroll, (ap.sel + 1) * ap.step - (sp.listh - 10), ap.sel * ap.step) }
+    text "enter launch    tab next    right fill    esc close" { at: pg.x + pagew / 2, sp.hinty; anchor: center; size: 9; color: surface2; family: "Berkeley Mono" }
+}

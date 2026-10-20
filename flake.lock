@@ -290,6 +290,31 @@
         "type": "github"
       }
     },
+    "marea": {
+      "inputs": {
+        "nixpkgs": [
+          "pleamar-wm",
+          "nixpkgs"
+        ],
+        "pleamar": [
+          "pleamar-wm",
+          "pleamar"
+        ]
+      },
+      "locked": {
+        "lastModified": 1791976862,
+        "narHash": "sha256-0Kw9crEPVwVuSBjOHLIEroX+QWdaAD8lSWF23ZjfyqI=",
+        "owner": "k4ditano",
+        "repo": "marea-plm",
+        "rev": "2b6a0649ec3a8d7d1122640c3f0d9b156bf56527",
+        "type": "github"
+      },
+      "original": {
+        "owner": "k4ditano",
+        "repo": "marea-plm",
+        "type": "github"
+      }
+    },
     "neovim-nightly-overlay": {
       "inputs": {
         "flake-parts": "flake-parts_2",
@@ -490,6 +515,70 @@
         "type": "github"
       }
     },
+    "pleamar": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1792336034,
+        "narHash": "sha256-naw6UFgBPVWk/vT3/6PfmdsEq2xlIkN+z686s5dOwWU=",
+        "owner": "k4ditano",
+        "repo": "pleamar",
+        "rev": "d5a5cb9c2e2b1a608d0ba836e58bbec9107c60d5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "k4ditano",
+        "repo": "pleamar",
+        "type": "github"
+      }
+    },
+    "pleamar-wm": {
+      "inputs": {
+        "marea": "marea",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "pleamar": "pleamar_2"
+      },
+      "locked": {
+        "lastModified": 1792337076,
+        "narHash": "sha256-LcZynaGc8iJQV6jcK1VG+1eBH91q01pQ++dcFRk0rg4=",
+        "owner": "k4ditano",
+        "repo": "pleamar-wm",
+        "rev": "687ad9ed9f27b644b6af7eaf41a9163e5d9a52fd",
+        "type": "github"
+      },
+      "original": {
+        "owner": "k4ditano",
+        "repo": "pleamar-wm",
+        "type": "github"
+      }
+    },
+    "pleamar_2": {
+      "inputs": {
+        "nixpkgs": [
+          "pleamar-wm",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1792482515,
+        "narHash": "sha256-17VrcJjuBf4kjgveGThIGVSX8D3nFwO+WWOKfH5VirM=",
+        "ref": "dual-kawase",
+        "rev": "6ad137f123adc3a9c15c777c55d6c339eb1b6f03",
+        "revCount": 508,
+        "type": "git",
+        "url": "file:///home/oz/Code/pkg/pleamar"
+      },
+      "original": {
+        "ref": "dual-kawase",
+        "type": "git",
+        "url": "file:///home/oz/Code/pkg/pleamar"
+      }
+    },
     "quickshell": {
       "inputs": {
         "nixpkgs": [
@@ -523,6 +612,8 @@
         "nix-index-database": "nix-index-database",
         "nixpkgs": "nixpkgs_3",
         "nixvim": "nixvim",
+        "pleamar": "pleamar",
+        "pleamar-wm": "pleamar-wm",
         "quickshell": "quickshell",
         "zoom-sync": "zoom-sync"
       }

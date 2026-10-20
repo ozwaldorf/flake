@@ -1,0 +1,45 @@
+// The key bindings, grouped, with their keys as caps; typing filters them.
+// The list comes from home/graphical/pleamar.nix (logic/keybinds.luau). State
+// and keys are in search.plm; the logic is logic/keys.luau.
+part KeysPage {
+    let ky.step = 31
+
+    // the field
+    Well(pg.x, pg.y, pagew, sp.fieldh)
+    text ic.keyboard { at: pg.x + 26, pg.y + 22; anchor: center; size: 13; color: overlay1; family: "FiraCode Nerd Font" }
+    input ky.q { at: pg.x + 49, pg.y + 13; width: 300; size: 13; color: text; family: "Berkeley Mono"; placeholder: "Search shortcuts"; selection: surface2 }
+    text "{ky.n}" { at: pg.x + pagew - 21, pg.y + 22; anchor: right center; size: 10; color: overlay0; family: "Berkeley Mono" }
+
+    // the list
+    Well(pg.x, sp.listy, pagew, sp.listh)
+    column ky.list ~quint {
+        at: pg.x + 5, sp.listy + 5
+        view: pagew - 10, sp.listh - 10
+        step: ky.step
+        gap: 1
+        for r in kyrows {
+            group {
+                size: pagew - 10, 30
+                prop kyon = 0 ~160ms
+                follow kyon = if(ky.sel == r.index and not r.header, 1, 0)
+                box { from: 0, 0; size: pagew - 10, 30; corner: 6; color: surface0; opacity: kyon }
+                text "{upper(r.label)}" { at: 8, 22; anchor: left center; size: 9; color: overlay1; family: "Berkeley Mono"; letter_move: letter * 1.2, 0; show: r.header }
+                text r.label { at: 8, 15; anchor: left center; size: 11; color: text; family: "Berkeley Mono"; width: 200; lines: 1; show: not r.header }
+                row {
+                    at: pagew - 18, 15
+                    anchor: right middle
+                    gap: 3
+                    show: not r.header
+                    row { padding: 3; fill: surface1; corner: 4; show: r.caps > 0.5; space 2; text r.k1 { size: 10; color: subtext1; family: "Berkeley Mono" }; space 2 }
+                    row { padding: 3; fill: surface1; corner: 4; show: r.caps > 1.5; space 2; text r.k2 { size: 10; color: subtext1; family: "Berkeley Mono" }; space 2 }
+                    row { padding: 3; fill: surface1; corner: 4; show: r.caps > 2.5; space 2; text r.k3 { size: 10; color: subtext1; family: "Berkeley Mono" }; space 2 }
+                    row { padding: 3; fill: surface1; corner: 4; show: r.caps > 3.5; space 2; text r.k4 { size: 10; color: subtext1; family: "Berkeley Mono" }; space 2 }
+                }
+                zone box hit { from: 0, 0; size: pagew - 10, 30; label: "{r.label}" }
+                on enter hit { ky.sel = r.index }
+            }
+        }
+    }
+    on change ky.sel { ky.list.scroll: clamp(ky.list.scroll, (ky.sel + 1) * ky.step - (sp.listh - 10), ky.sel * ky.step) }
+    text "type to filter    esc close" { at: pg.x + pagew / 2, sp.hinty; anchor: center; size: 9; color: surface2; family: "Berkeley Mono" }
+}

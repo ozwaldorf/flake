@@ -1,6 +1,7 @@
 {
   inputs,
   config,
+  lib,
   pkgs,
   username,
   hostname,
@@ -14,6 +15,7 @@
 
     inputs.zoom-sync.nixosModules.default
     inputs.codex-desktop-linux.nixosModules.default
+    inputs.pleamar-wm.nixosModules.default
   ];
   disabledModules = [ "hardware/facter/system.nix" ];
 
@@ -195,12 +197,21 @@
   services.greetd = {
     enable = true;
     settings = {
-      default_session = {
-        command = "niri-session";
-        user = username;
-      };
+      # A text menu of the installed Wayland sessions (niri, pleamar-wm),
+      # remembering the last user and session picked
+      default_session.command = lib.concatStringsSep " " [
+        (lib.getExe pkgs.tuigreet)
+        "--time"
+        "--remember"
+        "--remember-session"
+        "--asterisks"
+        # A fixed path the switch updates: greetd is not restarted by a
+        # switch, so a store path here kept offering the old sessions
+        "--sessions /etc/greetd/sessions"
+      ];
     };
   };
+  environment.etc."greetd/sessions".source = "${config.services.displayManager.sessionData.desktops}/share/wayland-sessions";
   services.logind.settings.Login.HandleLidSwitchExternalPower = "ignore";
 
   # services.xserver.desktopManager.gnome.enable = true;
@@ -355,6 +366,15 @@
       enableCompletion = false;
       promptInit = ""; # starship draws the prompt
       enableLsColors = false; # home-manager sources a prebuilt LS_COLORS
+    };
+
+    # A second session beside niri: pleamar-wm, its window manager and shell
+    # written as pleamar scenes (home/graphical/pleamar.nix); greetd's
+    # tuigreet lists it beside niri.
+    pleamar-wm = {
+      enable = true;
+      package = pkgs.pleamar-wm;
+      withMarea = false;
     };
 
     # Same for niri, install to system to ensure wayland sessions are propagated correctly.

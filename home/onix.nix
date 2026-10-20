@@ -19,6 +19,7 @@
     ./graphical/gtk.nix # gtk theming
     ./graphical/qt.nix # qt theming
     ./graphical/quickshell.nix # bar and notifications
+    ./graphical/pleamar.nix # pleamar-wm session: window manager and shell
     ./graphical/idle.nix # dim and blank when idle
     ./graphical/tailscale-systray.nix # vpn tray icon
     ./graphical/rio.nix # Terminal

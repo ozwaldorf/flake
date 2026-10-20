@@ -1,0 +1,43 @@
+// What the system page's logic writes (logic/info.luau). Declared at the
+// scene's top level: inside a surface copied per monitor, the logic
+// could not reach it.
+part InfoDecl {
+    text inf.user = ""
+    text inf.host = ""
+    text inf.model = ""
+    text inf.uptime = ""
+    text inf.os = ""
+    text inf.kernel = ""
+    text inf.gen = ""
+    text inf.nixpkgs = ""
+    text inf.shell = ""
+    text inf.wm = ""
+    text inf.cpuname = ""
+    text inf.gpuname = ""
+    text inf.cputemp = "--"
+    text inf.gputemp = ""
+    text inf.cpufig = "0%"
+    text inf.memfig = ""
+    text inf.memtot = ""
+    text inf.gpufig = "0%"
+    text inf.vramtext = ""
+    text inf.read = ""
+    text inf.write = ""
+    text inf.down = ""
+    text inf.up = ""
+    text inf.diskuse = ""
+    text inf.busy = ""
+    text inf.bat.state = ""
+    text inf.bat.time = ""
+    text inf.bat.health = ""
+    fact inf.vram = 0
+    fact inf.disk = 0
+    // The hotter part on the 30 to 100 C scale, and the average on the bar's.
+    fact inf.heat = 0
+    fact inf.heatbar = 0
+    fact inf.gpu.on = false
+    model infprocs max 24 { name: text; user: text; root: number; mem: text; cpu: number; cpus: text }
+    fact inf.batok = false
+    fact inf.bat.pct = 0
+    fact inf.bat.chg = false
+}

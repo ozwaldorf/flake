@@ -1,0 +1,42 @@
+// The clipboard history (cliphist): text and images, filtered as typed.
+// Enter copies, Shift+Delete removes one, the bin wipes it all. State and
+// keys are in search.plm; the logic is logic/clipboard.luau.
+part ClipboardPage {
+    // the field
+    Well(pg.x, pg.y, pagew, sp.fieldh)
+    text ic.clipboard { at: pg.x + 26, pg.y + 22; anchor: center; size: 13; color: overlay1; family: "FiraCode Nerd Font" }
+    input cb.q { at: pg.x + 47, pg.y + 13; width: 280; size: 13; color: text; family: "Berkeley Mono"; placeholder: "Search clipboard"; selection: surface2 }
+    text "{cb.n}" { at: pg.x + pagew - 46, pg.y + 22; anchor: right center; size: 10; color: overlay0; family: "Berkeley Mono" }
+    text ic.trash { at: pg.x + pagew - 27, pg.y + 22; anchor: center; size: 13; color: mix(overlay1, red, cb.wipe.hover); family: "FiraCode Nerd Font" }
+    zone box cb.wipe { at: pg.x + pagew - 27, pg.y + 22; size: 28, 28; corner: 6; cursor: pointer; label: "Clear clipboard history" }
+    on press cb.wipe { emit cb_wipe }
+
+    // the list: images get a thumbnail and a taller row
+    Well(pg.x, sp.listy, pagew, sp.listh)
+    column cb.list ~quint {
+        at: pg.x + 5, sp.listy + 5
+        view: pagew - 10, sp.listh - 10
+        step: 37
+        gap: 1
+        for r in cbrows {
+            group {
+                size: pagew - 10, if(r.kind > 0.5, 64, 36)
+                let rh = if(r.kind > 0.5, 64, 36)
+                prop cbon = 0 ~160ms
+                follow cbon = if(cb.sel == r.index, 1, 0)
+                box { from: 0, 0; size: pagew - 10, rh; corner: 6; color: surface0; opacity: cbon }
+                text ic.text { at: 21, 18; anchor: center; size: 14; color: overlay1; family: "FiraCode Nerd Font"; show: r.kind < 0.5 }
+                image r.thumb { at: 8, 8; size: 48, 48; show: r.kind > 0.5 }
+                text r.title { at: if(r.kind > 0.5, 70, 50), rh / 2 - if(r.kind > 0.5, 8, 0); anchor: left center; size: 12; color: text; family: "Berkeley Mono"; width: if(r.kind > 0.5, 260, 280); lines: 1 }
+                text r.detail { at: 70, rh / 2 + 9; anchor: left center; size: 10; color: overlay1; family: "Berkeley Mono"; width: 300; lines: 1; show: r.kind > 0.5 }
+                text "copy" { at: pagew - 22, rh / 2; anchor: right center; size: 10; color: overlay0; family: "Berkeley Mono"; opacity: cbon }
+                zone box hit { from: 0, 0; size: pagew - 10, rh; cursor: pointer; label: "{r.title}" }
+                on enter hit { cb.sel = r.index }
+                on press hit { emit cb_go(r.index) }
+            }
+        }
+    }
+    // The logic says where the chosen row is (rows differ in height).
+    on change cb.sy { cb.list.scroll: clamp(cb.list.scroll, cb.sy + cb.sh - (sp.listh - 10), cb.sy) }
+    text "enter copy    shift+del remove    esc close" { at: pg.x + pagew / 2, sp.hinty; anchor: center; size: 9; color: surface2; family: "Berkeley Mono" }
+}

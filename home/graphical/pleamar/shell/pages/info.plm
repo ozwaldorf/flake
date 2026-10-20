@@ -1,0 +1,145 @@
+// The system page: the machine at the head, and a grid of wells held against
+// the bottom, each reading in the form that suits it: loads as a big figure
+// over the last two minutes, capacities as a run of blocks, rates as a mirror
+// of down over up. Sampled only while the page is shown.
+part InfoPage {
+    prop inf.breath = 0
+    wave inf.breath = 0.25 at 2.4
+
+    let inf.x = pg.x
+    let inf.w = pagew
+    let inf.narrow = round((pagew - 8) * 0.42)
+    let inf.wide = pagew - 8 - inf.narrow
+    // The head is fixed; what it leaves is shared over the five rows below,
+    // so they grow on a tall screen rather than leaving the middle empty.
+    let inf.hh = 229
+    let inf.s = max(0, (pg.h - inf.hh - 8 - 633) / 5)
+    let inf.pn = max(1, floor((165 + inf.s - 62 + 3) / 18))
+    let inf.ph = 62 + inf.pn * 18 - 3
+    let inf.r1 = 100 + inf.s
+    let inf.r2 = 112 + inf.s
+    let inf.y5 = pg.y + pg.h - inf.ph
+    let inf.y4 = inf.y5 - 8 - inf.r2
+    let inf.y3 = inf.y4 - 8 - inf.r2
+    let inf.y2 = inf.y3 - 8 - inf.r2
+    let inf.y1 = inf.y2 - 8 - inf.r1
+    let inf.y0 = pg.y
+
+    // the host: who and what, as a short spec sheet
+    Well(inf.x, inf.y0, inf.w, inf.hh)
+    text ic.host { at: inf.x + 33, inf.y0 + 37; anchor: center; size: 40; color: overlay2; family: "FiraCode Nerd Font" }
+    text "{inf.user}@{inf.host}" { at: inf.x + 73, inf.y0 + 31; anchor: left center; size: 15; color: text; family: "Berkeley Mono"; width: 220; lines: 1 }
+    text inf.model { at: inf.x + 73, inf.y0 + 49; anchor: left center; size: 10; color: overlay1; family: "Berkeley Mono"; width: 220; lines: 1 }
+    box { at: inf.x + inf.w - 20 - (inf.upw.width + 28) / 2, inf.y0 + 38; size: inf.upw.width + 28, 21; corner: 10.5; color: mix(mix(mantle, crust, 0.4), overlay2, 0.14) }
+    text inf.uptime { at: inf.x + inf.w - 34, inf.y0 + 38; anchor: right center; size: 10; color: overlay2; family: "Berkeley Mono"; measure: inf.upw }
+    measure inf.upw
+    box { from: inf.x + 20, inf.y0 + 79; size: inf.w - 40, 1; color: mix(mix(mantle, crust, 0.4), surface1, 0.6) }
+    repeat k in 0..6 {
+        let sx = inf.x + 20 + mod(k, 2) * 194
+        let sy = inf.y0 + 104 + floor(k / 2) * 44
+        Caption(sx, sy, pick(k, "OS", "KERNEL", "GENERATION", "NIXPKGS", "SHELL", "WM"), 8)
+        text pick(k, inf.os, inf.kernel, inf.gen, inf.nixpkgs, inf.shell, inf.wm) { at: sx, sy + 13; anchor: left center; size: 10; color: subtext1; family: "Berkeley Mono"; width: 166; lines: 1 }
+    }
+
+    // heat, and the battery beside it
+    let inf.hw = if(inf.batok, inf.narrow, inf.w)
+    let inf.bc = inf.y1 + 35 + (inf.r1 - 49) / 2
+    Well(inf.x, inf.y1, inf.hw, inf.r1)
+    Heading(inf.x, inf.y1, inf.hw, "HEAT", ic.cpu, if(inf.heat > 0.8, red, if(inf.heat > 0.6, peach, if(inf.heat > 0.4, yellow, teal))))
+    repeat k in 0..2 {
+        group {
+            show: k == 0 or inf.gpu.on
+            let hx = inf.x + 14 + k * (inf.hw - 28) / 2
+            text pick(k, inf.cputemp, inf.gputemp) { at: hx, inf.bc - 12; anchor: left center; size: 24; color: text; family: "Berkeley Mono" }
+            Caption(hx, inf.bc + 10, pick(k, "CPU", "GPU"))
+        }
+    }
+    box { from: inf.x + 14, inf.y1 + inf.r1 - 18; size: inf.hw - 28, 4; corner: 2; color: mix(mantle, surface0, 0.8) }
+    box { from: inf.x + 14, inf.y1 + inf.r1 - 18; size: (inf.hw - 28) * inf.heatbar, 4; corner: 2; color: if(inf.heat > 0.8, red, if(inf.heat > 0.6, peach, if(inf.heat > 0.4, yellow, teal))) }
+
+    group {
+        show: inf.batok
+        let bx = inf.x + inf.narrow + 8
+        let lvl = inf.bat.pct / 100
+        Well(bx, inf.y1, inf.wide, inf.r1)
+        Heading(bx, inf.y1, inf.wide, "BATTERY", ic.battery, if(lvl < 0.15, red, if(lvl < 0.35, yellow, green)), inf.bat.health)
+        text "{round(inf.bat.pct)}%" { at: bx + 14, inf.y1 + 53; anchor: left center; size: 28; color: text; family: "Berkeley Mono" }
+        // beside the figure, on its baseline: monospace, 0.6 of the size a digit
+        let digits = if(inf.bat.pct > 99.5, 4, if(inf.bat.pct > 9.5, 3, 2))
+        text inf.bat.state { at: bx + 20 + 16.8 * digits, inf.y1 + 60; anchor: left center; size: 10; color: overlay0; family: "Berkeley Mono" }
+        text inf.bat.time { at: bx + 14, inf.y1 + inf.r1 - 20.5; anchor: left center; size: 10; color: overlay1; family: "Berkeley Mono"; width: inf.wide - 100; lines: 1 }
+        // the cell itself, filled to the charge, breathing while it charges
+        let cellx = bx + inf.wide - 14 - 66
+        box { from: cellx, inf.bc - 15; size: 61, 30; corner: 6; stroke: 1.5; color: surface2 }
+        box { from: cellx + 62, inf.bc - 5; size: 3, 10; corner: 1.5; color: surface2 }
+        box { from: cellx + 4, inf.bc - 11; size: max(2, 53 * lvl), 22; corner: 3; color: if(lvl < 0.15, red, if(lvl < 0.35, yellow, green)); opacity: 1 - if(inf.bat.chg, 0.25 + inf.breath, 0) }
+    }
+
+    // cpu, and memory beside it: the figure over the line it has drawn lately
+    Well(inf.x, inf.y2, inf.wide, inf.r2)
+    InfLine_c(inf.x + 5, inf.y2 + inf.r2 - 5, inf.wide - 10, 0.62 * (inf.r2 - 10), mauve)
+    Heading(inf.x, inf.y2, inf.wide, "CPU", ic.cpu, mauve)
+    text inf.cpufig { at: inf.x + 14, inf.y2 + 52; anchor: left center; size: 28; color: text; family: "Berkeley Mono" }
+    text inf.cpuname { at: inf.x + 14, inf.y2 + 77; anchor: left center; size: 10; color: overlay1; family: "Berkeley Mono"; width: inf.wide - 28; lines: 1 }
+    let inf.mx = inf.x + inf.wide + 8
+    Well(inf.mx, inf.y2, inf.narrow, inf.r2)
+    InfLine_m(inf.mx + 5, inf.y2 + inf.r2 - 5, inf.narrow - 10, 0.62 * (inf.r2 - 10), green)
+    Heading(inf.mx, inf.y2, inf.narrow, "MEMORY", ic.memory, green, inf.memtot)
+    text inf.memfig { at: inf.mx + 14, inf.y2 + 52; anchor: left center; size: 28; color: text; family: "Berkeley Mono" }
+
+    // the graphics card: its load across the drawer, its memory in the corner
+    group {
+        show: inf.gpu.on
+        let rows = floor((inf.r2 - 49 + 3) / 13)
+        Well(inf.x, inf.y3, inf.w, inf.r2)
+        InfLine_g(inf.x + 5, inf.y3 + inf.r2 - 5, inf.w - 10 - 78, 0.62 * (inf.r2 - 10), blue)
+        Heading(inf.x, inf.y3, inf.w, "GPU", ic.gpu, blue, inf.vramtext)
+        text inf.gpufig { at: inf.x + 14, inf.y3 + 52; anchor: left center; size: 28; color: text; family: "Berkeley Mono" }
+        text inf.gpuname { at: inf.x + 14, inf.y3 + 77; anchor: left center; size: 10; color: overlay1; family: "Berkeley Mono"; width: inf.w - 120; lines: 1 }
+        Blocks(inf.x + inf.w - 14, inf.y3 + inf.r2 - 14, 4, rows, inf.vram, blue)
+    }
+
+    // Disk traffic and the network: down above a centre rule, up mirrored
+    // below it, so the two read against each other.
+    let inf.fh = 0.6 * (inf.r2 - 10)
+    let inf.mid = inf.y4 + inf.r2 - 5 - inf.fh / 2
+    Well(inf.x, inf.y4, inf.wide, inf.r2)
+    InfLine_r(inf.x + 5, inf.mid, inf.wide - 10 - 104, inf.fh / 2, yellow)
+    InfLine_w(inf.x + 5, inf.mid, inf.wide - 10 - 104, inf.fh / 2, peach, 1)
+    box { from: inf.x + 5, inf.mid; size: inf.wide - 10 - 104, 1; color: mix(mix(mantle, crust, 0.4), surface1, 0.6) }
+    Heading(inf.x, inf.y4, inf.wide, "DISK", ic.disk, yellow, inf.diskuse)
+    text inf.read { at: inf.x + 14, inf.y4 + 41.5; anchor: left center; size: 10; color: yellow; family: "Berkeley Mono" }
+    text inf.write { at: inf.x + 14, inf.y4 + 54.5; anchor: left center; size: 10; color: peach; family: "Berkeley Mono" }
+    Blocks(inf.x + inf.wide - 14, inf.y4 + inf.r2 - 14, 6, floor((inf.r2 - 49 + 3) / 13), inf.disk, yellow)
+    let inf.nx = inf.x + inf.wide + 8
+    Well(inf.nx, inf.y4, inf.narrow, inf.r2)
+    InfLine_d(inf.nx + 5, inf.mid, inf.narrow - 10, inf.fh / 2, red)
+    InfLine_u(inf.nx + 5, inf.mid, inf.narrow - 10, inf.fh / 2, peach, 1)
+    box { from: inf.nx + 5, inf.mid; size: inf.narrow - 10, 1; color: mix(mix(mantle, crust, 0.4), surface1, 0.6) }
+    Heading(inf.nx, inf.y4, inf.narrow, "NET", ic.network, red)
+    text inf.down { at: inf.nx + 14, inf.y4 + 41.5; anchor: left center; size: 10; color: red; family: "Berkeley Mono" }
+    text inf.up { at: inf.nx + 14, inf.y4 + 54.5; anchor: left center; size: 10; color: peach; family: "Berkeley Mono" }
+
+    // The busiest processes, then the largest: each line with its share of
+    // the processor behind it as a faint bar, as many as fit.
+    Well(inf.x, inf.y5, inf.w, inf.ph)
+    Heading(inf.x, inf.y5, inf.w, "PROCESSES", ic.cpu, mauve, inf.busy)
+    let inf.cr = inf.x + inf.w - 18
+    let inf.mr = inf.cr - 48
+    let inf.ur = inf.mr - 64
+    Caption(inf.x + 18, inf.y5 + 41, "NAME")
+    repeat k in 0..3 {
+        text pick(k, "USER", "MEM", "CPU") { at: pick(k, inf.ur, inf.mr, inf.cr), inf.y5 + 41; anchor: right center; size: 9; color: overlay0; family: "Berkeley Mono"; letter_move: (letter - letters + 1) * 1.2, 0 }
+    }
+    for p in infprocs {
+        group {
+            show: p.index < inf.pn
+            let py = inf.y5 + 57.5 + p.index * 18
+            box { from: inf.x + 14, py - 7.5; size: (inf.w - 28) * clamp(p.cpu, 0, 1), 15; corner: 3; color: mauve; opacity: 18% }
+            text p.name { at: inf.x + 18, py; anchor: left center; size: 10; color: subtext0; family: "Berkeley Mono"; width: inf.ur - 56 - inf.x - 18; lines: 1 }
+            text p.user { at: inf.ur, py; anchor: right center; size: 10; color: if(p.root > 0.5, peach, overlay0); family: "Berkeley Mono"; width: 56; lines: 1; align: right }
+            text p.mem { at: inf.mr, py; anchor: right center; size: 10; color: overlay1; family: "Berkeley Mono" }
+            text p.cpus { at: inf.cr, py; anchor: right center; size: 10; color: if(p.cpu > 0, text, overlay0); family: "Berkeley Mono" }
+        }
+    }
+}

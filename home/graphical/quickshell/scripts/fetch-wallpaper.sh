@@ -49,23 +49,35 @@ response=$(curl -sfG "$API" -A "$UA" --compressed --max-time 30 \
     --data-urlencode "gsrsearch=$POOL" \
     -d prop=imageinfo -d iiprop='url|size|mime' -d "iiurlwidth=$WIDTH") || exit 1
 
-pick=$(jaq -r --argjson min "$MIN_AR" --argjson max "$MAX_AR" '
-    [.query.pages[]?
-     | .imageinfo[0] as $i
-     | select($i != null and $i.thumburl != null)
-     | select(($i.width / $i.height) >= $min and ($i.width / $i.height) <= $max)
-     | {url: $i.thumburl, name: (.title | sub("^File:"; ""))}]
-    | first // empty
-    | "\(.url)\t\(.name)"' <<<"$response")
+# The API returns its pages sorted by id, not in the random order it drew them
+# in, so taking the first kept landing on the same oldest file. One is drawn
+# here instead, preferring one that is not on disk yet.
+candidates=$(jaq -r --argjson min "$MIN_AR" --argjson max "$MAX_AR" '
+    .query.pages[]?
+    | .imageinfo[0] as $i
+    | select($i != null and $i.thumburl != null)
+    | select(($i.width / $i.height) >= $min and ($i.width / $i.height) <= $max)
+    | "\($i.thumburl)\t\(.title | sub("^File:"; ""))"' <<<"$response" | shuf)
 
-[ -n "$pick" ] || exit 1
+[ -n "$candidates" ] || exit 1
+
+# Commons titles carry spaces, slashes and quotes. Flattened to something safe
+# to sit in a path, keeping the name legible so the file is identifiable.
+safe_name() { printf '%s' "$1" | tr -c '[:alnum:]._-' '_' | cut -c1-120; }
+
+pick=""
+while IFS= read -r line; do
+    if [ ! -f "$DIR/$(safe_name "${line#*$'\t'}")" ]; then
+        pick=$line
+        break
+    fi
+done <<<"$candidates"
+[ -n "$pick" ] || pick=$(head -n1 <<<"$candidates")
 
 url=${pick%%$'\t'*}
 name=${pick#*$'\t'}
 
-# Commons titles carry spaces, slashes and quotes. Flattened to something safe
-# to sit in a path, keeping the name legible so the file is identifiable.
-safe=$(printf '%s' "$name" | tr -c '[:alnum:]._-' '_' | cut -c1-120)
+safe=$(safe_name "$name")
 out="$DIR/$safe"
 
 [ -f "$out" ] && { printf '%s\n' "$out"; exit 0; }
