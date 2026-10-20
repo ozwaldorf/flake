@@ -493,6 +493,8 @@ scene Session {
             follow liftp.$i = if(lifted, 1, 0)
             prop dropp.$i = 0 ~120ms
             follow dropp.$i = if(dmode == 1 and dropj == i, 1, 0)
+            prop agp.$i = 0 ~400ms
+            follow agp.$i = if(ag.live and ag.win == i and win.$i.open, 1, 0)
             let x = x.$i - camoff.x
             let y = y.$i - camoff.y
             let w = w.$i
@@ -535,6 +537,16 @@ scene Session {
                 // where a carried window would land: this one, marked
                 box { from: x, y; size: w, h; corner: r; color: blue; opacity: 16% * dropp.$i }
                 box { from: x, y; size: w, h; corner: r; stroke: 2; color: blue; opacity: dropp.$i }
+                // an agent at work on it: outlined in its cursor's blue, with a soft glow
+                group {
+                    show: agp.$i > 0.01
+                    opacity: agp.$i
+                    group {
+                        blur: 8
+                        box { from: x - 2, y - 2; size: w + 4, h + 4; corner: r + 2; stroke: 4; color: blue; opacity: 60% }
+                    }
+                    box { from: x, y; size: w, h; corner: r; stroke: 1.6; color: blue }
+                }
             }
 
             // The keyboard follows the pointer, without moving the camera, and
@@ -931,6 +943,10 @@ scene Session {
     on change agent.1.seen { ag.recent = true }
     on still agent.0.seen for 90000ms while ag.recent and not agent.active { ag.recent = false }
     let ag.live = agent.active or ag.recent
+    // The window it last worked on, outlined in the windows' loop; an action
+    // on a monitor rather than a window (agent.win -1) leaves it.
+    fact ag.win = -1
+    on change agent.win while agent.win >= 0 { ag.win = agent.win }
     fact agent.0.x = 0
     fact agent.0.y = 0
     fact agent.0.screen = 0
