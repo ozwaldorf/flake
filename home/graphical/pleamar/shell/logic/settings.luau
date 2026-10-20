@@ -241,7 +241,7 @@ return function(S)
 
     -- notifications
     local notes = {}
-    sys.watch("notifications", function(list) notes = list or {} end)
+    S.onNotifications(function(list) notes = list or {} end)
     on("cc.dismiss", function(i)
         local n = notes[i + 1]
         if n then sys.call("notifications.dismiss", n.id) end

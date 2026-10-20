@@ -132,18 +132,6 @@ let
       action
       ;
   };
-  workspaceBinds = lib.concatMap (
-    ws:
-    let
-      key = toString (lib.mod ws 10);
-    in
-    [
-      (bind "Workspaces" "Super+${key}" "Focus workspace" "workspace ${toString ws}")
-      (bind "Workspaces" "Super+Shift+${key}" "Move window to workspace"
-        "move_to_workspace ${toString ws}"
-      )
-    ]
-  ) (lib.range 1 10);
   binds = [
     (bind "Launch" "Super+Return" "Terminal" "launch rio")
     (bind "Launch" "Super+Shift+Return" "Floating terminal" "launch rio --app-id float")
@@ -160,44 +148,34 @@ let
     (bind "Windows" "Super+Shift+q" "Close window" "close")
     (bind "Windows" "Super+Shift+space" "Toggle floating" "toggle_float")
     (bind "Windows" "Super+f" "Fullscreen" "fullscreen")
-    (bind "Windows" "Super+g" "Toggle tabbed column" "toggle_tabbed")
-    (bind "Windows" "Super+Shift+Tab" "Focus window up or bottom" "focus_cycle")
-    (bind "Windows" "Super+Ctrl+Left" "Consume or expel left" "consume_left")
-    (bind "Windows" "Super+Ctrl+Right" "Consume or expel right" "consume_right")
-    (bind "Focus" "Super+Left" "Focus column or monitor left" "focus_left")
-    (bind "Focus" "Super+Right" "Focus column or monitor right" "focus_right")
-    (bind "Focus" "Super+Up" "Focus window or workspace up" "focus_up")
-    (bind "Focus" "Super+Down" "Focus window or workspace down" "focus_down")
-    (bind "Move" "Super+Shift+Left" "Move column left or to monitor" "move_left")
-    (bind "Move" "Super+Shift+Right" "Move column right or to monitor" "move_right")
-    (bind "Move" "Super+Shift+Up" "Move window up or to workspace" "move_up")
-    (bind "Move" "Super+Shift+Down" "Move window down or to workspace" "move_down")
+    (bind "Windows" "Super+r" "Cycle window width" "cycle_width")
+    (bind "Windows" "Super+Shift+r" "Cycle row height" "cycle_height")
+    (bind "Focus" "Super+Left" "Focus window or monitor left" "focus_left")
+    (bind "Focus" "Super+Right" "Focus window or monitor right" "focus_right")
+    (bind "Focus" "Super+Up" "Focus row above" "focus_up")
+    (bind "Focus" "Super+Down" "Focus row below" "focus_down")
+    (bind "Move" "Super+Shift+Left" "Move window left or to monitor" "move_left")
+    (bind "Move" "Super+Shift+Right" "Move window right or to monitor" "move_right")
+    (bind "Move" "Super+Shift+Up" "Move window to row above, or a new one" "move_up")
+    (bind "Move" "Super+Shift+Down" "Move window to row below, or a new one" "move_down")
     (bind "Capture" "Print" "Screenshot window" "launch ${lib.getExe shotWindow}")
     (bind "Capture" "Shift+Print" "Screenshot region" "launch ${lib.getExe shotRegion}")
     (bind "Capture" "Ctrl+Print" "Toggle screen recording" "launch ${desk "emit rec_toggle"}")
     (bind "Session" "Super+l" "Power off monitors" "launch ${lib.getExe monitorsOff}")
     (bind "Session" "Super+Shift+e" "Quit" "launch ${wm "quit"}")
-  ]
-  ++ workspaceBinds;
+  ];
 
   keysConf = lib.concatMapStringsSep "\n" (b: "bind ${b.key} ${b.action}") binds + "\n";
 
-  # The Keys page's list: the workspace binds folded into two lines.
-  isWorkspace = b: b.group == "Workspaces";
+  # The Keys page's list.
   keybindsLuau =
     let
       entry = b: ''{ key = "${b.key}", label = "${b.label}", group = "${b.group}" },'';
-      folded = [
-        (bind "Workspaces" "Super+1-0" "Focus workspace" null)
-        (bind "Workspaces" "Super+Shift+1-0" "Move window to workspace" null)
-      ];
     in
     ''
       -- Generated from home/graphical/pleamar.nix.
       return {
-      ${lib.concatMapStringsSep "\n" (b: "    ${entry b}") (
-        lib.filter (b: !isWorkspace b) binds ++ folded
-      )}
+      ${lib.concatMapStringsSep "\n" (b: "    ${entry b}") binds}
       }
     '';
 
@@ -223,7 +201,7 @@ let
   # pleamar/gen (ignored by git), where the scenes include it from.
   generated = pkgs.linkFarm "pleamar-generated" {
     "theme.plm" = pkgs.writeText "theme.plm" (import ./pleamar/theme.nix { inherit lib palette; });
-    "columns.plm" = pkgs.writeText "columns.plm" (import ./pleamar/wm/columns.nix { inherit lib; });
+    "rows.plm" = pkgs.writeText "rows.plm" (import ./pleamar/wm/rows.nix { inherit lib; });
     "keybinds.luau" = pkgs.writeText "keybinds.luau" keybindsLuau;
     "info-series.plm" = pkgs.writeText "info-series.plm" (
       import ./pleamar/shell-series.nix { inherit lib; }

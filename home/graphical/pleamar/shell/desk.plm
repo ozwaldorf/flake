@@ -98,6 +98,11 @@ scene Desk {
     // notifications: kept until dismissed, so the list is the history
     model notes max 50 { id: number; app: text; title: text; body: text; icon: image 32, 32; image: image 64, 64; urgency: number; time: number }
     service notifications { list: notes }
+    // The scene is the service's one receiver, so a watch in the logic hears
+    // nothing: it is told of a change through this, and reads the list.
+    event notes_changed ->
+    on change notes.0.id { emit notes_changed }
+    on change notes.count { emit notes_changed }
     let notes.critical = notes.total > 0 and (notes.0.urgency > 1.5 or notes.1.urgency > 1.5 or notes.2.urgency > 1.5 or notes.3.urgency > 1.5 or notes.4.urgency > 1.5)
 
     // load meters, sampled by the logic (logic/meters.luau): 0 to 1

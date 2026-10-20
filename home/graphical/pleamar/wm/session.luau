@@ -87,8 +87,8 @@ end)
 on("wall_next", function() wallpaper({ "next" }) end)
 on("wall_set", function() wallpaper({ "set", text["wall.req"] }) end)
 
--- the task bar: every window, by monitor, then workspace top to bottom, then
--- column left to right and row top to bottom. Sent as rows of fields, with
+-- the task bar: every window, by monitor, then workspace, then row top to
+-- bottom and left to right within the row. Sent as rows of fields, with
 -- the ASCII record and unit separators between them.
 local function on_(v) return v == true or (type(v) == "number" and v > 0.5) end
 local tbPending, tbLast = false, nil
@@ -111,8 +111,8 @@ local function tbSend()
     table.sort(rows, function(a, b)
         if a.sc ~= b.sc then return a.sc < b.sc end
         if a.ws ~= b.ws then return a.ws < b.ws end
-        if a.c ~= b.c then return a.c < b.c end
         if a.r ~= b.r then return a.r < b.r end
+        if a.c ~= b.c then return a.c < b.c end
         return a.i < b.i
     end)
     local out = {}

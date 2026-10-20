@@ -18,6 +18,15 @@ function S.trim(s)
     return ((s or ""):gsub("^%s+", ""):gsub("%s+$", ""))
 end
 
+-- The scene receives the notifications (`service notifications`), and a watch
+-- here would hear nothing: the modules that want the list (the control
+-- centre's, the toasts) are handed it from the scene's `notes` model on
+-- each change it reports.
+S.notes = {}
+function S.onNotifications(fn)
+    table.insert(S.notes, fn)
+end
+
 for _, name in ipairs({ "icons", "meters", "settings", "info", "apps", "clipboard", "keys", "taskbar", "toasts", "recorder" }) do
     local ok, mod = pcall(require, "logic/" .. name)
     if not ok then
@@ -51,4 +60,20 @@ after(3000, function() S.wm("emit shell_hello") end)
 -- Kept until dismissed: the list of notifications is the history. The
 -- service has to be watched before it can be told so.
 sys.watch("notifications", function() end)
+local function notesChanged()
+    -- The logic cannot read a model back, but its records are facts and texts.
+    local list = {}
+    for k = 0, (fact["notes.count"] or 0) - 1 do
+        local p = "notes." .. k .. "."
+        list[#list + 1] = {
+            id = fact[p .. "id"], app = text[p .. "app"], title = text[p .. "title"],
+            body = text[p .. "body"], urgency = fact[p .. "urgency"], time = fact[p .. "time"],
+        }
+    end
+    for _, fn in ipairs(S.notes) do
+        fn(list)
+    end
+end
+on("notes_changed", notesChanged)
+notesChanged()
 pcall(sys.call, "notifications.keep", true)

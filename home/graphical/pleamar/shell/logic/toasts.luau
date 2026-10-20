@@ -37,7 +37,7 @@ return function(S)
 
     local function quiet() return fact.page == 1 or not warm end
 
-    sys.watch("notifications", function(list)
+    S.onNotifications(function(list)
         local live = {}
         for _, n in ipairs(list or {}) do
             live[n.id] = true
