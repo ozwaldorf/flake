@@ -556,6 +556,21 @@ scene Session {
                 mon = screen.index
                 focus win.$i
             }
+            // A click is meant: it takes the keyboard even mid-slide, and the
+            // camera goes to the window as it does for one picked by key. The
+            // click still reaches the program, and the camera only moves once
+            // the button is up: a window sliding under a held button is a drag.
+            on press win.$i while dmode < 0.5 and not ov and keys.super < 0.5 and not win.$i.focused {
+                mon = screen.index
+                focus win.$i
+            }
+            repeat s in 0..4 {
+                on release win.$i while dmode < 0.5 and not ov and keys.super < 0.5 and tiled and not full and sc == s {
+                    cam.a.$s = i
+                    ofs.x.$s = 0
+                    ofs.y.$s = 0
+                }
+            }
             // In the overview a window is picked with a click, and the camera
             // goes to it even if it already had the keyboard.
             zone box pickw.$i { from: x, y; size: w, h; cursor: pointer; active: ov and here and win.$i.open }
