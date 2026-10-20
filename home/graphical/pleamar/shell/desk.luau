@@ -50,12 +50,15 @@ on("wm_overview", function(code)
     local s = code % 4
     S.wm((code >= 4 and "emit overview_on " or "emit overview_off ") .. s)
 end)
--- Ask it for the state it reports, now that someone is listening.
+-- Ask it for the state it reports, now that someone is listening, and again
+-- over the next seconds: at login the window manager can still be starting,
+-- or this file slow enough to be cut off, and what is reported only on a
+-- change (the monitors' sizes) would never arrive. Asked again, it only says
+-- the same once more.
 S.wm("emit shell_hello")
--- And again a moment later: at login the window manager can still be
--- starting, or this file slow enough to be cut off, and what is reported
--- only on a change (the monitors' sizes) would never arrive.
-after(3000, function() S.wm("emit shell_hello") end)
+for _, ms in ipairs({ 200, 500, 1000, 2000, 3000 }) do
+    after(ms, function() S.wm("emit shell_hello") end)
+end
 
 -- Kept until dismissed: the list of notifications is the history. The
 -- service has to be watched before it can be told so.
