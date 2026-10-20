@@ -31,22 +31,41 @@ part Search {
     fact ky.n = 0
     fact ky.sel = 0
 
+    // Chosen by the pointer passing over it: then the list is not scrolled
+    // to the row, which would scroll it under the pointer and choose the next
+    // (and fight the wheel). The keys and the filter scroll to it again.
+    fact ap.hov = false
+    fact cb.hov = false
+    fact ky.hov = false
+
     // Opening a page: the field takes the keyboard and the top row is chosen.
     on change page while page == 3 {
+        ap.hov = false
         ap.sel = 0
         focus ap.q
     }
     on change page while page == 4 {
+        cb.hov = false
         cb.sel = 0
         focus cb.q
     }
     on change page while page == 5 {
+        ky.hov = false
         ky.sel = 0
         focus ky.q
     }
-    on change ap.n { ap.sel = 0 }
-    on change cb.n { cb.sel = min(cb.sel, max(cb.n - 1, 0)) }
-    on change ky.n { ky.sel = 0 }
+    on change ap.n {
+        ap.hov = false
+        ap.sel = 0
+    }
+    on change cb.n {
+        cb.hov = false
+        cb.sel = min(cb.sel, max(cb.n - 1, 0))
+    }
+    on change ky.n {
+        ky.hov = false
+        ky.sel = 0
+    }
 
     // moving the choice: arrows, Tab, Ctrl+N/P/J/K, page keys
     on submit ap.q { emit ap_go(ap.sel) }
@@ -55,36 +74,36 @@ part Search {
     on key End while page == 3 { emit ap_accept }
     on key Shift+Delete while page == 4 { emit cb_remove(cb.sel) }
 
-    on key Down while page == 3 { ap.sel = min(ap.sel + 1, max(ap.n - 1, 0)) }
-    on key Tab while page == 3 { ap.sel = min(ap.sel + 1, max(ap.n - 1, 0)) }
-    on key Ctrl+n while page == 3 { ap.sel = min(ap.sel + 1, max(ap.n - 1, 0)) }
-    on key Ctrl+j while page == 3 { ap.sel = min(ap.sel + 1, max(ap.n - 1, 0)) }
-    on key Next while page == 3 { ap.sel = min(ap.sel + 8, max(ap.n - 1, 0)) }
-    on key Up while page == 3 { ap.sel = max(ap.sel - 1, 0) }
-    on key Shift+Tab while page == 3 { ap.sel = max(ap.sel - 1, 0) }
-    on key Ctrl+p while page == 3 { ap.sel = max(ap.sel - 1, 0) }
-    on key Ctrl+k while page == 3 { ap.sel = max(ap.sel - 1, 0) }
-    on key Prior while page == 3 { ap.sel = max(ap.sel - 8, 0) }
+    on key Down while page == 3 { ap.hov = false; ap.sel = min(ap.sel + 1, max(ap.n - 1, 0)) }
+    on key Tab while page == 3 { ap.hov = false; ap.sel = min(ap.sel + 1, max(ap.n - 1, 0)) }
+    on key Ctrl+n while page == 3 { ap.hov = false; ap.sel = min(ap.sel + 1, max(ap.n - 1, 0)) }
+    on key Ctrl+j while page == 3 { ap.hov = false; ap.sel = min(ap.sel + 1, max(ap.n - 1, 0)) }
+    on key Next while page == 3 { ap.hov = false; ap.sel = min(ap.sel + 8, max(ap.n - 1, 0)) }
+    on key Up while page == 3 { ap.hov = false; ap.sel = max(ap.sel - 1, 0) }
+    on key Shift+Tab while page == 3 { ap.hov = false; ap.sel = max(ap.sel - 1, 0) }
+    on key Ctrl+p while page == 3 { ap.hov = false; ap.sel = max(ap.sel - 1, 0) }
+    on key Ctrl+k while page == 3 { ap.hov = false; ap.sel = max(ap.sel - 1, 0) }
+    on key Prior while page == 3 { ap.hov = false; ap.sel = max(ap.sel - 8, 0) }
 
-    on key Down while page == 4 { cb.sel = min(cb.sel + 1, max(cb.n - 1, 0)) }
-    on key Tab while page == 4 { cb.sel = min(cb.sel + 1, max(cb.n - 1, 0)) }
-    on key Ctrl+n while page == 4 { cb.sel = min(cb.sel + 1, max(cb.n - 1, 0)) }
-    on key Ctrl+j while page == 4 { cb.sel = min(cb.sel + 1, max(cb.n - 1, 0)) }
-    on key Next while page == 4 { cb.sel = min(cb.sel + 8, max(cb.n - 1, 0)) }
-    on key Up while page == 4 { cb.sel = max(cb.sel - 1, 0) }
-    on key Shift+Tab while page == 4 { cb.sel = max(cb.sel - 1, 0) }
-    on key Ctrl+p while page == 4 { cb.sel = max(cb.sel - 1, 0) }
-    on key Ctrl+k while page == 4 { cb.sel = max(cb.sel - 1, 0) }
-    on key Prior while page == 4 { cb.sel = max(cb.sel - 8, 0) }
+    on key Down while page == 4 { cb.hov = false; cb.sel = min(cb.sel + 1, max(cb.n - 1, 0)) }
+    on key Tab while page == 4 { cb.hov = false; cb.sel = min(cb.sel + 1, max(cb.n - 1, 0)) }
+    on key Ctrl+n while page == 4 { cb.hov = false; cb.sel = min(cb.sel + 1, max(cb.n - 1, 0)) }
+    on key Ctrl+j while page == 4 { cb.hov = false; cb.sel = min(cb.sel + 1, max(cb.n - 1, 0)) }
+    on key Next while page == 4 { cb.hov = false; cb.sel = min(cb.sel + 8, max(cb.n - 1, 0)) }
+    on key Up while page == 4 { cb.hov = false; cb.sel = max(cb.sel - 1, 0) }
+    on key Shift+Tab while page == 4 { cb.hov = false; cb.sel = max(cb.sel - 1, 0) }
+    on key Ctrl+p while page == 4 { cb.hov = false; cb.sel = max(cb.sel - 1, 0) }
+    on key Ctrl+k while page == 4 { cb.hov = false; cb.sel = max(cb.sel - 1, 0) }
+    on key Prior while page == 4 { cb.hov = false; cb.sel = max(cb.sel - 8, 0) }
 
-    on key Down while page == 5 { ky.sel = min(ky.sel + 1, max(ky.n - 1, 0)) }
-    on key Tab while page == 5 { ky.sel = min(ky.sel + 1, max(ky.n - 1, 0)) }
-    on key Ctrl+n while page == 5 { ky.sel = min(ky.sel + 1, max(ky.n - 1, 0)) }
-    on key Ctrl+j while page == 5 { ky.sel = min(ky.sel + 1, max(ky.n - 1, 0)) }
-    on key Next while page == 5 { ky.sel = min(ky.sel + 8, max(ky.n - 1, 0)) }
-    on key Up while page == 5 { ky.sel = max(ky.sel - 1, 0) }
-    on key Shift+Tab while page == 5 { ky.sel = max(ky.sel - 1, 0) }
-    on key Ctrl+p while page == 5 { ky.sel = max(ky.sel - 1, 0) }
-    on key Ctrl+k while page == 5 { ky.sel = max(ky.sel - 1, 0) }
-    on key Prior while page == 5 { ky.sel = max(ky.sel - 8, 0) }
+    on key Down while page == 5 { ky.hov = false; ky.sel = min(ky.sel + 1, max(ky.n - 1, 0)) }
+    on key Tab while page == 5 { ky.hov = false; ky.sel = min(ky.sel + 1, max(ky.n - 1, 0)) }
+    on key Ctrl+n while page == 5 { ky.hov = false; ky.sel = min(ky.sel + 1, max(ky.n - 1, 0)) }
+    on key Ctrl+j while page == 5 { ky.hov = false; ky.sel = min(ky.sel + 1, max(ky.n - 1, 0)) }
+    on key Next while page == 5 { ky.hov = false; ky.sel = min(ky.sel + 8, max(ky.n - 1, 0)) }
+    on key Up while page == 5 { ky.hov = false; ky.sel = max(ky.sel - 1, 0) }
+    on key Shift+Tab while page == 5 { ky.hov = false; ky.sel = max(ky.sel - 1, 0) }
+    on key Ctrl+p while page == 5 { ky.hov = false; ky.sel = max(ky.sel - 1, 0) }
+    on key Ctrl+k while page == 5 { ky.hov = false; ky.sel = max(ky.sel - 1, 0) }
+    on key Prior while page == 5 { ky.hov = false; ky.sel = max(ky.sel - 8, 0) }
 }

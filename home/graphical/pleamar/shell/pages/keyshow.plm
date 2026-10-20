@@ -1,0 +1,50 @@
+// The input overlay: the latest key or mouse button pressed, in a pill
+// along the bottom of the monitor with the keyboard, above the task bar. Off
+// unless turned on from the control centre (ks_toggle); logic/keyshow.luau
+// reads them from libinput meanwhile.
+part KeyShow {
+    // w worked out by the logic, the font being monospaced.
+    model ks.keys max 1 { label: text; w: number; mouse: bool; gone: bool }
+    event ks_toggle ->
+    fact ks.on = false
+
+    surface keyshow {
+        let ks.me = screen.index
+        let ks.W = pick(ks.me, mw.0, mw.1, mw.2, mw.3)
+        size: full, 64
+        anchor: bottom
+        screens: each
+        level: overlay
+
+        row ks.row {
+            at: (ks.W - ks.row.width) / 2, 10
+            gap: 8
+            show: ks.on and ks.me == focmon
+            for k in ks.keys { KeyPill(k) }
+        }
+    }
+
+    component KeyPill(k: record) {
+        size: k.w, 40
+        prop shown = 0 ~150ms
+        follow shown = if(k.gone, 0, 1)
+        prop rise = 8 ~quint
+        follow rise = 0
+        group {
+            opacity: shown
+            move: 0, rise
+            body {
+                color: base
+                glass: 45%
+                frost: 100%
+                refraction: 0
+                dispersion: 0
+                ripple: 0
+                shadow: 0, 6, 24, 35%, crust
+                box { from: 0, 0; size: k.w, 40; corner: 10 }
+            }
+            box { from: 0.5, 0.5; size: k.w - 1, 39; corner: 10; stroke: 1; color: if(k.mouse, blue, surface1) }
+            text k.label { at: k.w / 2, 20; anchor: center; size: 15; color: text; family: "Berkeley Mono" }
+        }
+    }
+}

@@ -522,11 +522,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792336034,
-        "narHash": "sha256-naw6UFgBPVWk/vT3/6PfmdsEq2xlIkN+z686s5dOwWU=",
+        "lastModified": 1792518264,
+        "narHash": "sha256-KXFEOtpt3QiTMtEnNBzJMdfFxiu59o4ulLf2JQpFN9M=",
         "owner": "k4ditano",
         "repo": "pleamar",
-        "rev": "d5a5cb9c2e2b1a608d0ba836e58bbec9107c60d5",
+        "rev": "54c3268548cb873b7f04432294b310afbe115095",
         "type": "github"
       },
       "original": {
@@ -541,42 +541,23 @@
         "nixpkgs": [
           "nixpkgs"
         ],
-        "pleamar": "pleamar_2"
-      },
-      "locked": {
-        "lastModified": 1792337076,
-        "narHash": "sha256-LcZynaGc8iJQV6jcK1VG+1eBH91q01pQ++dcFRk0rg4=",
-        "owner": "k4ditano",
-        "repo": "pleamar-wm",
-        "rev": "687ad9ed9f27b644b6af7eaf41a9163e5d9a52fd",
-        "type": "github"
-      },
-      "original": {
-        "owner": "k4ditano",
-        "repo": "pleamar-wm",
-        "type": "github"
-      }
-    },
-    "pleamar_2": {
-      "inputs": {
-        "nixpkgs": [
-          "pleamar-wm",
-          "nixpkgs"
+        "pleamar": [
+          "pleamar"
         ]
       },
       "locked": {
-        "lastModified": 1792482515,
-        "narHash": "sha256-17VrcJjuBf4kjgveGThIGVSX8D3nFwO+WWOKfH5VirM=",
-        "ref": "dual-kawase",
-        "rev": "6ad137f123adc3a9c15c777c55d6c339eb1b6f03",
-        "revCount": 508,
-        "type": "git",
-        "url": "file:///home/oz/Code/pkg/pleamar"
+        "lastModified": 1792518670,
+        "narHash": "sha256-Yrr9gODFrSa0WmA9948AfE9/7tP7pcMR+A8577Irz9s=",
+        "owner": "ozwaldorf",
+        "repo": "pleamar-wm",
+        "rev": "685139660e4799b26471c611d4caba1b7bdd7a1f",
+        "type": "github"
       },
       "original": {
-        "ref": "dual-kawase",
-        "type": "git",
-        "url": "file:///home/oz/Code/pkg/pleamar"
+        "owner": "ozwaldorf",
+        "ref": "animated-cursors",
+        "repo": "pleamar-wm",
+        "type": "github"
       }
     },
     "quickshell": {

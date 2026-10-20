@@ -177,7 +177,7 @@ scene Session {
     // the wallpaper: two slots crossfading, already graded to the palette and
     // cropped to 16:9 by the logic. It drifts with the camera (parallax), and
     // slides with the shell's drawer.
-    permissions { run: "pleamar-wallpaper", "pleamar", "sh" }
+    permissions { run: "pleamar-wallpaper", "sh" }
     text wall.a = ""
     text wall.b = ""
     // A path the shell asks for (`text wall.req ...`, then `emit wall_set`).
@@ -365,10 +365,12 @@ scene Session {
             let flo = win.$i.floating or win.$i.dialog
             let dw = max(win.$i.width, 120)
             let dh = max(win.$i.height, 80)
-            let fgw = if(win.$i.dialog, dw, max(fw.$i, 200))
-            let fgh = if(win.$i.dialog, dh, max(fh.$i, 120))
-            let fgx = if(win.$i.dialog or fw.$i < 1, Ax + (Wa - fgw) / 2, fx.$i)
-            let fgy = if(win.$i.dialog or fw.$i < 1, (Hs - fgh) / 2, fy.$i)
+            // Once moved or stretched (fw set), a dialog keeps where it was put
+            // too; a window rule's float is one.
+            let fgw = if(fw.$i >= 1, max(fw.$i, 200), if(win.$i.dialog, dw, 200))
+            let fgh = if(fw.$i >= 1, max(fh.$i, 120), if(win.$i.dialog, dh, 120))
+            let fgx = if(fw.$i < 1, Ax + (Wa - fgw) / 2, fx.$i)
+            let fgy = if(fw.$i < 1, (Hs - fgh) / 2, fy.$i)
             let full = win.$i.fullscreen
             // A tiled window being carried leaves its place and follows the mouse.
             let lifted = dmode == 1 and dslot == i and tiled
@@ -384,6 +386,35 @@ scene Session {
             follow y.$i = goal.y
             follow w.$i = goal.w
             follow h.$i = goal.h
+
+            // Sent to another monitor by the keyboard: its springs are put where
+            // it is now in that monitor's coordinates (each camera off and on),
+            // so it travels there across the boundary instead of appearing.
+            fact psc.$i = 0
+            fact xing.$i = 0
+            let cam.was.x = if(tiled and not full, pick(psc.$i, vx.0, vx.1, vx.2, vx.3) / max(pick(psc.$i, zm.0, zm.1, zm.2, zm.3), 0.01), 0)
+            let cam.was.y = if(tiled and not full, pick(psc.$i, vy.0, vy.1, vy.2, vy.3) / max(pick(psc.$i, zm.0, zm.1, zm.2, zm.3), 0.01), 0)
+            on change win.$i.screen while ksend == i and win.$i.open {
+                x.$i: x.$i - cam.was.x + pick(psc.$i, mx.0, mx.1, mx.2, mx.3) - pick(sc, mx.0, mx.1, mx.2, mx.3) + camoff.x ~0ms
+                y.$i: y.$i - cam.was.y + camoff.y ~0ms
+                xing.$i = 1
+            }
+            on change win.$i.screen while ksend != i { psc.$i = win.$i.screen }
+            on change win.$i.open while win.$i.open { psc.$i = win.$i.screen }
+            // Landed: drawn on its own monitor alone again.
+            let landed = abs(x.$i - goal.x) < 1 and abs(y.$i - goal.y) < 1 and abs(w.$i - goal.w) < 1
+            // (what it came from is kept until then: the jump above is worked
+            // out after the rule's other changes)
+            on change landed while landed and xing.$i > 0.5 {
+                xing.$i = 0
+                psc.$i = win.$i.screen
+                ksend = if(ksend == i, -1, ksend)
+            }
+            on still xing.$i for 1500ms while xing.$i > 0.5 {
+                xing.$i = 0
+                psc.$i = win.$i.screen
+                ksend = if(ksend == i, -1, ksend)
+            }
             // A window that opens fades in where it goes; one that closes fades
             // out where it was. No growing or shrinking.
             prop seen.$i = 0 ~150ms
@@ -467,12 +498,15 @@ scene Session {
             let w = w.$i
             let h = h.$i
             let r = if(full, 0, radius)
+            // how it stacks, its handles with it
+            let wz = if(full, 100000, if(win.$i.dialog, 60000, if(lifted or xing.$i > 0.5, 90000, if(win.$i.floating, 1000 + stamp.$i, 0))))
             group {
-                z: if(full, 100000, if(win.$i.dialog, 60000, if(lifted, 90000, if(win.$i.floating, 1000 + stamp.$i, 0))))
-                // Carried, it is drawn on every monitor, shifted by where each
-                // sits from its own, so it shows across the boundary.
-                show: if(dmode == 1 and dslot == i, true, here) and seen.$i > 0.005
-                move: if(dmode == 1 and dslot == i, pick(sc, mx.0, mx.1, mx.2, mx.3) - pick(me, mx.0, mx.1, mx.2, mx.3), 0), 0
+                z: wz
+                // Carried, or crossing to another monitor, it is drawn on every
+                // monitor, shifted by where each sits from its own, so it shows
+                // across the boundary.
+                show: if((dmode == 1 and dslot == i) or xing.$i > 0.5, true, here) and seen.$i > 0.005
+                move: if((dmode == 1 and dslot == i) or xing.$i > 0.5, pick(sc, mx.0, mx.1, mx.2, mx.3) - pick(me, mx.0, mx.1, mx.2, mx.3), 0), 0
                 opacity: seen.$i
                 pivot: x + w / 2, y + h / 2
                 scale: 1 - 0.05 * liftp.$i
@@ -495,7 +529,7 @@ scene Session {
                 }
                 group {
                     clip box { from: x, y; size: w, h; corner: r }
-                    window win.$i { at: x, y; size: w, h; ask: if(win.$i.dialog, 0, goal.w), if(win.$i.dialog, 0, goal.h); show: win.$i.open }
+                    window win.$i { at: x, y; size: w, h; ask: if(win.$i.dialog and fw.$i < 1, 0, goal.w), if(win.$i.dialog and fw.$i < 1, 0, goal.h); show: win.$i.open }
                 }
                 box { from: x, y; size: w, h; corner: r; stroke: 1; color: mix(base, text, litp.$i); opacity: 1 - full }
                 // where a carried window would land: this one, marked
@@ -551,15 +585,20 @@ scene Session {
             let edgey = max(min(h / 5, 120), 40)
             // Held while a drag of it lasts, wherever the pointer went.
             let handle = ((keys.super > 0.5 and here) or dslot == i) and win.$i.open and not full and not ov
-            zone box grab.$i { from: x, y; size: w, h; cursor: grab; active: handle }
-            zone box grabl.$i { from: x, y; size: edgex, h; cursor: ew_resize; active: handle }
-            zone box grabr.$i { from: x + w - edgex, y; size: edgex, h; cursor: ew_resize; active: handle }
-            zone box grabt.$i { from: x, y; size: w, edgey; cursor: ns_resize; active: handle }
-            zone box grabb.$i { from: x, y + h - edgey; size: w, edgey; cursor: ns_resize; active: handle }
-            zone box grabtl.$i { from: x, y; size: edgex, edgey; cursor: nwse_resize; active: handle }
-            zone box grabtr.$i { from: x + w - edgex, y; size: edgex, edgey; cursor: nesw_resize; active: handle }
-            zone box grabbl.$i { from: x, y + h - edgey; size: edgex, edgey; cursor: nesw_resize; active: handle }
-            zone box grabbr.$i { from: x + w - edgex, y + h - edgey; size: edgex, edgey; cursor: nwse_resize; active: handle }
+            // In a group of the window's own z, so the handles of one on top
+            // take the press, not those of a tiled one under it.
+            group {
+                z: wz
+                zone box grab.$i { from: x, y; size: w, h; cursor: grab; active: handle }
+                zone box grabl.$i { from: x, y; size: edgex, h; cursor: ew_resize; active: handle }
+                zone box grabr.$i { from: x + w - edgex, y; size: edgex, h; cursor: ew_resize; active: handle }
+                zone box grabt.$i { from: x, y; size: w, edgey; cursor: ns_resize; active: handle }
+                zone box grabb.$i { from: x, y + h - edgey; size: w, edgey; cursor: ns_resize; active: handle }
+                zone box grabtl.$i { from: x, y; size: edgex, edgey; cursor: nwse_resize; active: handle }
+                zone box grabtr.$i { from: x + w - edgex, y; size: edgex, edgey; cursor: nesw_resize; active: handle }
+                zone box grabbl.$i { from: x, y + h - edgey; size: edgex, edgey; cursor: nesw_resize; active: handle }
+                zone box grabbr.$i { from: x + w - edgex, y + h - edgey; size: edgex, edgey; cursor: nwse_resize; active: handle }
+            }
             // Carried from the middle: the edge bands are on top and take
             // their own presses.
             on press grab.$i while pointer.x >= x + edgex and pointer.x < x + w - edgex and pointer.y >= y + edgey and pointer.y < y + h - edgey {
@@ -576,11 +615,11 @@ scene Session {
             // The pointer is told in the coordinates of the monitor it is on,
             // so the window is held by where it was grabbed, drawn on the
             // monitor the pointer is over, and given to it when let go.
-            on drag grab.$i while dmode == 1 {
+            on drag grab.$i while dmode == 1 and dslot == i {
                 g.px = pointer.x
                 g.py = pointer.y + pick(g.hs, org.0, org.1, org.2, org.3) - pick(mon, org.0, org.1, org.2, org.3)
             }
-            on drag grab.$i while dmode == 1 and flo {
+            on drag grab.$i while dmode == 1 and dslot == i and flo {
                 fx.$i = pointer.x + dmx - g.ox
                 fy.$i = pointer.y + pick(g.hs, org.0, org.1, org.2, org.3) - pick(mon, org.0, org.1, org.2, org.3) - g.oy
                 fw.$i = fgw
@@ -588,10 +627,10 @@ scene Session {
             }
             // Carried over another tiled window: that one is marked, and on
             // letting go the two trade places, row heights with them.
-            on drag grab.$i while dmode == 1 and tiled { dropj = -1 }
+            on drag grab.$i while dmode == 1 and dslot == i and tiled { dropj = -1 }
             repeat j in 0..16 {
-                on drag grab.$i while dmode == 1 and tiled and mon == sc and j != i and win.$j.place >= 0 and win.$j.screen == sc and win.$j.pool == win.$i.pool and pointer.x + camx >= x.$j and pointer.x + camx < x.$j + w.$j and pointer.y + camy >= y.$j and pointer.y + camy < y.$j + h.$j { dropj = j }
-                on release grab.$i while dmode == 1 and tiled and dropj == j {
+                on drag grab.$i while dmode == 1 and dslot == i and tiled and mon == sc and j != i and win.$j.place >= 0 and win.$j.screen == sc and win.$j.pool == win.$i.pool and pointer.x + camx >= x.$j and pointer.x + camx < x.$j + w.$j and pointer.y + camy >= y.$j and pointer.y + camy < y.$j + h.$j { dropj = j }
+                on release grab.$i while dmode == 1 and dslot == i and tiled and dropj == j {
                     t.c = cpos.$i
                     t.r = rpos.$i
                     t.h = hp.$i
@@ -605,14 +644,14 @@ scene Session {
             }
             // Let go on another monitor: it goes there, its place turned into
             // that monitor's coordinates at once, so it does not glide across.
-            on release grab.$i while dmode == 1 and mon != sc {
+            on release grab.$i while dmode == 1 and dslot == i and mon != sc {
                 fx.$i = fx.$i - dmx
                 // (from this monitor's rows to that one's: each camera off and on)
                 x.$i: x.$i - camoff.x - dmx + if(tiled, pick(mon, vx.0, vx.1, vx.2, vx.3), 0) ~0ms
                 y.$i: y.$i - camoff.y + if(tiled, pick(mon, vy.0, vy.1, vy.2, vy.3), 0) ~0ms
                 send win(i) to mon
             }
-            on release grab.$i {
+            on release grab.$i while dslot == i {
                 dmode = 0
                 dslot = -1
                 dropj = -1
@@ -869,4 +908,90 @@ scene Session {
     event workspace_on
     on workspace_on(c) { workspace floor(c / 4) on mod(c, 4) }
     on still nwt for 80ms while nw >= 0 { emit place_new }
+
+    // An agent's cursors (`agent on` in session.conf): pleamar-wm says where
+    // each is, on which monitor, and when it presses; they are drawn here, on
+    // a surface of their own over everything, the programs' menus too, and
+    // clicks go through. A ring where it clicks, and its name beside it. They
+    // stay while the agent is at work and fade after.
+    // Its picture: the user's cursor, every frame, tinted blue
+    // (gen/agent-cursor.plm, from the cursor theme), on a clock in ms the logic
+    // keeps while an agent is at work (a `spin` here runs once per monitor).
+    fact agc.clock = 0
+    include "../gen/agent-cursor.plm"
+    text agent.name = "agent"
+    fact agent.active = 0
+    fact agent.win = -1
+    fact agent.screen = -1
+    fact agent.seen = 0
+    // pleamar-wm says agent.active only when it changes, so a scene reloaded
+    // while an agent works would not know: a cursor seen lately counts too.
+    fact ag.recent = false
+    on change agent.0.seen { ag.recent = true }
+    on change agent.1.seen { ag.recent = true }
+    on still agent.0.seen for 90000ms while ag.recent and not agent.active { ag.recent = false }
+    let ag.live = agent.active or ag.recent
+    fact agent.0.x = 0
+    fact agent.0.y = 0
+    fact agent.0.screen = 0
+    fact agent.0.down = 0
+    fact agent.0.seen = 0
+    fact agent.1.x = 0
+    fact agent.1.y = 0
+    fact agent.1.screen = 0
+    fact agent.1.down = 0
+    fact agent.1.seen = 0
+    surface agent_hands {
+        size: full, full
+        anchor: top_left
+        level: overlay
+        screens: each max 4
+        open: ag.live
+        repeat k in 0..2 {
+            // pleamar-wm moves it along the way, as a hand would: this only
+            // smooths the steps.
+            prop ag.$k.x = 0 ~140ms
+            prop ag.$k.y = 0 ~140ms
+            prop ag.$k.on = 0 ~220ms
+            prop ag.$k.press = 0 ~90ms
+            prop ag.$k.ring = 1 ~560ms
+            follow ag.$k.x = agent.$k.x
+            follow ag.$k.y = agent.$k.y
+            follow ag.$k.press = agent.$k.down
+            // Seen again, or on another monitor: there at once, not flying in.
+            on change agent.$k.seen while ag.$k.on < 0.05 {
+                ag.$k.x: agent.$k.x ~0ms
+                ag.$k.y: agent.$k.y ~0ms
+            }
+            on change agent.$k.screen {
+                ag.$k.x: agent.$k.x ~0ms
+                ag.$k.y: agent.$k.y ~0ms
+            }
+            on change agent.$k.seen { ag.$k.on: 1 }
+            on change ag.live while not ag.live { ag.$k.on: 0 ~900ms }
+            on change agent.$k.down while agent.$k.down > 0.5 {
+                ag.$k.ring: 0 ~0ms
+                ag.$k.ring: 1 after 16ms
+            }
+            let ax = ag.$k.x
+            let ay = ag.$k.y
+            measure tag.$k
+            group {
+                show: ag.$k.on > 0.01 and agent.$k.screen == screen.index
+                opacity: ag.$k.on
+                ellipse { at: ax, ay; radius: 4 + 22 * ag.$k.ring; stroke: 2.2 * (1 - ag.$k.ring) + 0.4; color: if(k == 0, teal, lavender); opacity: 80% * (1 - ag.$k.ring) }
+                group {
+                    pivot: ax, ay
+                    scale: 1 - 0.12 * ag.$k.press, 1 - 0.12 * ag.$k.press
+                    // the user's own cursor, tinted blue, its tip on the point
+                    image agc.sheet { at: ax - agc.hx, ay - agc.hy; size: agc.cell, agc.cell; cell: agc.frame, agc.cols, agc.rows }
+                }
+                // Its name underneath, centred on the hand.
+                let tx = ax - agc.hx + agc.cell / 2
+                let ty = ay - agc.hy + agc.cell + 2
+                box { from: tx - tag.$k.width / 2 - 8, ty; size: tag.$k.width + 16, 18; corner: 9; color: crust; opacity: 85% }
+                text agent.name { at: tx, ty + 9.5; anchor: center; size: 10; weight: 600; color: mix(#ffffff, blue, 0.4); family: "Berkeley Mono"; measure: tag.$k }
+            }
+        }
+    }
 }

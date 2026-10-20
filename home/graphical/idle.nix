@@ -21,7 +21,7 @@ let
       # handler as easily as an absent shell, and silence hides the difference.
       veil() {
         qs ipc call veil "$1" >/dev/null 2>&1 ||
-          pleamar --say desk "emit veil_$1" >/dev/null 2>&1 ||
+          pleamar-wm --say desk "emit veil_$1" >/dev/null 2>&1 ||
           printf 'idle-dim: veil %s did not reach the shell\n' "$1" >&2
       }
 

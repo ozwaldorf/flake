@@ -4,7 +4,7 @@
 // everything. The rail sits behind the windows: opening it reserves room, and
 // the window manager slides the strip aside to uncover it.
 //
-// Talked to from outside with `pleamar --say desk "emit ..."`; see the IPC
+// Talked to from outside with `pleamar-wm --say desk "emit ..."`; see the IPC
 // section below. Pages are parts (pages/*.plm), each with its logic module
 // (logic/*.luau, required from desk.luau).
 language 0.4
@@ -12,7 +12,7 @@ import "../gen/theme.plm"
 
 scene Desk {
     permissions {
-        run: "pleamar", "pleamar-wm", "sh", "cat", "awk", "nvidia-smi", "top", "cliphist", "wl-copy", "fortune", "systemctl", "busctl", "slurp", "gpu-screen-recorder", "kill", "rio", "setsid", "nix-locate", "nix", "stat", "uname", "hostname", "id", "readlink", "nixos-version", "lsblk", "findmnt", "curl", "mkdir", "date", "nproc", "zsh", "env"
+        run: "pleamar-wm", "sh", "libinput", "cat", "awk", "nvidia-smi", "top", "cliphist", "wl-copy", "fortune", "systemctl", "busctl", "slurp", "gpu-screen-recorder", "kill", "rio", "setsid", "nix-locate", "nix", "stat", "uname", "hostname", "id", "readlink", "nixos-version", "lsblk", "findmnt", "curl", "mkdir", "date", "nproc", "zsh", "env"
         services: "clock", "clock.seconds", "audio", "audio.*", "battery", "brightness", "brightness.*", "network", "network.*", "bluetooth", "bluetooth.*", "media", "media.*", "window", "window.*", "apps", "apps.*", "tray", "tray.*", "notifications", "notifications.*", "notification_history", "notification_history.*", "session.*", "files", "files.write", "env", "clipboard", "clipboard.set"
     }
 
@@ -29,6 +29,14 @@ scene Desk {
     let pg.y = inset
     spring niri = 800, 57
     spring quint = 260, 32
+
+    // The frosting behind the shell's glass: the window manager's own
+    // (wm/blur.wgsl, dual kawase), so the two match.
+    blur = file "../wm/blur.wgsl" {
+        passes: down 0.5 repeat 5, up 2 repeat 4, grade 1
+        values: 3, 0.02, 1, 1
+        reach: 64
+    }
 
     // icons: Nerd Font glyphs, set by the logic (logic/icons.luau)
     text ic.close = ""
@@ -151,7 +159,7 @@ scene Desk {
     prop veilp = 0 ~200ms
     follow veilp = if(veil, 1, 0)
 
-    // IPC: `pleamar --say desk "emit drawer_toggle 3"` and so on. Pages are
+    // IPC: `pleamar-wm --say desk "emit drawer_toggle 3"` and so on. Pages are
     // 1 settings, 2 info, 3 apps, 4 clipboard, 5 keys; lists are 1 wifi,
     // 2 bluetooth, 3 speaker, 4 mic, 5 power.
     event drawer_toggle
@@ -488,9 +496,10 @@ scene Desk {
         on press veilz { veil = true }
     }
 
-    // the task bar, toasts and the recorder: parts of their own
+    // the task bar, toasts, the recorder and the input overlay: parts of their own
     include "pages/taskbar.plm"
     include "pages/toasts.plm"
+    include "pages/keyshow.plm"
 
     // what the drawer needs from the clock
     service clock as now { time: text = "--:--"; hour: number; minute: number; date: text; weekday: number; day: number; month: number; year: number }

@@ -297,10 +297,12 @@ in
       on move_right while f.on and f.right >= 0 { pan = 1 }
       on move_left while win.focus >= 0 and (not f.on or f.left < 0) and f.sc > 0.5 {
           sendir = -1
+          ksend = win.focus
           send win(win.focus) to f.sc - 1
       }
       on move_right while win.focus >= 0 and (not f.on or f.right < 0) and f.sc < screens.count - 1.5 {
           sendir = 1
+          ksend = win.focus
           send win(win.focus) to f.sc + 1
       }
       // Up or down into the next row, or past the last into a new one, unless
@@ -314,6 +316,8 @@ in
           norm = 1
       }
       fact sendir = 0
+      // the window the keyboard is sending to another monitor, until it lands
+      fact ksend = -1
 
       // The rows become the monitor's own: by moving between them, resizing,
       // or a fifth window.

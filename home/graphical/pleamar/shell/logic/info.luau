@@ -64,7 +64,7 @@ return function(S)
         date +%s
         nixos-version
         readlink -f "$(command -v pleamar-wm)"
-        pleamar --version
+        pleamar-wm --version
     ]] }, function(out)
         local l = {}
         for line in (out .. "\n"):gmatch("([^\n]*)\n") do l[#l + 1] = line end

@@ -90,7 +90,7 @@ part Toasts {
                 shadow: 0, 6, 24, 35%, crust
                 box { from: 0, 0; size: ts.w, words.height + 28; corner: 10 }
             }
-            box { from: 0.5, 0.5; size: ts.w - 1, words.height + 27; corner: 10; stroke: 1; color: if(hit.hover > 0.5, surface2, surface1) }
+            box { from: 0.5, 0.5; size: ts.w - 1, words.height + 27; corner: 10; stroke: 1; color: if(ts.hit.hover > 0.5, surface2, surface1) }
             // The accent bar on the rail's side: red critical, grey low.
             box { from: 0, 0; size: 4, words.height + 28; corner: 2; color: if(n.urgency > 1.5, red, if(n.urgency < 0.5, surface2, yellow)) }
             column words {
@@ -100,9 +100,9 @@ part Toasts {
                 text n.title { size: 12; color: text; family: "Berkeley Mono"; width: ts.w - 28; lines: 2 }
                 text n.body { show: n.hasbody; size: 11; color: overlay2; family: "Berkeley Mono"; width: ts.w - 28; lines: 4 }
             }
-            text ic.close { at: ts.w - 16, 16; anchor: center; size: 11; color: overlay1; family: "FiraCode Nerd Font"; opacity: hit.hover }
-            zone box hit { from: 0, 0; size: ts.w, words.height + 28; corner: 10; cursor: pointer; label: "{n.title}" }
-            on press hit { emit ts_dismiss(n.index) }
+            text ic.close { at: ts.w - 16, 16; anchor: center; size: 11; color: overlay1; family: "FiraCode Nerd Font"; opacity: ts.hit.hover }
+            zone box ts.hit { from: 0, 0; size: ts.w, words.height + 28; corner: 10; cursor: pointer; label: "{n.title}" }
+            on press ts.hit { emit ts_dismiss(n.index) }
         }
     }
 }

@@ -6,7 +6,7 @@ local S = {}
 
 -- Something for the window manager's scene (pleamar-wm's own session).
 function S.wm(...)
-    run("pleamar", { "--say", "wm", ... }, nil, { output = false })
+    run("pleamar-wm", { "--say", "wm", ... }, nil, { output = false })
 end
 
 -- Starts a program loose from the shell, so it outlives it.
@@ -27,7 +27,7 @@ function S.onNotifications(fn)
     table.insert(S.notes, fn)
 end
 
-for _, name in ipairs({ "icons", "meters", "settings", "info", "apps", "clipboard", "keys", "taskbar", "toasts", "recorder" }) do
+for _, name in ipairs({ "icons", "meters", "settings", "info", "apps", "clipboard", "keys", "taskbar", "toasts", "recorder", "keyshow" }) do
     local ok, mod = pcall(require, "logic/" .. name)
     if not ok then
         log("module " .. name .. ": " .. tostring(mod))

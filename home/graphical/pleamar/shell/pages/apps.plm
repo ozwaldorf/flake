@@ -19,7 +19,7 @@ part AppsPage {
 
     // the list
     Well(pg.x, sp.listy, pagew, sp.listh)
-    column ap.list ~quint {
+    column ap.list ~0ms {
         at: pg.x + 5, sp.listy + 5
         view: pagew - 10, sp.listh - 10
         step: ap.step
@@ -41,12 +41,15 @@ part AppsPage {
                 text r.hint { at: pagew - 22, 22; anchor: right center; size: 10; color: overlay0; family: "Berkeley Mono"; opacity: apon }
                 // A fetch's progress.
                 box { from: 46, 41; size: (pagew - 78) * clamp(r.progress, 0, 1), 2; color: sapphire; show: r.progress >= 0 }
-                zone box hit { from: 0, 0; size: pagew - 10, 44; cursor: pointer; label: "{r.title}" }
-                on enter hit { ap.sel = r.index }
-                on press hit { emit ap_go(r.index) }
+                zone box ap.hit { from: 0, 0; size: pagew - 10, 44; cursor: pointer; label: "{r.title}" }
+                on enter ap.hit {
+                    ap.hov = true
+                    ap.sel = r.index
+                }
+                on press ap.hit { emit ap_go(r.index) }
             }
         }
     }
-    on change ap.sel { ap.list.scroll: clamp(ap.list.scroll, (ap.sel + 1) * ap.step - (sp.listh - 10), ap.sel * ap.step) }
+    on change ap.sel while not ap.hov { ap.list.scroll: clamp(ap.list.scroll, (ap.sel + 1) * ap.step - (sp.listh - 10), ap.sel * ap.step) ~quint }
     text "enter launch    tab next    right fill    esc close" { at: pg.x + pagew / 2, sp.hinty; anchor: center; size: 9; color: surface2; family: "Berkeley Mono" }
 }

@@ -9,8 +9,8 @@ let
   palette = (lib.importJSON "${inputs.carburetor}/whiskers.json").mocha;
 
   # Speaking to the shell (`desk`) and the window manager (`wm`) from a key.
-  desk = cmd: "pleamar --say desk \"${cmd}\"";
-  wm = cmd: "pleamar --say wm \"${cmd}\"";
+  desk = cmd: "pleamar-wm --say desk \"${cmd}\"";
+  wm = cmd: "pleamar-wm --say wm \"${cmd}\"";
 
   # Graded copies of the wallpapers: cropped to 16:9 and run through the
   # carburetor CLUT once, when they are first shown, instead of every frame.
@@ -199,7 +199,31 @@ let
 
   # What the scenes need that is generated: linked into the working tree as
   # pleamar/gen (ignored by git), where the scenes include it from.
+  # The agent's cursor: the user's own (the theme's `default`, every frame),
+  # tinted blue, as a sheet the window manager scene draws.
+  agentCursor =
+    let
+      cursor = config.home.pointerCursor;
+    in
+    pkgs.runCommand "pleamar-agent-cursor"
+      {
+        nativeBuildInputs = [
+          pkgs.python3
+          pkgs.imagemagick
+        ];
+      }
+      ''
+        mkdir -p $out
+        python3 ${./pleamar/agent-cursor.py} ${cursor.package}/share/icons/${cursor.name}/cursors/default \
+          ${toString (cursor.size * 3 / 2)} ${toString cursor.size} $out
+        magick -size $(cat $out/agent-cursor.size) -depth 8 rgba:$out/agent-cursor.rgba \
+          -fill '#${palette.blue}' -colorize 40% $out/agent-cursor.png
+        rm $out/agent-cursor.rgba $out/agent-cursor.size
+      '';
+
   generated = pkgs.linkFarm "pleamar-generated" {
+    "agent-cursor.plm" = "${agentCursor}/agent-cursor.plm";
+    "agent-cursor.png" = "${agentCursor}/agent-cursor.png";
     "theme.plm" = pkgs.writeText "theme.plm" (import ./pleamar/theme.nix { inherit lib palette; });
     "rows.plm" = pkgs.writeText "rows.plm" (import ./pleamar/wm/rows.nix { inherit lib; });
     "keybinds.luau" = pkgs.writeText "keybinds.luau" keybindsLuau;
@@ -210,7 +234,7 @@ let
   tree = "/etc/nixos/home/graphical/pleamar";
 
   autostart = ''
-    pleamar --scene ${config.xdg.configHome}/pleamar/shells/desk/desk.plm --no-hud
+    pleamar-wm --scene ${config.xdg.configHome}/pleamar/shells/desk/desk.plm --no-hud
     wm: ${lib.getExe pkgs.swayidle} -w timeout 300 'idle-dim dim' resume 'idle-dim restore'
     wm: wl-paste --type text --watch cliphist store
     wm: wl-paste --type image --watch cliphist store
@@ -220,7 +244,7 @@ let
 in
 {
   home.packages = [
-    pkgs.pleamar
+    pkgs.libinput
     wallpaper
     shotWindow
     shotRegion
@@ -250,6 +274,6 @@ in
   '';
 
   home.activation.pleamarSkill =lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-    run ${lib.getExe pkgs.pleamar} --install-skill
+    run ${lib.getExe pkgs.pleamar-wm} --install-skill
   '';
 }

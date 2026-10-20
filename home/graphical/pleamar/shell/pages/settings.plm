@@ -1,6 +1,6 @@
 // The control centre: calendar, connectivity, power and brightness, audio,
 // what is playing, the tray, and the notification history under it all.
-// Lists open in place under the row whose tile asked for them (`list`).
+// Lists pop out of the tile that asked for them, over what follows (`list`).
 part SettingsPage {
 
     // what the logic works out
@@ -25,28 +25,28 @@ part SettingsPage {
     // A toggle tile: a puck that switches, a body that opens its list, the
     // chevron only where there is one to open. Not stacked over a status,
     // the label sits level with the puck.
-    component CcTile(icon: text, label: text, status: text, lit: bool, opened: bool, tap: event, open: event, w: number, h: number = 62, chev: bool = true, stacked: bool = true) {
+    component CcTile(icon: text, label: text, status: text, lit: bool, opened: bool, tap: event, open: event, w: number, h: number = 62, chev: bool = true, stacked: bool = true, idx: number = 0) {
         size: w, h
         let lx = 48 + if(w < 150, 8, 14)
-        zone box hit { from: 0, 0; size: w, h; corner: 9; cursor: pointer }
+        zone box cct.hit { from: 0, 0; size: w, h; corner: 9; cursor: pointer }
         zone ellipse puck { at: 31, h / 2; radius: 17; cursor: pointer }
         Well(0, 0, w, h)
-        box { from: 0, 0; size: w, h; corner: 9; color: text; opacity: 0.04 * hit.hover }
+        box { from: 0, 0; size: w, h; corner: 9; color: text; opacity: 0.04 * cct.hit.hover }
         ellipse { at: 31, h / 2; radius: 17; color: if(lit, blue, mix(surface1, text, 0.12 * puck.hover)) }
         text icon { at: 31, h / 2; anchor: center; size: 15; family: "FiraCode Nerd Font"; color: if(lit, crust, text) }
         text label { at: lx, if(stacked, h / 2 - 7, h / 2); anchor: left center; size: 11; color: text; family: "Berkeley Mono" }
         text status { at: lx, h / 2 + 7.5; anchor: left center; size: 10; width: w - lx - 38; lines: 1; color: overlay0; family: "Berkeley Mono" }
-        text cc.ic.chev { at: w - 24, h / 2; anchor: center; size: 10; family: "FiraCode Nerd Font"; color: if(opened or hit.hover, text, overlay0); opacity: chev }
-        on press hit while chev { emit open }
-        on press puck { emit tap }
+        text cc.ic.chev { at: w - 24, h / 2; anchor: center; size: 10; family: "FiraCode Nerd Font"; color: if(opened or cct.hit.hover, text, overlay0); opacity: chev }
+        on press cct.hit while chev { emit open(idx) }
+        on press puck { emit tap(idx) }
     }
 
     // A level card: a label over its device, a glyph that toggles and a
     // track along the foot; the value or a chevron set against the label.
-    component CcLevel(icon: text, label: text, sub: text, level: number, muted: bool, opened: bool, w: number, glyph: event, set: event, step: event, open: event, h: number = 84, value: bool = false, chev: bool = true) {
+    component CcLevel(icon: text, label: text, sub: text, level: number, muted: bool, opened: bool, w: number, glyph: event, set: event, step: event, open: event, h: number = 84, value: bool = false, chev: bool = true, idx: number = 0) {
         size: w, h
         let ty = h - 23
-        zone box hit { from: 0, 0; size: w, h; corner: 9 }
+        zone box ccl.hit { from: 0, 0; size: w, h; corner: 9 }
         Well(0, 0, w, h)
         text label { at: 14, 21; anchor: left center; size: 11; color: text; family: "Berkeley Mono" }
         text "{round(level * 100)}%" { at: w - 14, 21; anchor: right center; size: 10; color: overlay1; family: "Berkeley Mono"; opacity: value }
@@ -63,19 +63,19 @@ part SettingsPage {
         on press glyphz { emit glyph }
         on press track { emit set(clamp((local.x - 43) / (w - 58), 0, 1)) }
         on drag track { emit set(clamp((local.x - 43) / (w - 58), 0, 1)) }
-        on scroll hit { emit step(wheel) }
-        on press chevz { emit open }
+        on scroll ccl.hit { emit step(wheel) }
+        on press chevz { emit open(idx) }
     }
 
     // A row of an open list.
-    component CcRow(label: text, dot: bool, ring: bool, pick: event, idx: number, tone: color = text) {
-        size: 372, 26
-        zone box hit { from: 0, 0; size: 372, 26; corner: 6; cursor: pointer }
-        box { from: 0, 0; size: 372, 26; corner: 6; color: surface0; opacity: 0.6 * hit.hover }
+    component CcRow(label: text, dot: bool, ring: bool, pick: event, idx: number, tone: color = text, w: number = 372) {
+        size: w, 26
+        zone box ccr.hit { from: 0, 0; size: w, 26; corner: 6; cursor: pointer }
+        box { from: 0, 0; size: w, 26; corner: 6; color: surface0; opacity: 0.6 * ccr.hit.hover }
         ellipse { at: 12, 13; radius: 3.5; color: blue; opacity: dot }
         ellipse { at: 12, 13; radius: 3.5; stroke: 1.2; color: overlay1; opacity: ring and not dot }
-        text label { at: 26, 13; anchor: left center; size: 11; width: 300; lines: 1; color: tone; family: "Berkeley Mono" }
-        on press hit { emit pick(idx) }
+        text label { at: 26, 13; anchor: left center; size: 11; width: w - 90; lines: 1; color: tone; family: "Berkeley Mono" }
+        on press ccr.hit { emit pick(idx) }
     }
 
     column cc.col {
@@ -130,112 +130,25 @@ part SettingsPage {
         // Wi-Fi and Bluetooth
         row {
             gap: 8
-            CcTile(cc.ic.wifi, "Wi-Fi", cc.wifi.status, ccnet.wifi, list == 1, cc.wifi_toggle, cc.pick_list, (pagew - 8) / 2, chev: ccnet.wifi) { show: true }
-            CcTile(cc.ic.bt, "Bluetooth", cc.btstatus, ccbt.powered, list == 2, cc.bt_toggle, cc.pick_list, (pagew - 8) / 2, chev: ccbt.powered) { show: ccbt.present }
+            CcTile(cc.ic.wifi, "Wi-Fi", cc.wifi.status, ccnet.wifi, list == 1, cc.wifi_toggle, cc.pick_list, (pagew - 8) / 2, chev: ccnet.wifi, idx: 1) { show: true }
+            CcTile(cc.ic.bt, "Bluetooth", cc.btstatus, ccbt.powered, list == 2, cc.bt_toggle, cc.pick_list, (pagew - 8) / 2, chev: ccbt.powered, idx: 2) { show: ccbt.present }
         }
-        group {
-            show: list == 1
-            size: pagew, 34 + max(ccnets.count, 1) * 27 + if(cc.askpw, 36, 0)
-            box { from: 0, 0; size: pagew, 34 + max(ccnets.count, 1) * 27 + if(cc.askpw, 36, 0); corner: 9; color: base }
-            text "Networks" { at: 14, 16; anchor: left center; size: 10; color: overlay1; family: "Berkeley Mono" }
-            text "Scanning..." { at: 14, 44; anchor: left center; size: 10; color: overlay0; family: "Berkeley Mono"; opacity: ccnets.count == 0 }
-            column {
-                at: 14, 30
-                gap: 1
-                for r in ccnets {
-                    group {
-                        size: 372, 26
-                        CcRow(r.ssid, r.active, r.known, cc.wifi_pick, r.index, tone: if(r.active, text, subtext0)) {}
-                        text cc.ic.lock { at: 312, 13; anchor: center; size: 10; family: "FiraCode Nerd Font"; color: overlay0; opacity: r.secure }
-                        repeat b in 0..4 {
-                            box { from: 330 + b * 7, 19 - 3 * (b + 1); size: 4, 3 * (b + 1); corner: 1; color: if(r.strength * if(r.strength <= 1, 100, 1) > b * 25, subtext0, surface1) }
-                        }
-                    }
-                }
-            }
-            group {
-                show: cc.askpw
-                box { from: 14, 34 + max(ccnets.count, 1) * 27 - 2; size: 372, 28; corner: 6; color: surface0 }
-                input cc.pw { at: 24, 34 + max(ccnets.count, 1) * 27 + 3; width: 300; size: 11; color: text; family: "Berkeley Mono"; placeholder: "Password, then enter"; secret: true }
-            }
-        }
-        group {
-            show: list == 2
-            size: pagew, 34 + max(ccbts.count, 1) * 27
-            box { from: 0, 0; size: pagew, 34 + max(ccbts.count, 1) * 27; corner: 9; color: base }
-            text "Devices" { at: 14, 16; anchor: left center; size: 10; color: overlay1; family: "Berkeley Mono" }
-            text "Searching..." { at: 14, 44; anchor: left center; size: 10; color: overlay0; family: "Berkeley Mono"; opacity: ccbts.count == 0 }
-            column {
-                at: 14, 30
-                gap: 1
-                for r in ccbts {
-                    group {
-                        size: 372, 26
-                        CcRow(r.name, r.connected, r.paired, cc.bt_pick, r.index, tone: if(r.connected, text, subtext0)) {}
-                        text "{round(r.battery * 100)}%" { at: 364, 13; anchor: right center; size: 10; family: "Berkeley Mono"; color: if(r.battery <= 0.2, peach, overlay1); opacity: r.battery >= 0 }
-                        text "Pair" { at: 364, 13; anchor: right center; size: 10; family: "Berkeley Mono"; color: blue; opacity: not r.paired }
-                        zone box cc.forget { at: 300, 13; size: 52, 22; cursor: pointer; active: r.paired }
-                        text "Forget" { at: 300, 13; anchor: center; size: 9; family: "Berkeley Mono"; color: red; opacity: cc.forget.hover * r.paired }
-                        on press cc.forget { emit cc.bt_forget(r.index) }
-                    }
-                }
-            }
-        }
+
+        // the input overlay
+        CcTile(ic.keyboard, "Show input", pick(if(ks.on, 1, 0), "Off", "Keys and clicks on screen"), ks.on, false, ks_toggle, ks_toggle, pagew, chev: false) {}
 
         // power, and the backlight
         row {
             gap: 8
-            CcTile(cc.ic.power, "Power", "", list == 5, list == 5, cc.pick_list, cc.pick_list, (pagew - 16) / 3, h: 70, stacked: false) {}
+            CcTile(cc.ic.power, "Power", "", list == 5, list == 5, cc.pick_list, cc.pick_list, (pagew - 16) / 3, h: 70, stacked: false, idx: 5) {}
             CcLevel(cc.ic.sun, "Brightness", "", ccbri.level, false, false, pagew - 8 - (pagew - 16) / 3, cc.bri_step, cc.bri_set, cc.bri_step, cc.bri_step, h: 70, value: true, chev: false) { show: ccbri.present }
-        }
-        group {
-            show: list == 5
-            size: pagew, 34 + 2 * 27
-            box { from: 0, 0; size: pagew, 34 + 2 * 27; corner: 9; color: base }
-            text "Session" { at: 14, 16; anchor: left center; size: 10; color: overlay1; family: "Berkeley Mono" }
-            column {
-                at: 14, 30
-                gap: 1
-                repeat p in 0..2 {
-                    group {
-                        size: 372, 26
-                        zone box cc.pw.$p { from: 0, 0; size: 372, 26; corner: 6; cursor: pointer }
-                        box { from: 0, 0; size: 372, 26; corner: 6; color: surface0; opacity: 0.6 * cc.pw.$p.hover }
-                        text pick(p, "Restart", "Shut down") { at: 12, 13; anchor: left center; size: 11; family: "Berkeley Mono"; color: mix(text, red, cc.pw.$p.hover) }
-                        text "Waiting" { at: 360, 13; anchor: right center; size: 10; family: "Berkeley Mono"; color: overlay1; opacity: cc.pending == p }
-                        on press cc.pw.$p { emit cc.power(p) }
-                    }
-                }
-            }
         }
 
         // volume and microphone
         row {
             gap: 8
-            CcLevel(cc.ic.vol, "Volume", cc.out.name, ccau.volume, ccau.muted, list == 3, pagew - 8 - (pagew - 16) / 3, cc.mute, cc.vol_set, cc.vol_step, cc.pick_list) {}
-            CcLevel(cc.ic.mic, "Mic", cc.in.name, ccau.input, ccau.input_muted, list == 4, (pagew - 16) / 3, cc.mic_mute, cc.mic_set, cc.mic_step, cc.pick_list) {}
-        }
-        group {
-            show: list == 3
-            size: pagew, 34 + max(ccouts.count, 1) * 27
-            box { from: 0, 0; size: pagew, 34 + max(ccouts.count, 1) * 27; corner: 9; color: base }
-            text "Output" { at: 14, 16; anchor: left center; size: 10; color: overlay1; family: "Berkeley Mono" }
-            column {
-                at: 14, 30
-                gap: 1
-                for r in ccouts { CcRow(r.name, r.default, false, cc.out_pick, r.index, tone: if(r.default, text, subtext0)) }
-            }
-        }
-        group {
-            show: list == 4
-            size: pagew, 34 + max(ccins.count, 1) * 27
-            box { from: 0, 0; size: pagew, 34 + max(ccins.count, 1) * 27; corner: 9; color: base }
-            text "Input" { at: 14, 16; anchor: left center; size: 10; color: overlay1; family: "Berkeley Mono" }
-            column {
-                at: 14, 30
-                gap: 1
-                for r in ccins { CcRow(r.name, r.default, false, cc.in_pick, r.index, tone: if(r.default, text, subtext0)) }
-            }
+            CcLevel(cc.ic.vol, "Volume", cc.out.name, ccau.volume, ccau.muted, list == 3, pagew - 8 - (pagew - 16) / 3, cc.mute, cc.vol_set, cc.vol_step, cc.pick_list, idx: 3) {}
+            CcLevel(cc.ic.mic, "Mic", cc.in.name, ccau.input, ccau.input_muted, list == 4, (pagew - 16) / 3, cc.mic_mute, cc.mic_set, cc.mic_step, cc.pick_list, idx: 4) {}
         }
 
         // what is playing
@@ -344,6 +257,154 @@ part SettingsPage {
             box { at: pagew / 2, 17; size: 120, 30; corner: 15; color: mix(cc.well, text, 0.06 * cc.clearz.hover) }
             text "Clear all" { at: pagew / 2, 17; anchor: center; size: 11; color: subtext0; family: "Berkeley Mono" }
             on press cc.clearz { emit cc.clear }
+        }
+    }
+
+    // An open list pops out of its tile: a card on the tile's corner, two
+    // thirds of the row or the tile's own width, reaching across from the
+    // side with room. It lies over what follows and carries the tile's head;
+    // a press anywhere else on the page puts it away. The tile last opened is
+    // held through the fade out.
+    fact cc.held = 0
+    on change list while list > 0 { cc.held = list }
+    prop cc.pop = 0 ~160ms
+    follow cc.pop = if(list > 0, 1, 0)
+    let cc.k = cc.held - 1
+    // the tiles' places in the column: under the calendar, the Wi-Fi row, the
+    // input tile and the power row
+    let cc.ty = pick(cc.k, 217, 217, 435, 435, 357)
+    let cc.tx = pick(cc.k, 0, (pagew + 8) / 2, 0, pagew - (pagew - 16) / 3, 0)
+    let cc.tw = pick(cc.k, (pagew - 8) / 2, (pagew - 8) / 2, pagew - 8 - (pagew - 16) / 3, (pagew - 16) / 3, (pagew - 16) / 3)
+    let cc.cw = max(cc.tw, (pagew - 8) * 2 / 3)
+    let cc.cx = pg.x + if(cc.tx + cc.cw <= pagew + 0.5, cc.tx, cc.tx + cc.tw - cc.cw)
+    let cc.cy = pg.y + cc.ty - cc.col.scroll
+    let cc.rw = cc.cw - 12
+    let cc.ly = cc.cy + 69
+    let cc.lh = min(max(pick(cc.k, ccnets.count, ccbts.count, ccouts.count, ccins.count, 2), 1) * 27 - 1, 200)
+    let cc.ch = 75 + cc.lh + if(cc.held == 1 and cc.askpw, 36, 0)
+    let cc.lit = pick(cc.k, if(ccnet.wifi, 1, 0), if(ccbt.powered, 1, 0), if(ccau.muted, 0, 1), if(ccau.input_muted, 0, 1), 1)
+
+    zone box cc.away { from: pg.x, pg.y; size: pagew, pg.h; active: list > 0 }
+    on press cc.away { list = 0 }
+
+    group {
+        show: cc.held > 0
+        opacity: cc.pop
+        // Solid rather than a well: it lies over the tiles.
+        body {
+            color: base
+            shadow: 0, 6, 24, 35%, crust
+            box { from: cc.cx, cc.cy; size: cc.cw, cc.ch; corner: 9 }
+        }
+        box { from: cc.cx + 0.5, cc.cy + 0.5; size: cc.cw - 1, cc.ch - 1; corner: 9; stroke: 1; color: surface1 }
+        zone box cc.card { from: cc.cx, cc.cy; size: cc.cw, cc.ch; corner: 9 }
+
+        // the tile's head: its glyph, still the switch, its name and state,
+        // and a chevron that folds the card back
+        zone ellipse cc.kpuck { at: cc.cx + 31, cc.cy + 31; radius: 17; cursor: pointer; label: "Toggle" }
+        ellipse { at: cc.cx + 31, cc.cy + 31; radius: 17; color: if(cc.lit > 0.5, blue, mix(surface1, text, 0.12 * cc.kpuck.hover)) }
+        text pick(cc.k, cc.ic.wifi, cc.ic.bt, cc.ic.vol, cc.ic.mic, cc.ic.power) { at: cc.cx + 31, cc.cy + 31; anchor: center; size: 15; family: "FiraCode Nerd Font"; color: if(cc.lit > 0.5, crust, text) }
+        text pick(cc.k, "Wi-Fi", "Bluetooth", "Volume", "Mic", "Power") { at: cc.cx + 62, cc.cy + 24; anchor: left center; size: 11; color: text; family: "Berkeley Mono" }
+        text pick(cc.k, cc.wifi.status, cc.btstatus, cc.out.name, cc.in.name, cc.power.status) { at: cc.cx + 62, cc.cy + 38.5; anchor: left center; size: 10; width: cc.cw - 140; lines: 1; color: overlay0; family: "Berkeley Mono" }
+        text "{round(if(cc.held == 3, ccau.volume, ccau.input) * 100)}%" { at: cc.cx + cc.cw - 46, cc.cy + 31; anchor: right center; size: 10; color: overlay1; family: "Berkeley Mono"; opacity: cc.held == 3 or cc.held == 4 }
+        zone box cc.kclose { at: cc.cx + cc.cw - 24, cc.cy + 31; size: 32, 32; cursor: pointer; label: "Close" }
+        group {
+            pivot: cc.cx + cc.cw - 24, cc.cy + 31
+            rotate: -90deg
+            text cc.ic.chev { at: cc.cx + cc.cw - 24, cc.cy + 31; anchor: center; size: 10; family: "FiraCode Nerd Font"; color: if(cc.kclose.hover, text, overlay0) }
+        }
+        on press cc.kpuck while cc.held == 1 { emit cc.wifi_toggle }
+        on press cc.kpuck while cc.held == 2 { emit cc.bt_toggle }
+        on press cc.kpuck while cc.held == 3 { emit cc.mute }
+        on press cc.kpuck while cc.held == 4 { emit cc.mic_mute }
+        on press cc.kclose { list = 0 }
+        box { from: cc.cx + 12, cc.cy + 62; size: cc.cw - 24, 1; color: surface1; opacity: 0.6 }
+
+        // networks
+        group {
+            show: cc.held == 1
+            text "Scanning..." { at: cc.cx + 18, cc.ly + 13; anchor: left center; size: 10; color: overlay0; family: "Berkeley Mono"; opacity: ccnets.count == 0 }
+            column {
+                at: cc.cx + 6, cc.ly
+                view: cc.rw, cc.lh
+                gap: 1
+                for r in ccnets {
+                    group {
+                        size: cc.rw, 26
+                        CcRow(r.ssid, r.active, r.known, cc.wifi_pick, r.index, tone: if(r.active, text, subtext0), w: cc.rw) {}
+                        text cc.ic.lock { at: cc.rw - 52, 13; anchor: center; size: 10; family: "FiraCode Nerd Font"; color: overlay0; opacity: r.secure }
+                        repeat b in 0..4 {
+                            box { from: cc.rw - 38 + b * 7, 19 - 3 * (b + 1); size: 4, 3 * (b + 1); corner: 1; color: if(r.strength * if(r.strength <= 1, 100, 1) > b * 25, subtext0, surface1) }
+                        }
+                    }
+                }
+            }
+            group {
+                show: cc.askpw
+                box { from: cc.cx + 6, cc.ly + cc.lh + 4; size: cc.rw, 28; corner: 6; color: surface0 }
+                input cc.pw { at: cc.cx + 16, cc.ly + cc.lh + 9; width: cc.rw - 20; size: 11; color: text; family: "Berkeley Mono"; placeholder: "Password, then enter"; secret: true }
+            }
+        }
+
+        // Bluetooth devices
+        group {
+            show: cc.held == 2
+            text "Searching..." { at: cc.cx + 18, cc.ly + 13; anchor: left center; size: 10; color: overlay0; family: "Berkeley Mono"; opacity: ccbts.count == 0 }
+            column {
+                at: cc.cx + 6, cc.ly
+                view: cc.rw, cc.lh
+                gap: 1
+                for r in ccbts {
+                    group {
+                        size: cc.rw, 26
+                        CcRow(r.name, r.connected, r.paired, cc.bt_pick, r.index, tone: if(r.connected, text, subtext0), w: cc.rw) {}
+                        text "{round(r.battery * 100)}%" { at: cc.rw - 8, 13; anchor: right center; size: 10; family: "Berkeley Mono"; color: if(r.battery <= 0.2, peach, overlay1); opacity: r.battery >= 0 }
+                        text "Pair" { at: cc.rw - 8, 13; anchor: right center; size: 10; family: "Berkeley Mono"; color: blue; opacity: not r.paired }
+                        zone box cc.forget { at: cc.rw - 72, 13; size: 52, 22; cursor: pointer; active: r.paired }
+                        text "Forget" { at: cc.rw - 72, 13; anchor: center; size: 9; family: "Berkeley Mono"; color: red; opacity: cc.forget.hover * r.paired }
+                        on press cc.forget { emit cc.bt_forget(r.index) }
+                    }
+                }
+            }
+        }
+
+        // outputs and inputs
+        group {
+            show: cc.held == 3
+            column {
+                at: cc.cx + 6, cc.ly
+                view: cc.rw, cc.lh
+                gap: 1
+                for r in ccouts { CcRow(r.name, r.default, false, cc.out_pick, r.index, tone: if(r.default, text, subtext0), w: cc.rw) }
+            }
+        }
+        group {
+            show: cc.held == 4
+            column {
+                at: cc.cx + 6, cc.ly
+                view: cc.rw, cc.lh
+                gap: 1
+                for r in ccins { CcRow(r.name, r.default, false, cc.in_pick, r.index, tone: if(r.default, text, subtext0), w: cc.rw) }
+            }
+        }
+
+        // the session
+        group {
+            show: cc.held == 5
+            column {
+                at: cc.cx + 6, cc.ly
+                gap: 1
+                repeat p in 0..2 {
+                    group {
+                        size: cc.rw, 26
+                        zone box cc.pw.$p { from: 0, 0; size: cc.rw, 26; corner: 6; cursor: pointer }
+                        box { from: 0, 0; size: cc.rw, 26; corner: 6; color: surface0; opacity: 0.6 * cc.pw.$p.hover }
+                        text pick(p, "Restart", "Shut down") { at: 12, 13; anchor: left center; size: 11; family: "Berkeley Mono"; color: mix(text, red, cc.pw.$p.hover) }
+                        text "Waiting" { at: cc.rw - 12, 13; anchor: right center; size: 10; family: "Berkeley Mono"; color: overlay1; opacity: cc.pending == p }
+                        on press cc.pw.$p { emit cc.power(p) }
+                    }
+                }
+            }
         }
     }
 

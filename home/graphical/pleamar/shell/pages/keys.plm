@@ -12,7 +12,7 @@ part KeysPage {
 
     // the list
     Well(pg.x, sp.listy, pagew, sp.listh)
-    column ky.list ~quint {
+    column ky.list ~0ms {
         at: pg.x + 5, sp.listy + 5
         view: pagew - 10, sp.listh - 10
         step: ky.step
@@ -35,11 +35,14 @@ part KeysPage {
                     row { padding: 3; fill: surface1; corner: 4; show: r.caps > 2.5; space 2; text r.k3 { size: 10; color: subtext1; family: "Berkeley Mono" }; space 2 }
                     row { padding: 3; fill: surface1; corner: 4; show: r.caps > 3.5; space 2; text r.k4 { size: 10; color: subtext1; family: "Berkeley Mono" }; space 2 }
                 }
-                zone box hit { from: 0, 0; size: pagew - 10, 30; label: "{r.label}" }
-                on enter hit { ky.sel = r.index }
+                zone box ky.hit { from: 0, 0; size: pagew - 10, 30; label: "{r.label}" }
+                on enter ky.hit {
+                    ky.hov = true
+                    ky.sel = r.index
+                }
             }
         }
     }
-    on change ky.sel { ky.list.scroll: clamp(ky.list.scroll, (ky.sel + 1) * ky.step - (sp.listh - 10), ky.sel * ky.step) }
+    on change ky.sel while not ky.hov { ky.list.scroll: clamp(ky.list.scroll, (ky.sel + 1) * ky.step - (sp.listh - 10), ky.sel * ky.step) ~quint }
     text "type to filter    esc close" { at: pg.x + pagew / 2, sp.hinty; anchor: center; size: 9; color: surface2; family: "Berkeley Mono" }
 }

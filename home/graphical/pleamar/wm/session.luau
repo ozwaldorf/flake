@@ -1,11 +1,11 @@
 -- The window manager's logic: the wallpaper, and what the shell is told about
 -- workspaces, the focused monitor and the overview. The shell answers to
--- `pleamar --say desk`; when it is not running the calls simply fail.
+-- `pleamar-wm --say desk`; when it is not running the calls simply fail.
 
 -- The window manager itself has no PLEAMAR_SOCKETS, where the scenes of its
 -- session (the shell) keep theirs: it is named after its first display.
 local function tell(...)
-    run("sh", { "-c", 'PLEAMAR_SOCKETS="$XDG_RUNTIME_DIR/pleamar-pleamar-1" exec pleamar --say desk "$@"', "sh", ... }, nil, { output = false })
+    run("sh", { "-c", 'PLEAMAR_SOCKETS="$XDG_RUNTIME_DIR/pleamar-pleamar-1" exec pleamar-wm --say desk "$@"', "sh", ... }, nil, { output = false })
 end
 
 -- the shell
@@ -142,4 +142,14 @@ every(2000, tbSend)
 on("tb_hello", function()
     tbLast = nil
     tbSend()
+end)
+
+-- The agent cursor's clock (agc.clock, ms), for its frames: only while an
+-- agent's cursor shows. A `spin` in this scene runs once per monitor drawing
+-- it, so the time is kept here.
+local AGC_STEP = 30
+every(AGC_STEP, function()
+    if fact["ag.recent"] or on_(fact["agent.active"]) then
+        fact["agc.clock"] = (fact["agc.clock"] or 0) + AGC_STEP
+    end
 end)
