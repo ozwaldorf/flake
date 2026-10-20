@@ -927,6 +927,26 @@ scene Session {
     event move_down
     event cycle_width
     event cycle_height
+    // Each monitor by its index: the keyboard to the window that had it there
+    // last (or to the monitor, if it shows none), or the focused window sent
+    // there.
+    event focus_monitor
+    event move_monitor
+    repeat s in 0..4 {
+        on focus_monitor(v) while v == s and s < screens.count and m.topslot.$s >= 0 {
+            pan = 1
+            focus win(m.topslot.$s)
+        }
+        on focus_monitor(v) while v == s and s < screens.count and m.topslot.$s < 0 {
+            kmon = s
+            focus win(-1)
+        }
+        on move_monitor(v) while v == s and s < screens.count and win.focus >= 0 and f.sc != s {
+            sendir = if(s > f.sc, 1, -1)
+            ksend = win.focus
+            send win(win.focus) to s
+        }
+    }
     on close while win.focus >= 0 { close win(win.focus) }
     on fullscreen while win.focus >= 0 { fullscreen win(win.focus) }
     on toggle_float while win.focus >= 0 and not f.on and pick(f, win.0.floating, win.1.floating, win.2.floating, win.3.floating, win.4.floating, win.5.floating, win.6.floating, win.7.floating, win.8.floating, win.9.floating, win.10.floating, win.11.floating, win.12.floating, win.13.floating, win.14.floating, win.15.floating) > 0.5 { tile win(win.focus) }
