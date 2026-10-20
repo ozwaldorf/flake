@@ -21,12 +21,12 @@ scene Session {
     // How far the wallpaper moves for the camera's distance.
     let para = 0.18
 
-    // The frosting behind the windows' glass (blur.wgsl): dual kawase, five
-    // halvings and four doublings back, then a grade. values: tap reach,
-    // noise, saturation, brightness.
+    // The frosting behind the windows' glass (blur.wgsl): Apple's backdrop,
+    // saturated, then a gaussian at a quarter of the size. values: sigma,
+    // saturation, brightness; lighten floor, darken ceiling.
     blur = file "blur.wgsl" {
-        passes: down 0.5 repeat 5, up 2 repeat 4, grade 1
-        values: 3, 0.02, 1, 1
+        passes: down 0.5 repeat 2, h 1, v 1
+        values: 30, 1.8, 0, 0, 0, 1
         reach: 64
     }
 
