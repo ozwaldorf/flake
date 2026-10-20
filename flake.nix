@@ -47,8 +47,9 @@
       url = "github:k3d3/claude-desktop-linux-flake";
       flake = false;
     };
+    # Full-resolution large images and `fit:`, until k4ditano/pleamar#92 is merged
     pleamar = {
-      url = "github:k4ditano/pleamar";
+      url = "github:ozwaldorf/pleamar/large-images";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     # Animated cursors and transitions, until k4ditano/pleamar-wm#18 is merged

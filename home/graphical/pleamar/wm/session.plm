@@ -174,9 +174,9 @@ scene Session {
     let Wm = screen.width
     let Hm = screen.height
 
-    // the wallpaper: two slots crossfading, already graded to the palette and
-    // cropped to 16:9 by the logic. It drifts with the camera (parallax), and
-    // slides with the shell's drawer.
+    // the wallpaper: two slots crossfading, already graded to the palette by
+    // the logic, at the file's own pixels and cut to cover each monitor. It
+    // drifts with the camera (parallax), and slides with the shell's drawer.
     permissions { run: "pleamar-wallpaper", "sh" }
     text wall.a = ""
     text wall.b = ""
@@ -187,8 +187,8 @@ scene Session {
     follow wall.mix = wall.pick
     event wall_next ->
     event wall_set ->
-    image wall.ia = from wall.a, 1920, 1080
-    image wall.ib = from wall.b, 1920, 1080
+    image wall.ia = from wall.a, 0, 0
+    image wall.ib = from wall.b, 0, 0
     // While the next one is fetched and graded, what is up breathes.
     fact wall.busy = false
     fact wall.ph = 0
@@ -207,14 +207,14 @@ scene Session {
     }
     // Bigger than the monitor by what the parallax may reach, which it
     // follows on the camera's own springs.
-    let wv.w = max(Wm, Hm * 16 / 9) * 1.2
-    let wv.h = wv.w * 9 / 16
+    let wv.w = Wm * 1.2
+    let wv.h = Hm * 1.2
     let wv.mx = (wv.w - Wm) / 2
     let wv.my = (wv.h - Hm) / 2
     let wv.ox = clamp(-pick(me, vx.0, vx.1, vx.2, vx.3) * para, -wv.mx, wv.mx) - wv.mx + pick(me, wv.p.0, wv.p.1, wv.p.2, wv.p.3)
     let wv.oy = clamp(-pick(me, vy.0, vy.1, vy.2, vy.3) * para, -wv.my, wv.my) - wv.my
-    image wall.ia { at: wv.ox, wv.oy; size: wv.w, wv.h; opacity: (1 - wall.mix) * wall.lit }
-    image wall.ib { at: wv.ox, wv.oy; size: wv.w, wv.h; opacity: wall.mix * wall.lit }
+    image wall.ia { at: wv.ox, wv.oy; size: wv.w, wv.h; fit: cover; opacity: (1 - wall.mix) * wall.lit }
+    image wall.ib { at: wv.ox, wv.oy; size: wv.w, wv.h; fit: cover; opacity: wall.mix * wall.lit }
 
     // what the shell is told: the workspace of each monitor, which monitor
     // has the keyboard, whether the overview is open

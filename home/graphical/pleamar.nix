@@ -12,7 +12,7 @@ let
   desk = cmd: "pleamar-wm --say desk \"${cmd}\"";
   wm = cmd: "pleamar-wm --say wm \"${cmd}\"";
 
-  # Graded copies of the wallpapers: cropped to 16:9 and run through the
+  # Graded copies of the wallpapers: at their own size and shape, run through the
   # carburetor CLUT once, when they are first shown, instead of every frame.
   clut = pkgs.runCommand "carburetor-clut" { nativeBuildInputs = [ pkgs.lutgen ]; } ''
     mkdir -p "$out"
@@ -39,7 +39,8 @@ let
     ];
     text = ''
       state="''${XDG_STATE_HOME:-$HOME/.local/state}/pleamar/wallpaper"
-      cache="''${XDG_CACHE_HOME:-$HOME/.cache}/pleamar/wallpaper"
+      # Apart from the old 16:9 crops, which would otherwise be reused
+      cache="''${XDG_CACHE_HOME:-$HOME/.cache}/pleamar/wallpaper/native"
       mkdir -p "$state" "$cache"
 
       # Prints the graded copy of an image, making it the first time.
@@ -47,7 +48,7 @@ let
         out="$cache/$(basename "''${1%.*}").jpg"
         if [ ! -s "$out" ]; then
           tmp=$(mktemp --suffix=.png -p "$cache")
-          magick "$1" -resize '2560x1440^' -gravity center -extent 2560x1440 "$tmp" >&2
+          magick "$1" -auto-orient "$tmp" >&2
           lutgen apply --hald-clut ${clut}/clut.png "$tmp" -o "$out" >&2
           rm -f "$tmp"
         fi

@@ -522,15 +522,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1792518264,
-        "narHash": "sha256-KXFEOtpt3QiTMtEnNBzJMdfFxiu59o4ulLf2JQpFN9M=",
-        "owner": "k4ditano",
+        "lastModified": 1792524612,
+        "narHash": "sha256-cNhOEkmQjyXSQXZTiyW1Elg3aRlxswVKROPKH26JGC0=",
+        "owner": "ozwaldorf",
         "repo": "pleamar",
-        "rev": "54c3268548cb873b7f04432294b310afbe115095",
+        "rev": "f85ad11e0db21cbaddd87f03db5b7b4fe65e34f4",
         "type": "github"
       },
       "original": {
-        "owner": "k4ditano",
+        "owner": "ozwaldorf",
+        "ref": "large-images",
         "repo": "pleamar",
         "type": "github"
       }
