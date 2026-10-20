@@ -522,11 +522,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792524612,
-        "narHash": "sha256-cNhOEkmQjyXSQXZTiyW1Elg3aRlxswVKROPKH26JGC0=",
+        "lastModified": 1792536615,
+        "narHash": "sha256-O1sQyixYw6DbEewX3tJajvrWX0HuQ1NlvGv0Fp6bmfA=",
         "owner": "ozwaldorf",
         "repo": "pleamar",
-        "rev": "f85ad11e0db21cbaddd87f03db5b7b4fe65e34f4",
+        "rev": "94b8881e4544b4b3e85605a1a1536260e9041362",
         "type": "github"
       },
       "original": {
@@ -547,16 +547,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1792518670,
-        "narHash": "sha256-Yrr9gODFrSa0WmA9948AfE9/7tP7pcMR+A8577Irz9s=",
-        "owner": "ozwaldorf",
+        "lastModified": 1792533025,
+        "narHash": "sha256-W5k/uacHcvrf3akxRDsoW4ZPbOqhNNbghIVh5RFbhCA=",
+        "owner": "k4ditano",
         "repo": "pleamar-wm",
-        "rev": "685139660e4799b26471c611d4caba1b7bdd7a1f",
+        "rev": "af0bc23dd2ad365614e0981db4183b38ecf81d0d",
         "type": "github"
       },
       "original": {
-        "owner": "ozwaldorf",
-        "ref": "animated-cursors",
+        "owner": "k4ditano",
         "repo": "pleamar-wm",
         "type": "github"
       }

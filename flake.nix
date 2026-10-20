@@ -52,9 +52,8 @@
       url = "github:ozwaldorf/pleamar/large-images";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # Animated cursors and transitions, until k4ditano/pleamar-wm#18 is merged
     pleamar-wm = {
-      url = "github:ozwaldorf/pleamar-wm/animated-cursors";
+      url = "github:k4ditano/pleamar-wm";
       inputs.nixpkgs.follows = "nixpkgs";
       # Built against pleamar as a path dependency
       inputs.pleamar.follows = "pleamar";
