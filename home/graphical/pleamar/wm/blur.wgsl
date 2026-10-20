@@ -2,7 +2,7 @@
 // clamp to SDR, saturate, then a gaussian (inputRadius is sigma, in points)
 // at a quarter of the size with its edges normalised, shown scaled up.
 // Chain: down 0.5 repeat 2, h 1, v 1. s.a: sigma, saturation, brightness
-// (added). s.b: lighten floor, darken ceiling (the tint layers' blends).
+// (added), noise. s.b: lighten floor, darken ceiling (the tint layers' blends).
 
 // Clamped and saturated on the straight colour, before the blur.
 fn saturate(s: Blur, c: vec4<f32>) -> vec4<f32> {
@@ -58,12 +58,15 @@ fn h(s: Blur) -> vec4<f32> {
     return gauss(s, vec2<f32>(1.0, 0.0));
 }
 
-// The second axis, then brightness and the lighten / darken blends.
+// The second axis, then brightness, the lighten / darken blends, and a
+// little noise so smooth gradients do not band and the glass reads as a
+// material.
 fn v(s: Blur) -> vec4<f32> {
     let c = gauss(s, vec2<f32>(0.0, 1.0));
     if (c.a < 0.0001) {
         return c;
     }
     let rgb = clamp(c.rgb / c.a + vec3<f32>(s.a.z), vec3<f32>(s.b.x), vec3<f32>(s.b.y));
-    return vec4<f32>(rgb * c.a, c.a);
+    let noise = fract(sin(dot(s.pos, vec2<f32>(12.9898, 78.233))) * 43758.5453) - 0.5;
+    return vec4<f32>(clamp(rgb + vec3<f32>(noise * s.a.w), vec3<f32>(0.0), vec3<f32>(1.0)) * c.a, c.a);
 }

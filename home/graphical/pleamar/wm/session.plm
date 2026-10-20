@@ -23,10 +23,10 @@ scene Session {
 
     // The frosting behind the windows' glass (blur.wgsl): Apple's backdrop,
     // saturated, then a gaussian at a quarter of the size. values: sigma,
-    // saturation, brightness; lighten floor, darken ceiling.
+    // saturation, brightness, noise; lighten floor, darken ceiling.
     blur = file "blur.wgsl" {
         passes: down 0.5 repeat 2, h 1, v 1
-        values: 30, 1.8, 0, 0, 0, 1
+        values: 30, 1.8, 0, 0.02, 0, 1
         reach: 64
     }
 
