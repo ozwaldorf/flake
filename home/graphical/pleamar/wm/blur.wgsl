@@ -1,8 +1,9 @@
 // The frosting behind the window manager's glass, Apple's CABackdropLayer:
 // clamp to SDR, saturate, then a gaussian (inputRadius is sigma, in points)
-// at a quarter of the size with its edges normalised, shown scaled up.
-// Chain: down 0.5 repeat 2, h 1, v 1. s.a: sigma, saturation, brightness
-// (added), noise. s.b: lighten floor, darken ceiling (the tint layers' blends).
+// at a quarter of the size with its edges normalised, back at full size with
+// grain. Chain: down 0.5 repeat 2, h 1, v 1, grain 4. s.a: sigma, saturation,
+// brightness (added), grain. s.b: lighten floor, darken ceiling (the tint
+// layers' blends).
 
 // Clamped and saturated on the straight colour, before the blur.
 fn saturate(s: Blur, c: vec4<f32>) -> vec4<f32> {
@@ -58,15 +59,38 @@ fn h(s: Blur) -> vec4<f32> {
     return gauss(s, vec2<f32>(1.0, 0.0));
 }
 
-// The second axis, then brightness, the lighten / darken blends, and a
-// little noise so smooth gradients do not band and the glass reads as a
-// material.
+// The second axis, then brightness and the lighten / darken blends.
 fn v(s: Blur) -> vec4<f32> {
     let c = gauss(s, vec2<f32>(0.0, 1.0));
     if (c.a < 0.0001) {
         return c;
     }
     let rgb = clamp(c.rgb / c.a + vec3<f32>(s.a.z), vec3<f32>(s.b.x), vec3<f32>(s.b.y));
-    let noise = fract(sin(dot(s.pos, vec2<f32>(12.9898, 78.233))) * 43758.5453) - 0.5;
-    return vec4<f32>(clamp(rgb + vec3<f32>(noise * s.a.w), vec3<f32>(0.0), vec3<f32>(1.0)) * c.a, c.a);
+    return vec4<f32>(rgb * c.a, c.a);
+}
+
+// PCG2D (Jarzynski and Olano): integer hashing without the patterns a sin
+// hash shows at large coordinates.
+fn pcg2d(p: vec2<u32>) -> vec2<u32> {
+    var v = p * 1664525u + 1013904223u;
+    v.x += v.y * 1664525u;
+    v.y += v.x * 1664525u;
+    v = v ^ (v >> vec2<u32>(16u));
+    v.x += v.y * 1664525u;
+    v.y += v.x * 1664525u;
+    v = v ^ (v >> vec2<u32>(16u));
+    return v;
+}
+
+// Back at full size, grain on each real pixel: blown up from the quarter
+// size it would be blotches. Triangular (two uniforms summed), the shape
+// that hides banding without lifting the noise floor; s.a.w is its peak.
+fn grain(s: Blur) -> vec4<f32> {
+    let c = prev(s, s.uv);
+    if (c.a < 0.0001) {
+        return c;
+    }
+    let u = vec2<f32>(pcg2d(vec2<u32>(s.pos)) >> vec2<u32>(8u)) / 16777216.0;
+    let n = (u.x + u.y - 1.0) * s.a.w;
+    return vec4<f32>(clamp(c.rgb / c.a + vec3<f32>(n), vec3<f32>(0.0), vec3<f32>(1.0)) * c.a, c.a);
 }
