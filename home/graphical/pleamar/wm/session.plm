@@ -170,6 +170,8 @@ scene Session {
     fact org.2 = 0
     fact org.3 = 0
     fact dropj = -1
+    // where on it: -1 before it, 1 after it (its outer quarters), 0 in its place
+    fact dside = 0
     fact t.c = 0
     fact t.r = 0
     fact t.h = 0
@@ -583,7 +585,9 @@ scene Session {
             prop liftp.$i = 0 ~160ms
             follow liftp.$i = if(lifted, 1, 0)
             prop dropp.$i = 0 ~120ms
-            follow dropp.$i = if(dmode == 1 and dropj == i, 1, 0)
+            follow dropp.$i = if(dmode == 1 and dropj == i and dside == 0, 1, 0)
+            prop insp.$i = 0 ~120ms
+            follow insp.$i = if(dmode == 1 and dropj == i and dside != 0, 1, 0)
             prop agp.$i = 0 ~400ms
             follow agp.$i = if(ag.live and ag.win == i and win.$i.open, 1, 0)
             let x = x.$i
@@ -631,6 +635,8 @@ scene Session {
                 // where a carried window would land: this one, marked
                 box { from: x, y; size: w, h; corner: r; color: blue; opacity: 16% * dropp.$i }
                 box { from: x, y; size: w, h; corner: r; stroke: 2; color: blue; opacity: dropp.$i }
+                // ...or beside it: a bar in the gap it would go into
+                box { from: if(dside < 0, x - gap * w / max(goal.w, 1) / 2, x + w + gap * w / max(goal.w, 1) / 2) - 2, y; size: 4, h; corner: 2; color: blue; opacity: insp.$i }
                 // an agent at work on it: outlined in its cursor's blue, with a soft glow
                 group {
                     show: agp.$i > 0.01
@@ -751,11 +757,18 @@ scene Session {
                 fh.$i = fgh
             }
             // Carried over another tiled window: that one is marked, and on
-            // letting go the two trade places, row heights with them.
-            on drag grab.$i while dmode == 1 and dslot == i and tiled { dropj = -1 }
+            // letting go the two trade places, row heights with them. Over its outer
+            // quarters, it goes in beside it instead.
+            on drag grab.$i while dmode == 1 and dslot == i and tiled {
+                dropj = -1
+                dside = 0
+            }
             repeat j in 0..16 {
-                on drag grab.$i while dmode == 1 and dslot == i and tiled and mon == sc and j != i and win.$j.place >= 0 and win.$j.screen == sc and win.$j.pool == win.$i.pool and pointer.x >= x.$j and pointer.x < x.$j + w.$j and pointer.y >= y.$j and pointer.y < y.$j + h.$j { dropj = j }
-                on release grab.$i while dmode == 1 and dslot == i and tiled and dropj == j {
+                on drag grab.$i while dmode == 1 and dslot == i and tiled and mon == sc and j != i and win.$j.place >= 0 and win.$j.screen == sc and win.$j.pool == win.$i.pool and pointer.x >= x.$j and pointer.x < x.$j + w.$j and pointer.y >= y.$j and pointer.y < y.$j + h.$j {
+                    dropj = j
+                    dside = if(pointer.x < x.$j + w.$j * 0.25, -1, if(pointer.x >= x.$j + w.$j * 0.75, 1, 0))
+                }
+                on release grab.$i while dmode == 1 and dslot == i and tiled and dropj == j and dside == 0 {
                     t.c = cpos.$i
                     t.r = rpos.$i
                     t.h = hp.$i
@@ -766,6 +779,18 @@ scene Session {
                     rpos.$j = t.r
                     hp.$j = t.h
                 }
+                // Let go beside it: into its row before or after it, at that row's
+                // height, its place made whole again with the rest (norm).
+                on release grab.$i while dmode == 1 and dslot == i and tiled and dropj == j and dside != 0 {
+                    rpos.$i = rpos.$j
+                    cpos.$i = cpos.$j + dside * 0.01
+                    hp.$i = r.hp.$j
+                    norm = 1
+                }
+            }
+            // ...and the monitor's rows are its own from then, as a move makes them.
+            repeat s in 0..4 {
+                on release grab.$i while dmode == 1 and dslot == i and tiled and dropj >= 0 and dside != 0 and sc == s { auto.$s = false }
             }
             // Let go on another monitor: it goes there, its place turned into
             // that monitor's coordinates at once, so it does not glide across.
@@ -779,6 +804,7 @@ scene Session {
                 dmode = 0
                 dslot = -1
                 dropj = -1
+                dside = 0
             }
 
             // Stretched by an edge or a corner: g.ex, g.ey say which sides
