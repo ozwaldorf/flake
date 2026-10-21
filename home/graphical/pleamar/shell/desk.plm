@@ -123,6 +123,11 @@ scene Desk {
     // pointer leaves.
     fact held = false
     let open = page > 0.5
+    // The drawer opened for the overview (Super+Esc): its room is the window
+    // manager's to take, in the same frame as the zoom (it takes the same), so
+    // it is not reported from here, where it would arrive apart and early.
+    fact ovgo = false
+    on change page while page != 1 { ovgo = false }
     let pidx = pick(max(page, 1) - 1, 0, 1, 2, 3, 4)
     prop pager = 0 ~niri
     follow pager = pidx
@@ -195,6 +200,7 @@ scene Desk {
         page = 1
         dmon = focmon
         held = true
+        ovgo = true
     }
     on drawer_list(v) {
         page = 1
@@ -459,7 +465,7 @@ scene Desk {
     // whose reserve cannot differ per monitor.
     event room_report ->
     repeat s in 0..4 {
-        let room.$s = (44 * if(pick(s, hov.0, hov.1, hov.2, hov.3) or (open and dmon == s), 1, 0) + 432 * if(open and dmon == s, 1, 0)) * if(s > 0.5, -1, 1)
+        let room.$s = if(ovgo and dmon == s, 0, (44 * if(pick(s, hov.0, hov.1, hov.2, hov.3) or (open and dmon == s), 1, 0) + 432 * if(open and dmon == s, 1, 0)) * if(s > 0.5, -1, 1))
         on change room.$s { emit room_report(s + 4 * (room.$s + 4096)) }
     }
 
