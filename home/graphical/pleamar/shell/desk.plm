@@ -232,7 +232,13 @@ scene Desk {
     // monitor, both ways.
     let dov = pick(dmon, ovm.0, ovm.1, ovm.2, ovm.3)
     on change page while page == 1 and not dov { emit wm_overview(dmon + 4) }
-    on change page while page != 1 and dov { emit wm_overview(dmon) }
+    // Off to another page, the drawer stays: + 8 says so, and its room is
+    // told again, the window manager having taken it for the overview.
+    on change page while page < 0.5 and dov { emit wm_overview(dmon) }
+    on change page while page > 1.5 and dov {
+        emit wm_overview(dmon + 8)
+        emit room_report(dmon + 4 * (drawerw * if(dmon > 0.5, -1, 1) + 4096))
+    }
     repeat s in 0..4 {
         on change ovm.$s while ovm.$s and page < 0.5 {
             page = 1
@@ -470,7 +476,7 @@ scene Desk {
     // differ per monitor. The rail itself is kept clear apart (desk.luau).
     event room_report ->
     repeat s in 0..4 {
-        let room.$s = if(ovgo and dmon == s, 0, 432 * if(open and dmon == s, 1, 0) * if(s > 0.5, -1, 1))
+        let room.$s = if(ovgo and dmon == s, 0, drawerw * if(open and dmon == s, 1, 0) * if(s > 0.5, -1, 1))
         on change room.$s { emit room_report(s + 4 * (room.$s + 4096)) }
     }
 

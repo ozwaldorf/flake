@@ -52,7 +52,13 @@ scene Session {
     // The shell opens its drawer with an overview and closes it after, and
     // says so a moment later: the room is taken at once, so the zoom and the
     // windows' slide start together. ovdr: the overview opened the drawer.
-    let ovroom = 476
+    // ovkeep: the shell closed the overview but keeps the drawer open (it
+    // went to another page), so its room stays.
+    let ovroom = 432
+    fact ovkeep.0 = false
+    fact ovkeep.1 = false
+    fact ovkeep.2 = false
+    fact ovkeep.3 = false
     fact ovdr.0 = false
     fact ovdr.1 = false
     fact ovdr.2 = false
@@ -73,14 +79,14 @@ scene Session {
             room.$s = if(s > 0.5, -ovroom, ovroom)
             ovdr.$s = true
         }
-        on change ov.$s while not ov.$s and ovdr.$s {
-            room.$s = 0
-            ovdr.$s = false
-        }
+        on change ov.$s while not ov.$s and ovdr.$s and not ovkeep.$s { room.$s = 0 }
+        on change ov.$s while not ov.$s { ovdr.$s = false }
+        on change ov.$s while ov.$s { ovkeep.$s = false }
         // The shell opened its drawer for the overview (Super+Esc): it closes
         // it once told the overview closed, a few frames later, however it
         // closed (a click, Super let go). Its room counts as gone from then.
         on change ov.$s while ov.$s and not ovdr.$s and abs(room.$s) >= 400 { ovsh.$s = true }
+        on change ov.$s while not ov.$s and ovkeep.$s { ovsh.$s = false }
         on change room.$s while ovsh.$s and not ov.$s and abs(room.$s) < 400 { ovsh.$s = false }
         on still ov.$s for 500ms while ovsh.$s and not ov.$s { ovsh.$s = false }
     }
@@ -89,10 +95,10 @@ scene Session {
     // rules above set it. Where the windows go reads this, so their target
     // does not move twice.
     let rfree = abs(room.0) < 400 and abs(room.1) < 400 and abs(room.2) < 400 and abs(room.3) < 400
-    let rmt.0 = if(ov.0 and not ovdr.0 and rfree, ovroom, if(not ov.0 and (ovdr.0 or ovsh.0), 0, room.0))
-    let rmt.1 = if(ov.1 and not ovdr.1 and rfree, -ovroom, if(not ov.1 and (ovdr.1 or ovsh.1), 0, room.1))
-    let rmt.2 = if(ov.2 and not ovdr.2 and rfree, -ovroom, if(not ov.2 and (ovdr.2 or ovsh.2), 0, room.2))
-    let rmt.3 = if(ov.3 and not ovdr.3 and rfree, -ovroom, if(not ov.3 and (ovdr.3 or ovsh.3), 0, room.3))
+    let rmt.0 = if(ov.0 and not ovdr.0 and rfree, ovroom, if(not ov.0 and (ovdr.0 or ovsh.0) and not ovkeep.0, 0, room.0))
+    let rmt.1 = if(ov.1 and not ovdr.1 and rfree, -ovroom, if(not ov.1 and (ovdr.1 or ovsh.1) and not ovkeep.1, 0, room.1))
+    let rmt.2 = if(ov.2 and not ovdr.2 and rfree, -ovroom, if(not ov.2 and (ovdr.2 or ovsh.2) and not ovkeep.2, 0, room.2))
+    let rmt.3 = if(ov.3 and not ovdr.3 and rfree, -ovroom, if(not ov.3 and (ovdr.3 or ovsh.3) and not ovkeep.3, 0, room.3))
     on change f.sc while win.focus >= 0 { kmon = f.sc }
     on change win.focus while win.focus >= 0 { kmon = f.sc }
     on change mon { kmon = mon }

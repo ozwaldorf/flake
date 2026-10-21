@@ -64,10 +64,15 @@ on("room_report", function(code)
     local s = code % 4
     S.wm("fact room." .. s .. " " .. ((code - s) / 4 - 4096))
 end)
--- the overview on a monitor, opened or closed: monitor + 4 to open
+-- the overview on a monitor, opened or closed: monitor + 4 to open, + 8 to
+-- close it while the drawer stays open
 on("wm_overview", function(code)
     local s = code % 4
-    S.wm((code >= 4 and "emit overview_on " or "emit overview_off ") .. s)
+    if code >= 8 then
+        S.wm("fact ovkeep." .. s .. " true", "emit overview_off " .. s)
+    else
+        S.wm((code >= 4 and "emit overview_on " or "emit overview_off ") .. s)
+    end
 end)
 -- Ask it for the state it reports, now that someone is listening, and again
 -- over the next seconds: at login the window manager can still be starting,
