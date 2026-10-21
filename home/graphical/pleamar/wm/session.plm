@@ -640,7 +640,7 @@ scene Session {
                 group {
                     clip box { from: x, y; size: w, h; corner: r }
                     window win.$i { at: x, y + bh; size: w, h - bh; ask: if(win.$i.dialog and fw.$i < 1, 0, goal.w), if(win.$i.dialog and fw.$i < 1, 0, goal.h - bar); show: win.$i.open }
-                    box { from: x, y; size: w, th; color: base; opacity: (0.35 + 0.51 * tov) * (1 - full) }
+                    box { from: x, y; size: w, th; color: crust; opacity: 0.88 * (1 - full) }
                     text win.$i.title { at: x + 12, y + th / 2; anchor: left center; size: 12; color: mix(subtext0, text, litp.$i); family: "Berkeley Mono"; width: w - 24; lines: 1; opacity: (1 - full) * if(bh > 13 or tov > 0.5, 1, tov * 2) }
                 }
                 box { from: x, y; size: w, h; corner: r; stroke: 1; color: mix(base, text, litp.$i); opacity: (1 - full) * frost.$i }
