@@ -243,18 +243,20 @@ scene Session {
     prop wall.pulse = 0 ~700ms
     follow wall.pulse = if(wall.busy, wall.ph, 0)
     let wall.lit = 1 - 0.35 * wall.pulse
-    // The drawer's push, one spring per monitor: a spring followed from every
-    // monitor's copy is one value they fight over.
-    prop wv.p.0 = 0 ~niri
-    prop wv.p.1 = 0 ~niri
-    prop wv.p.2 = 0 ~niri
-    prop wv.p.3 = 0 ~niri
+    // The drawer's push, a quarter of its room and as slow as the parallax, so the
+    // wallpaper leans with it rather than sliding by its width. One spring per
+    // monitor: a spring followed from every monitor's copy is one value they
+    // fight over.
+    prop wv.p.0 = 0 ~900ms
+    prop wv.p.1 = 0 ~900ms
+    prop wv.p.2 = 0 ~900ms
+    prop wv.p.3 = 0 ~900ms
     repeat s in 0..4 {
-        follow wv.p.$s = win.reserved.$s.left - win.reserved.$s.right + room.$s
+        follow wv.p.$s = win.reserved.$s.left - win.reserved.$s.right + room.$s * 0.25
     }
     // The parallax, one slow spring per monitor toward where the camera is
-    // going (still in the overview), not riding the camera's own: it
-    // settles after the windows.
+    // going, not riding the camera's own: it settles after the windows, and stays
+    // put in the overview.
     prop wd.x.0 = 0 ~900ms
     prop wd.x.1 = 0 ~900ms
     prop wd.x.2 = 0 ~900ms
@@ -264,15 +266,15 @@ scene Session {
     prop wd.y.2 = 0 ~900ms
     prop wd.y.3 = 0 ~900ms
     repeat s in 0..4 {
-        follow wd.x.$s = -if(ov.$s, 0, cam.tx.$s) * para
-        follow wd.y.$s = -if(ov.$s, 0, cam.ty.$s) * para
+        follow wd.x.$s = -cam.tx.$s * para
+        follow wd.y.$s = -cam.ty.$s * para
     }
     // Bigger than the monitor by what the parallax may reach.
     let wv.w = Wm * 1.2
     let wv.h = Hm * 1.2
     let wv.mx = (wv.w - Wm) / 2
     let wv.my = (wv.h - Hm) / 2
-    let wv.ox = clamp(pick(me, wd.x.0, wd.x.1, wd.x.2, wd.x.3), -wv.mx, wv.mx) - wv.mx + pick(me, wv.p.0, wv.p.1, wv.p.2, wv.p.3)
+    let wv.ox = clamp(pick(me, wd.x.0, wd.x.1, wd.x.2, wd.x.3) + pick(me, wv.p.0, wv.p.1, wv.p.2, wv.p.3), -wv.mx, wv.mx) - wv.mx
     let wv.oy = clamp(pick(me, wd.y.0, wd.y.1, wd.y.2, wd.y.3), -wv.my, wv.my) - wv.my
     image wall.ia { at: wv.ox, wv.oy; size: wv.w, wv.h; fit: cover; opacity: (1 - wall.mix) * wall.lit }
     image wall.ib { at: wv.ox, wv.oy; size: wv.w, wv.h; fit: cover; opacity: wall.mix * wall.lit }
