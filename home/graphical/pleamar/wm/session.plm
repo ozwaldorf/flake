@@ -14,6 +14,8 @@ scene Session {
     windows win max 16
 
     let gap = 18
+    // the title bar each window gets above what its program draws
+    let tbar = 28
     let strut = 14
     let radius = 10
     // niri's own spring: stiffness 800, critically damped.
@@ -450,7 +452,7 @@ scene Session {
             // Once moved or stretched (fw set), a dialog keeps where it was put
             // too; a window rule's float is one.
             let fgw = if(fw.$i >= 1, max(fw.$i, 200), if(win.$i.dialog, dw, 200))
-            let fgh = if(fw.$i >= 1, max(fh.$i, 120), if(win.$i.dialog, dh, 120))
+            let fgh = if(fw.$i >= 1, max(fh.$i, 120), if(win.$i.dialog, dh + tbar, 120))
             let fgx = if(fw.$i < 1, AxT + (Wa - fgw) / 2, fx.$i)
             let fgy = if(fw.$i < 1, (Hs - fgh) / 2, fy.$i)
             let full = win.$i.fullscreen
@@ -594,7 +596,15 @@ scene Session {
             let y = y.$i
             let w = w.$i
             let h = h.$i
-            let r = if(full, 0, radius * clamp(w.$i / max(goal.w, 1), 0.2, 1))
+            // what it is drawn at next to its size: the overview's zoom
+            let zc = clamp(w.$i / max(goal.w, 1), 0.05, 1)
+            let r = if(full, 0, radius * max(zc, 0.2))
+            // its title bar, zoomed with it; the title over it at the view's own
+            // size, its band growing over the program in the overview to fit it
+            let bar = if(full, 0, tbar)
+            let bh = bar * zc
+            let tov = pick(sc, ovp.0, ovp.1, ovp.2, ovp.3)
+            let th = bh + (30 - bh) * tov * (1 - full)
             // how it stacks, its handles with it
             let wz = if(full, 100000, if(win.$i.dialog, 60000, if(lifted or xing.$i > 0.5, 90000, if(win.$i.floating, 1000 + stamp.$i, 0))))
             group {
@@ -629,11 +639,9 @@ scene Session {
                 }
                 group {
                     clip box { from: x, y; size: w, h; corner: r }
-                    window win.$i { at: x, y; size: w, h; ask: if(win.$i.dialog and fw.$i < 1, 0, goal.w), if(win.$i.dialog and fw.$i < 1, 0, goal.h); show: win.$i.open }
-                    // In the overview its title, on a band across its top, at the
-                    // view's own size whatever the zoom.
-                    box { from: x, y; size: w, 30; color: base; opacity: 0.86 * pick(sc, ovp.0, ovp.1, ovp.2, ovp.3) }
-                    text win.$i.title { at: x + 12, y + 15; anchor: left center; size: 12; color: text; family: "Berkeley Mono"; width: w - 24; lines: 1; opacity: pick(sc, ovp.0, ovp.1, ovp.2, ovp.3) }
+                    window win.$i { at: x, y + bh; size: w, h - bh; ask: if(win.$i.dialog and fw.$i < 1, 0, goal.w), if(win.$i.dialog and fw.$i < 1, 0, goal.h - bar); show: win.$i.open }
+                    box { from: x, y; size: w, th; color: base; opacity: (0.35 + 0.51 * tov) * (1 - full) }
+                    text win.$i.title { at: x + 12, y + th / 2; anchor: left center; size: 12; color: mix(subtext0, text, litp.$i); family: "Berkeley Mono"; width: w - 24; lines: 1; opacity: (1 - full) * if(bh > 13 or tov > 0.5, 1, tov * 2) }
                 }
                 box { from: x, y; size: w, h; corner: r; stroke: 1; color: mix(base, text, litp.$i); opacity: (1 - full) * frost.$i }
                 // where a carried window would land: this one, marked
