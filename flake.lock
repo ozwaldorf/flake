@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792180906,
-        "narHash": "sha256-eYcaFTss4VRZjiVbnpWBjz3c72TXz9Q1mK2ojLU5cpw=",
+        "lastModified": 1792611080,
+        "narHash": "sha256-v+sRdPLP+LTKbf4pNl2l1KoK8VaNDMMdSmcFGNxTxS0=",
         "owner": "ozwaldorf",
         "repo": "animated-cursors",
-        "rev": "33f3bec702d7bd5efead7d257bda8f0934ce0d71",
+        "rev": "e98ff51402996176c754b39a80cb4933ae3c8cb5",
         "type": "github"
       },
       "original": {
@@ -522,17 +522,18 @@
         ]
       },
       "locked": {
-        "lastModified": 1792560049,
-        "narHash": "sha256-t33c/ef+mpWBHcty64pgj7CMZ2R2hWQXAMSJL9nUeIY=",
-        "owner": "k4ditano",
-        "repo": "pleamar",
-        "rev": "dc6227daa1699df2f15021255e7c719dfcebf5f4",
-        "type": "github"
+        "lastModified": 1792624248,
+        "narHash": "sha256-DMNrf09JYNZMrN+pZUC0/ET39onHBuorgt2edaThWh8=",
+        "ref": "cursor-expressions",
+        "rev": "b2d3bd8b9320bf0aa9029932009d753b0d6fd4a7",
+        "revCount": 597,
+        "type": "git",
+        "url": "file:///home/oz/Code/pkg/pleamar"
       },
       "original": {
-        "owner": "k4ditano",
-        "repo": "pleamar",
-        "type": "github"
+        "ref": "cursor-expressions",
+        "type": "git",
+        "url": "file:///home/oz/Code/pkg/pleamar"
       }
     },
     "pleamar-wm": {

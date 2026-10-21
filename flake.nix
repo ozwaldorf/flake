@@ -48,7 +48,7 @@
       flake = false;
     };
     pleamar = {
-      url = "github:k4ditano/pleamar";
+      url = "git+file:///home/oz/Code/pkg/pleamar?ref=cursor-expressions";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     pleamar-wm = {
