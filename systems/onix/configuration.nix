@@ -212,7 +212,11 @@
     };
   };
   environment.etc."greetd/sessions".source = "${config.services.displayManager.sessionData.desktops}/share/wayland-sessions";
-  services.logind.settings.Login.HandleLidSwitchExternalPower = "ignore";
+  services.logind.settings.Login = {
+    HandleLidSwitchExternalPower = "ignore";
+    # Tear down the user stack (pipewire, wireplumber) on logout
+    KillUserProcesses = true;
+  };
 
   # services.xserver.desktopManager.gnome.enable = true;
   # Manually enable some services gnome used to
