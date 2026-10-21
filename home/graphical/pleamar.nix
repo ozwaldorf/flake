@@ -185,8 +185,9 @@ let
     '';
 
   sessionConf = ''
-    # Laptop panel on the left, external monitor to its right
-    monitor eDP-1 2560x1600@240 at 0,0 scale 1.5
+    # Laptop panel on the left, external monitor to its right. The laptop
+    # (1067 tall) sits low so the external's bottom (1440) is 64 below its own.
+    monitor eDP-1 2560x1600@240 at 0,309 scale 1.5
     monitor DP-2 preferred at 1707,0
 
     # pleamar-wm agent: a second pointer and keyboard for AI agents
