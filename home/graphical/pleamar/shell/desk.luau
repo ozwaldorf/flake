@@ -4,9 +4,21 @@
 
 local S = {}
 
--- Something for the window manager's scene (pleamar-wm's own session).
+-- Something for the window manager's scene (pleamar-wm's own session). What
+-- is said in one step goes in one message, so it lands in one frame there: the
+-- drawer's room and the overview it opens for, apart, raced as two processes.
+local said = {}
 function S.wm(...)
-    run("pleamar-wm", { "--say", "wm", ... }, nil, { output = false })
+    for _, c in ipairs({ ... }) do
+        table.insert(said, c)
+    end
+    if #said == select("#", ...) then
+        after(0, function()
+            local cmds = said
+            said = {}
+            run("pleamar-wm", { "--say", "wm", table.unpack(cmds) }, nil, { output = false })
+        end)
+    end
 end
 
 -- Starts a program loose from the shell, so it outlives it.
