@@ -47,14 +47,12 @@
       url = "github:k3d3/claude-desktop-linux-flake";
       flake = false;
     };
-    # Full-resolution large images and `fit:`, until k4ditano/pleamar#92 is merged
     pleamar = {
-      url = "github:ozwaldorf/pleamar/large-images";
+      url = "github:k4ditano/pleamar";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     pleamar-wm = {
-      # Menus placed at fractional scale and blurred, until k4ditano/pleamar-wm#24 is merged
-      url = "github:ozwaldorf/pleamar-wm/menu-scale-blur";
+      url = "github:k4ditano/pleamar-wm";
       inputs.nixpkgs.follows = "nixpkgs";
       # Built against pleamar as a path dependency
       inputs.pleamar.follows = "pleamar";
