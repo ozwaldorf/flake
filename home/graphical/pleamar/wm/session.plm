@@ -488,9 +488,12 @@ scene Session {
             // so it travels there across the boundary instead of appearing.
             fact psc.$i = 0
             fact xing.$i = 0
+            // The keyboard goes with it.
             on change win.$i.screen while ksend == i and win.$i.open {
                 x.$i: x.$i + pick(psc.$i, mx.0, mx.1, mx.2, mx.3) - pick(sc, mx.0, mx.1, mx.2, mx.3) ~0ms
                 xing.$i = 1
+                kmon = sc
+                focus win.$i
             }
             on change win.$i.screen while ksend != i { psc.$i = win.$i.screen }
             on change win.$i.open while win.$i.open { psc.$i = win.$i.screen }
@@ -498,6 +501,7 @@ scene Session {
             let landed = abs(x.$i - sg.x) < 1 and abs(y.$i - sg.y) < 1 and abs(w.$i - sg.w) < 1
             // (what it came from is kept until then: the jump above is worked
             // out after the rule's other changes)
+            on change landed while landed and xing.$i > 0.5 and ksend == i { focus win.$i }
             on change landed while landed and xing.$i > 0.5 {
                 xing.$i = 0
                 psc.$i = win.$i.screen
