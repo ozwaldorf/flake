@@ -158,6 +158,9 @@ scene Session {
     // is (on the monitor it is over), and the window under it
     fact g.ox = 0
     fact g.oy = 0
+    // the overview's zoom when a stretch began: the pointer's travel is taken out
+    // of it, so the edge stays under the pointer
+    fact g.z = 1
     fact g.px = 0
     fact g.py = 0
     // the monitor the drag started on, and where each copy sits (see desk)
@@ -790,6 +793,7 @@ scene Session {
                 focus win.$i
                 dslot = i
                 dmode = 3
+                g.z = zt
                 g.ex = -1
                 g.ey = 0
                 g.x = fgx
@@ -800,14 +804,14 @@ scene Session {
                 g.ky = if(tht.$i <= ha.$i + 0.5, 2, 1)
             }
             on drag grabl.$i while rs.ok and flo {
-                fw.$i = if(g.ex == 0, g.w, max(g.w + g.ex * drag.dx, 200))
-                fh.$i = if(g.ey == 0, g.h, max(g.h + g.ey * drag.dy, 120))
+                fw.$i = if(g.ex == 0, g.w, max(g.w + g.ex * (drag.dx / g.z), 200))
+                fh.$i = if(g.ey == 0, g.h, max(g.h + g.ey * (drag.dy / g.z), 120))
                 fx.$i = if(g.ex < 0, g.x + g.w - fw.$i, g.x)
                 fy.$i = if(g.ey < 0, g.y + g.h - fh.$i, g.y)
             }
             on drag grabl.$i while rs.ok and tiled {
-                rsw = if(g.ex == 0, g.w, clamp(g.w + g.ex * drag.dx * g.kx / uw.$i, 0.1, 1))
-                rsh = if(g.ey == 0, g.h, clamp(g.h + g.ey * drag.dy * g.ky / uh.$i, 0.15, 1))
+                rsw = if(g.ex == 0, g.w, clamp(g.w + g.ex * (drag.dx / g.z) * g.kx / uw.$i, 0.1, 1))
+                rsh = if(g.ey == 0, g.h, clamp(g.h + g.ey * (drag.dy / g.z) * g.ky / uh.$i, 0.15, 1))
             }
             on release grabl.$i {
                 dmode = 0
@@ -817,6 +821,7 @@ scene Session {
                 focus win.$i
                 dslot = i
                 dmode = 3
+                g.z = zt
                 g.ex = 1
                 g.ey = 0
                 g.x = fgx
@@ -827,14 +832,14 @@ scene Session {
                 g.ky = if(tht.$i <= ha.$i + 0.5, 2, 1)
             }
             on drag grabr.$i while rs.ok and flo {
-                fw.$i = if(g.ex == 0, g.w, max(g.w + g.ex * drag.dx, 200))
-                fh.$i = if(g.ey == 0, g.h, max(g.h + g.ey * drag.dy, 120))
+                fw.$i = if(g.ex == 0, g.w, max(g.w + g.ex * (drag.dx / g.z), 200))
+                fh.$i = if(g.ey == 0, g.h, max(g.h + g.ey * (drag.dy / g.z), 120))
                 fx.$i = if(g.ex < 0, g.x + g.w - fw.$i, g.x)
                 fy.$i = if(g.ey < 0, g.y + g.h - fh.$i, g.y)
             }
             on drag grabr.$i while rs.ok and tiled {
-                rsw = if(g.ex == 0, g.w, clamp(g.w + g.ex * drag.dx * g.kx / uw.$i, 0.1, 1))
-                rsh = if(g.ey == 0, g.h, clamp(g.h + g.ey * drag.dy * g.ky / uh.$i, 0.15, 1))
+                rsw = if(g.ex == 0, g.w, clamp(g.w + g.ex * (drag.dx / g.z) * g.kx / uw.$i, 0.1, 1))
+                rsh = if(g.ey == 0, g.h, clamp(g.h + g.ey * (drag.dy / g.z) * g.ky / uh.$i, 0.15, 1))
             }
             on release grabr.$i {
                 dmode = 0
@@ -844,6 +849,7 @@ scene Session {
                 focus win.$i
                 dslot = i
                 dmode = 3
+                g.z = zt
                 g.ex = 0
                 g.ey = -1
                 g.x = fgx
@@ -854,14 +860,14 @@ scene Session {
                 g.ky = if(tht.$i <= ha.$i + 0.5, 2, 1)
             }
             on drag grabt.$i while rs.ok and flo {
-                fw.$i = if(g.ex == 0, g.w, max(g.w + g.ex * drag.dx, 200))
-                fh.$i = if(g.ey == 0, g.h, max(g.h + g.ey * drag.dy, 120))
+                fw.$i = if(g.ex == 0, g.w, max(g.w + g.ex * (drag.dx / g.z), 200))
+                fh.$i = if(g.ey == 0, g.h, max(g.h + g.ey * (drag.dy / g.z), 120))
                 fx.$i = if(g.ex < 0, g.x + g.w - fw.$i, g.x)
                 fy.$i = if(g.ey < 0, g.y + g.h - fh.$i, g.y)
             }
             on drag grabt.$i while rs.ok and tiled {
-                rsw = if(g.ex == 0, g.w, clamp(g.w + g.ex * drag.dx * g.kx / uw.$i, 0.1, 1))
-                rsh = if(g.ey == 0, g.h, clamp(g.h + g.ey * drag.dy * g.ky / uh.$i, 0.15, 1))
+                rsw = if(g.ex == 0, g.w, clamp(g.w + g.ex * (drag.dx / g.z) * g.kx / uw.$i, 0.1, 1))
+                rsh = if(g.ey == 0, g.h, clamp(g.h + g.ey * (drag.dy / g.z) * g.ky / uh.$i, 0.15, 1))
             }
             on release grabt.$i {
                 dmode = 0
@@ -871,6 +877,7 @@ scene Session {
                 focus win.$i
                 dslot = i
                 dmode = 3
+                g.z = zt
                 g.ex = 0
                 g.ey = 1
                 g.x = fgx
@@ -881,14 +888,14 @@ scene Session {
                 g.ky = if(tht.$i <= ha.$i + 0.5, 2, 1)
             }
             on drag grabb.$i while rs.ok and flo {
-                fw.$i = if(g.ex == 0, g.w, max(g.w + g.ex * drag.dx, 200))
-                fh.$i = if(g.ey == 0, g.h, max(g.h + g.ey * drag.dy, 120))
+                fw.$i = if(g.ex == 0, g.w, max(g.w + g.ex * (drag.dx / g.z), 200))
+                fh.$i = if(g.ey == 0, g.h, max(g.h + g.ey * (drag.dy / g.z), 120))
                 fx.$i = if(g.ex < 0, g.x + g.w - fw.$i, g.x)
                 fy.$i = if(g.ey < 0, g.y + g.h - fh.$i, g.y)
             }
             on drag grabb.$i while rs.ok and tiled {
-                rsw = if(g.ex == 0, g.w, clamp(g.w + g.ex * drag.dx * g.kx / uw.$i, 0.1, 1))
-                rsh = if(g.ey == 0, g.h, clamp(g.h + g.ey * drag.dy * g.ky / uh.$i, 0.15, 1))
+                rsw = if(g.ex == 0, g.w, clamp(g.w + g.ex * (drag.dx / g.z) * g.kx / uw.$i, 0.1, 1))
+                rsh = if(g.ey == 0, g.h, clamp(g.h + g.ey * (drag.dy / g.z) * g.ky / uh.$i, 0.15, 1))
             }
             on release grabb.$i {
                 dmode = 0
@@ -898,6 +905,7 @@ scene Session {
                 focus win.$i
                 dslot = i
                 dmode = 3
+                g.z = zt
                 g.ex = -1
                 g.ey = -1
                 g.x = fgx
@@ -908,14 +916,14 @@ scene Session {
                 g.ky = if(tht.$i <= ha.$i + 0.5, 2, 1)
             }
             on drag grabtl.$i while rs.ok and flo {
-                fw.$i = if(g.ex == 0, g.w, max(g.w + g.ex * drag.dx, 200))
-                fh.$i = if(g.ey == 0, g.h, max(g.h + g.ey * drag.dy, 120))
+                fw.$i = if(g.ex == 0, g.w, max(g.w + g.ex * (drag.dx / g.z), 200))
+                fh.$i = if(g.ey == 0, g.h, max(g.h + g.ey * (drag.dy / g.z), 120))
                 fx.$i = if(g.ex < 0, g.x + g.w - fw.$i, g.x)
                 fy.$i = if(g.ey < 0, g.y + g.h - fh.$i, g.y)
             }
             on drag grabtl.$i while rs.ok and tiled {
-                rsw = if(g.ex == 0, g.w, clamp(g.w + g.ex * drag.dx * g.kx / uw.$i, 0.1, 1))
-                rsh = if(g.ey == 0, g.h, clamp(g.h + g.ey * drag.dy * g.ky / uh.$i, 0.15, 1))
+                rsw = if(g.ex == 0, g.w, clamp(g.w + g.ex * (drag.dx / g.z) * g.kx / uw.$i, 0.1, 1))
+                rsh = if(g.ey == 0, g.h, clamp(g.h + g.ey * (drag.dy / g.z) * g.ky / uh.$i, 0.15, 1))
             }
             on release grabtl.$i {
                 dmode = 0
@@ -925,6 +933,7 @@ scene Session {
                 focus win.$i
                 dslot = i
                 dmode = 3
+                g.z = zt
                 g.ex = 1
                 g.ey = -1
                 g.x = fgx
@@ -935,14 +944,14 @@ scene Session {
                 g.ky = if(tht.$i <= ha.$i + 0.5, 2, 1)
             }
             on drag grabtr.$i while rs.ok and flo {
-                fw.$i = if(g.ex == 0, g.w, max(g.w + g.ex * drag.dx, 200))
-                fh.$i = if(g.ey == 0, g.h, max(g.h + g.ey * drag.dy, 120))
+                fw.$i = if(g.ex == 0, g.w, max(g.w + g.ex * (drag.dx / g.z), 200))
+                fh.$i = if(g.ey == 0, g.h, max(g.h + g.ey * (drag.dy / g.z), 120))
                 fx.$i = if(g.ex < 0, g.x + g.w - fw.$i, g.x)
                 fy.$i = if(g.ey < 0, g.y + g.h - fh.$i, g.y)
             }
             on drag grabtr.$i while rs.ok and tiled {
-                rsw = if(g.ex == 0, g.w, clamp(g.w + g.ex * drag.dx * g.kx / uw.$i, 0.1, 1))
-                rsh = if(g.ey == 0, g.h, clamp(g.h + g.ey * drag.dy * g.ky / uh.$i, 0.15, 1))
+                rsw = if(g.ex == 0, g.w, clamp(g.w + g.ex * (drag.dx / g.z) * g.kx / uw.$i, 0.1, 1))
+                rsh = if(g.ey == 0, g.h, clamp(g.h + g.ey * (drag.dy / g.z) * g.ky / uh.$i, 0.15, 1))
             }
             on release grabtr.$i {
                 dmode = 0
@@ -952,6 +961,7 @@ scene Session {
                 focus win.$i
                 dslot = i
                 dmode = 3
+                g.z = zt
                 g.ex = -1
                 g.ey = 1
                 g.x = fgx
@@ -962,14 +972,14 @@ scene Session {
                 g.ky = if(tht.$i <= ha.$i + 0.5, 2, 1)
             }
             on drag grabbl.$i while rs.ok and flo {
-                fw.$i = if(g.ex == 0, g.w, max(g.w + g.ex * drag.dx, 200))
-                fh.$i = if(g.ey == 0, g.h, max(g.h + g.ey * drag.dy, 120))
+                fw.$i = if(g.ex == 0, g.w, max(g.w + g.ex * (drag.dx / g.z), 200))
+                fh.$i = if(g.ey == 0, g.h, max(g.h + g.ey * (drag.dy / g.z), 120))
                 fx.$i = if(g.ex < 0, g.x + g.w - fw.$i, g.x)
                 fy.$i = if(g.ey < 0, g.y + g.h - fh.$i, g.y)
             }
             on drag grabbl.$i while rs.ok and tiled {
-                rsw = if(g.ex == 0, g.w, clamp(g.w + g.ex * drag.dx * g.kx / uw.$i, 0.1, 1))
-                rsh = if(g.ey == 0, g.h, clamp(g.h + g.ey * drag.dy * g.ky / uh.$i, 0.15, 1))
+                rsw = if(g.ex == 0, g.w, clamp(g.w + g.ex * (drag.dx / g.z) * g.kx / uw.$i, 0.1, 1))
+                rsh = if(g.ey == 0, g.h, clamp(g.h + g.ey * (drag.dy / g.z) * g.ky / uh.$i, 0.15, 1))
             }
             on release grabbl.$i {
                 dmode = 0
@@ -979,6 +989,7 @@ scene Session {
                 focus win.$i
                 dslot = i
                 dmode = 3
+                g.z = zt
                 g.ex = 1
                 g.ey = 1
                 g.x = fgx
@@ -989,14 +1000,14 @@ scene Session {
                 g.ky = if(tht.$i <= ha.$i + 0.5, 2, 1)
             }
             on drag grabbr.$i while rs.ok and flo {
-                fw.$i = if(g.ex == 0, g.w, max(g.w + g.ex * drag.dx, 200))
-                fh.$i = if(g.ey == 0, g.h, max(g.h + g.ey * drag.dy, 120))
+                fw.$i = if(g.ex == 0, g.w, max(g.w + g.ex * (drag.dx / g.z), 200))
+                fh.$i = if(g.ey == 0, g.h, max(g.h + g.ey * (drag.dy / g.z), 120))
                 fx.$i = if(g.ex < 0, g.x + g.w - fw.$i, g.x)
                 fy.$i = if(g.ey < 0, g.y + g.h - fh.$i, g.y)
             }
             on drag grabbr.$i while rs.ok and tiled {
-                rsw = if(g.ex == 0, g.w, clamp(g.w + g.ex * drag.dx * g.kx / uw.$i, 0.1, 1))
-                rsh = if(g.ey == 0, g.h, clamp(g.h + g.ey * drag.dy * g.ky / uh.$i, 0.15, 1))
+                rsw = if(g.ex == 0, g.w, clamp(g.w + g.ex * (drag.dx / g.z) * g.kx / uw.$i, 0.1, 1))
+                rsh = if(g.ey == 0, g.h, clamp(g.h + g.ey * (drag.dy / g.z) * g.ky / uh.$i, 0.15, 1))
             }
             on release grabbr.$i {
                 dmode = 0
