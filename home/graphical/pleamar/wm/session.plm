@@ -605,8 +605,10 @@ scene Session {
             let y = y.$i
             let w = w.$i
             let h = h.$i
-            // what it is drawn at next to its size: the overview's zoom
-            let zc = clamp(w.$i / max(goal.w, 1), 0.05, 1)
+            // what it is drawn at next to its size: the overview's zoom. Only
+            // read with an overview about, so a window growing on its springs
+            // keeps its title bar.
+            let zc = if(pick(sc, ovp.0, ovp.1, ovp.2, ovp.3) > 0.001, clamp(w.$i / max(goal.w, 1), 0.05, 1), 1)
             let r = if(full, 0, radius * max(zc, 0.2))
             // its title bar, zoomed with it; the title over it at the view's own
             // size, its band growing over the program in the overview to fit it
@@ -655,7 +657,12 @@ scene Session {
                 }
                 group {
                     clip box { from: x, y; size: w, h; corner: r }
-                    window win.$i { at: x, y + bh; size: w, h - bh; ask: if(win.$i.dialog and fw.$i < 1, 0, goal.w), if(win.$i.dialog and fw.$i < 1, 0, goal.h - bar); show: win.$i.open }
+                    // Growing, at the size it is asked for (zoomed), cut by the box
+                    // as that travels; shrinking, at the box. Drawn at the box
+                    // alone, a program that has not yet answered a resize is
+                    // scaled by box over ask; at the size asked alone, one that
+                    // has leaves the box's far side bare.
+                    window win.$i { at: x, y + bh; size: if(win.$i.dialog and fw.$i < 1, w, max(w, goal.w * zc)), if(win.$i.dialog and fw.$i < 1, h - bh, max(h - bh, (goal.h - bar) * zc)); ask: if(win.$i.dialog and fw.$i < 1, 0, goal.w), if(win.$i.dialog and fw.$i < 1, 0, goal.h - bar); show: win.$i.open }
                     box { from: x, y; size: w, th; color: crust; opacity: 0.88 * (1 - full) }
                     text win.$i.title { at: x + 12, y + th / 2; anchor: left center; size: 12; color: mix(subtext0, text, litp.$i); family: "Berkeley Mono"; width: w - 24 - btns * 44; lines: 1; opacity: (1 - full) * if(bh > 13 or tov > 0.5, 1, tov * 2) }
                 }
