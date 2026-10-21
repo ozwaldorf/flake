@@ -128,7 +128,7 @@ scene Session {
         on still ov.$s for 300ms while ov.$s and keys.super > 0.5 { ovh.$s = true }
         on change ov.$s while not ov.$s { ovh.$s = false }
         on change ov.$s while ov.$s { ovarm = false }
-        on still keys.super for 35ms while keys.super < 0.5 and ovh.$s {
+        on still keys.super for 35ms while keys.super < 0.5 and ovh.$s and dmode < 0.5 {
             ov.$s = false
             ovh.$s = false
         }
@@ -459,8 +459,10 @@ scene Session {
             let goal.w = if(full, Ws, if(flo, fgw, tw.$i))
             let goal.h = if(full, Hs, if(flo, fgh, th.$i))
             // ...and where that is seen, zoomed: what its springs go to.
-            let sg.x = mt.x + mv.x + zt * (goal.x - mt.x)
-            let sg.y = mt.y + zt * (goal.y - mt.y)
+            // Carried, it is under the pointer by where it was held, at the zoom.
+            let carried = dmode == 1 and dslot == i and not full
+            let sg.x = if(carried, g.px + dmx - g.ox * zt, mt.x + mv.x + zt * (goal.x - mt.x))
+            let sg.y = if(carried, g.py - g.oy * zt, mt.y + zt * (goal.y - mt.y))
             let sg.w = zt * goal.w
             let sg.h = zt * goal.h
 
@@ -660,13 +662,13 @@ scene Session {
                     ofs.y.$s = 0
                 }
             }
-            // In the overview a window is picked with a click, and the camera
-            // goes to it even if it already had the keyboard.
-            zone box pickw.$i { from: x, y; size: w, h; cursor: pointer; active: ov and here and win.$i.open }
+            // In the overview a window is picked with a click (pickw, with its
+            // handles below), and the camera goes to it even if it already had
+            // the keyboard.
             // Hovered in the overview, it is selected: the keyboard goes to it.
-            on enter pickw.$i while ov and ovarm and not win.$i.focused { focus win.$i }
+            on enter pickw.$i while ov and ovarm and not win.$i.focused and dmode < 0.5 { focus win.$i }
             // and the one already under it, the moment the mouse first moves
-            on change ovarm while ovarm and ov and pickw.$i.hover > 0.5 and not win.$i.focused { focus win.$i }
+            on change ovarm while ovarm and ov and pickw.$i.hover > 0.5 and not win.$i.focused and dmode < 0.5 { focus win.$i }
             on press pickw.$i {
                 focus win.$i
                 ov.$screen = false
@@ -679,7 +681,7 @@ scene Session {
                 }
                 // Super let go in a held overview: the selected window is picked
                 // as a click would, its workspace shown and the camera on it.
-                on still keys.super for 30ms while keys.super < 0.5 and win.$i.focused and sc == s and ovh.$s {
+                on still keys.super for 30ms while keys.super < 0.5 and win.$i.focused and sc == s and ovh.$s and dmode < 0.5 {
                     workspace win.$i.workspace on s
                     cam.a.$s = i
                     ofs.x.$s = 0
@@ -700,11 +702,13 @@ scene Session {
             let edgex = max(min(w / 5, 120), 40)
             let edgey = max(min(h / 5, 120), 40)
             // Held while a drag of it lasts, wherever the pointer went.
-            let handle = ((keys.super > 0.5 and here) or dslot == i) and win.$i.open and not full and not ov
+            let handle = ((keys.super > 0.5 and here) or dslot == i) and win.$i.open and not full
             // In a group of the window's own z, so the handles of one on top
             // take the press, not those of a tiled one under it.
             group {
                 z: wz
+                // the overview's pick under the handles: with Super held, a press carries
+                zone box pickw.$i { from: x, y; size: w, h; cursor: pointer; active: ov and here and win.$i.open }
                 zone box grab.$i { from: x, y; size: w, h; cursor: grab; active: handle }
                 zone box grabl.$i { from: x, y; size: edgex, h; cursor: ew_resize; active: handle }
                 zone box grabr.$i { from: x + w - edgex, y; size: edgex, h; cursor: ew_resize; active: handle }
@@ -722,8 +726,9 @@ scene Session {
                 dslot = i
                 dmode = 1
                 g.hs = sc
-                g.ox = pointer.x - if(flo, fgx, x)
-                g.oy = pointer.y - if(flo, fgy, y)
+                // where it is held, unzoomed: grabbed in the overview too
+                g.ox = (pointer.x - x) / max(w.$i / max(goal.w, 1), 0.05)
+                g.oy = (pointer.y - y) / max(h.$i / max(goal.h, 1), 0.05)
                 g.px = pointer.x
                 g.py = pointer.y
                 dropj = -1
@@ -736,8 +741,9 @@ scene Session {
                 g.py = pointer.y + pick(g.hs, org.0, org.1, org.2, org.3) - pick(mon, org.0, org.1, org.2, org.3)
             }
             on drag grab.$i while dmode == 1 and dslot == i and flo {
-                fx.$i = pointer.x + dmx - g.ox
-                fy.$i = pointer.y + pick(g.hs, org.0, org.1, org.2, org.3) - pick(mon, org.0, org.1, org.2, org.3) - g.oy
+                // (where it is seen, taken back out of the zoom)
+                fx.$i = mt.x + (pointer.x + dmx - g.ox * zt - mt.x - mv.x) / zt
+                fy.$i = mt.y + (pointer.y + pick(g.hs, org.0, org.1, org.2, org.3) - pick(mon, org.0, org.1, org.2, org.3) - g.oy * zt - mt.y) / zt
                 fw.$i = fgw
                 fh.$i = fgh
             }
