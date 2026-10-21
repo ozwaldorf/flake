@@ -4,8 +4,42 @@
 
 -- The window manager itself has no PLEAMAR_SOCKETS, where the scenes of its
 -- session (the shell) keep theirs: it is named after its first display.
+-- A screenless one (pleamar-wm headless, a test) has PLEAMAR_SOCKETS and its
+-- shell lives where wm.sock leads back to it: told there or nowhere, never the
+-- real session's shell.
+local SAY = [[
+d="$XDG_RUNTIME_DIR/pleamar-pleamar-1"
+if [ -n "$PLEAMAR_SOCKETS" ]; then
+    d=
+    for x in "$XDG_RUNTIME_DIR"/pleamar-pleamar-*; do
+        [ "$(readlink "$x/wm.sock")" = "$PLEAMAR_SOCKETS/session.sock" ] && d="$x"
+    done
+    [ -n "$d" ] || exit 0
+fi
+PLEAMAR_SOCKETS="$d" exec pleamar-wm --say desk "$@"
+]]
+
+-- One message at a time, in order: each is a process of its own, and two let
+-- go together raced, the older one sometimes landing last (an overview the
+-- shell kept open). What comes in meanwhile goes in the next one.
+local queue, busy = {}, false
+local function pump()
+    if busy or #queue == 0 then
+        return
+    end
+    busy = true
+    local cmds = queue
+    queue = {}
+    run("sh", { "-c", SAY, "sh", table.unpack(cmds) }, function()
+        busy = false
+        pump()
+    end, { output = false })
+end
 local function tell(...)
-    run("sh", { "-c", 'PLEAMAR_SOCKETS="$XDG_RUNTIME_DIR/pleamar-pleamar-1" exec pleamar-wm --say desk "$@"', "sh", ... }, nil, { output = false })
+    for _, c in ipairs({ ... }) do
+        table.insert(queue, c)
+    end
+    pump()
 end
 
 -- the shell

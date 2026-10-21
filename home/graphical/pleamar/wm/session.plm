@@ -337,14 +337,10 @@ scene Session {
     event ptr_report ->
     let ptr.code = mon + 4 * if(dmode > 0.5, 1, 0)
     on change ptr.code { emit ptr_report(ptr.code) }
-    // each monitor's overview: s + 4 while open. Also a moment after this
-    // scene is read again, which closes them with no change to report.
-    fact fresh = true
-    every 200ms while fresh { fresh = false }
+    // each monitor's overview: s + 4 while open
     repeat s in 0..4 {
         on change ov.$s { emit ov_report(s + 4 * if(ov.$s, 1, 0)) }
         on shell_hello { emit ov_report(s + 4 * if(ov.$s, 1, 0)) }
-        on change fresh while not fresh { emit ov_report(s + 4 * if(ov.$s, 1, 0)) }
     }
     event shell_hello
     on shell_hello {

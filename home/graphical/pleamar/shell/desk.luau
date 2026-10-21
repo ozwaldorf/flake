@@ -5,20 +5,27 @@
 local S = {}
 
 -- Something for the window manager's scene (pleamar-wm's own session). What
--- is said in one step goes in one message, so it lands in one frame there: the
--- drawer's room and the overview it opens for, apart, raced as two processes.
-local said = {}
+-- is said in one step goes in one message, so it lands in one frame there, and
+-- one message at a time, in order: each is a process of its own, and apart
+-- they raced. What comes in while one is on its way goes in the next.
+local said, busy = {}, false
+local function pump()
+    if busy or #said == 0 then
+        return
+    end
+    busy = true
+    local cmds = said
+    said = {}
+    run("pleamar-wm", { "--say", "wm", table.unpack(cmds) }, function()
+        busy = false
+        pump()
+    end, { output = false })
+end
 function S.wm(...)
     for _, c in ipairs({ ... }) do
         table.insert(said, c)
     end
-    if #said == select("#", ...) then
-        after(0, function()
-            local cmds = said
-            said = {}
-            run("pleamar-wm", { "--say", "wm", table.unpack(cmds) }, nil, { output = false })
-        end)
-    end
+    after(0, pump)
 end
 
 -- Starts a program loose from the shell, so it outlives it.
