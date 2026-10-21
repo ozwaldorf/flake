@@ -13,7 +13,7 @@ scene Session {
     surface { size: full, full; screens: each max 4 }
     windows win max 16
 
-    let gap = 14
+    let gap = 18
     let strut = 14
     let radius = 10
     // niri's own spring: stiffness 800, critically damped.
@@ -630,6 +630,10 @@ scene Session {
                 group {
                     clip box { from: x, y; size: w, h; corner: r }
                     window win.$i { at: x, y; size: w, h; ask: if(win.$i.dialog and fw.$i < 1, 0, goal.w), if(win.$i.dialog and fw.$i < 1, 0, goal.h); show: win.$i.open }
+                    // In the overview its title, on a band across its top, at the
+                    // view's own size whatever the zoom.
+                    box { from: x, y; size: w, 30; color: base; opacity: 0.86 * pick(sc, ovp.0, ovp.1, ovp.2, ovp.3) }
+                    text win.$i.title { at: x + 12, y + 15; anchor: left center; size: 12; color: text; family: "Berkeley Mono"; width: w - 24; lines: 1; opacity: pick(sc, ovp.0, ovp.1, ovp.2, ovp.3) }
                 }
                 box { from: x, y; size: w, h; corner: r; stroke: 1; color: mix(base, text, litp.$i); opacity: (1 - full) * frost.$i }
                 // where a carried window would land: this one, marked
