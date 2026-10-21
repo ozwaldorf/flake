@@ -66,6 +66,15 @@ scene Session {
             ovdr.$s = false
         }
     }
+    // The room as it is about to be: the drawer the overview opens or closes
+    // counted from the frame the overview turns, not the next one, when the
+    // rules above set it. Where the windows go reads this, so their target
+    // does not move twice.
+    let rfree = abs(room.0) < 400 and abs(room.1) < 400 and abs(room.2) < 400 and abs(room.3) < 400
+    let rmt.0 = if(ov.0 and not ovdr.0 and rfree, ovroom, if(not ov.0 and ovdr.0, 0, room.0))
+    let rmt.1 = if(ov.1 and not ovdr.1 and rfree, -ovroom, if(not ov.1 and ovdr.1, 0, room.1))
+    let rmt.2 = if(ov.2 and not ovdr.2 and rfree, -ovroom, if(not ov.2 and ovdr.2, 0, room.2))
+    let rmt.3 = if(ov.3 and not ovdr.3 and rfree, -ovroom, if(not ov.3 and ovdr.3, 0, room.3))
     on change f.sc while win.focus >= 0 { kmon = f.sc }
     on change win.focus while win.focus >= 0 { kmon = f.sc }
     on change mon { kmon = mon }
@@ -177,10 +186,13 @@ scene Session {
     let zf.1 = min(1, min(max(avail.1 - abs(rs.1), 1) / max(m.rw.1, 1), Ha.1 / max(m.th.1, 1))) * 0.92
     let zf.2 = min(1, min(max(avail.2 - abs(rs.2), 1) / max(m.rw.2, 1), Ha.2 / max(m.th.2, 1))) * 0.92
     let zf.3 = min(1, min(max(avail.3 - abs(rs.3), 1) / max(m.rw.3, 1), Ha.3 / max(m.th.3, 1))) * 0.92
-    // Each monitor's zoom as it stands. The camera (vx, vy) springs in screen
-    // space, on the same spring as the zoom, and the windows divide it back
-    // by this: zooming in and panning together then move every window in a
-    // straight line, not the curve two springs in a row make.
+    // ...and where it is going: from the room the drawer takes, not its spring.
+    let zt.0 = min(1, min(max(avail.0 - abs(rmt.0), 1) / max(m.rw.0, 1), Ha.0 / max(m.th.0, 1))) * 0.92
+    let zt.1 = min(1, min(max(avail.1 - abs(rmt.1), 1) / max(m.rw.1, 1), Ha.1 / max(m.th.1, 1))) * 0.92
+    let zt.2 = min(1, min(max(avail.2 - abs(rmt.2), 1) / max(m.rw.2, 1), Ha.2 / max(m.th.2, 1))) * 0.92
+    let zt.3 = min(1, min(max(avail.3 - abs(rmt.3), 1) / max(m.rw.3, 1), Ha.3 / max(m.th.3, 1))) * 0.92
+    // Each monitor's zoom as it stands: the camera's spring (vx, vy) is in screen
+    // space, and read through it to tell when it has settled.
     let zm.0 = 1 - (1 - zf.0) * ovp.0
     let zm.1 = 1 - (1 - zf.1) * ovp.1
     let zm.2 = 1 - (1 - zf.2) * ovp.2
@@ -307,11 +319,6 @@ scene Session {
         }
     }
 
-    // The middle of this monitor's working area, which the camera centres and
-    // the overview zooms on.
-    let mid.x = pick(me, Ax.0 - room.0 + rs.0, Ax.1 - room.1 + rs.1, Ax.2 - room.2 + rs.2, Ax.3 - room.3 + rs.3) + gap + pick(me, avail.0, avail.1, avail.2, avail.3) / 2
-    let mid.y = pick(me, Ay.0, Ay.1, Ay.2, Ay.3) + pick(me, Ha.0, Ha.1, Ha.2, Ha.3) / 2
-    let zoom = pick(me, zm.0, zm.1, zm.2, zm.3)
     zone box desk { from: 0, 0; size: Wm, Hm }
     on enter desk { mon = screen.index }
     // Where each monitor's copy sits in the scene, learnt while the pointer
@@ -351,18 +358,13 @@ scene Session {
     }
 
     group {
-        pivot: mid.x, mid.y
-        // Centred in what the drawer leaves of the monitor, not slid with the
-        // windows by its width (the wallpaper still slides).
-        move: ((Wm + pick(me, rs.0, rs.1, rs.2, rs.3)) / 2 - mid.x) * ovp, 0
-        scale: zoom
-
         // the windows
         repeat i in 0..16 {
             let sc = win.$i.screen
             let Ws = pick(sc, W.0, W.1, W.2, W.3)
             let Hs = pick(sc, H.0, H.1, H.2, H.3)
             let Ax = pick(sc, Ax.0, Ax.1, Ax.2, Ax.3)
+            let AxT = Ax + pick(sc, rmt.0, rmt.1, rmt.2, rmt.3) - pick(sc, room.0, room.1, room.2, room.3)
             let Wa = pick(sc, Wa.0, Wa.1, Wa.2, Wa.3)
             let Ay = pick(sc, Ay.0, Ay.1, Ay.2, Ay.3)
             let Ha = pick(sc, Ha.0, Ha.1, Ha.2, Ha.3)
@@ -374,18 +376,21 @@ scene Session {
             let still = abs(camx - pick(sc, cam.tx.0, cam.tx.1, cam.tx.2, cam.tx.3)) < 2 and abs(camy - pick(sc, cam.ty.0, cam.ty.1, cam.ty.2, cam.ty.3)) < 2
 
             let tiled = win.$i.place >= 0
-            // Where its row puts it, with the camera's pan taken off: a tiled
-            // window travels on its one spring whatever moves it, the rows or
-            // the camera, and however far apart in time they change. The pan
-            // is dropped in the overview; the camera's own spring (vx) only
-            // bends the drawn place by the zoom (camoff, nothing at zoom 1), so
-            // zooming and panning together still go in a straight line.
-            let pn.x = if(tiled and not win.$i.fullscreen and not pick(sc, ov.0, ov.1, ov.2, ov.3), pick(sc, cam.tx.0, cam.tx.1, cam.tx.2, cam.tx.3), 0)
-            let pn.y = if(tiled and not win.$i.fullscreen and not pick(sc, ov.0, ov.1, ov.2, ov.3), pick(sc, cam.ty.0, cam.ty.1, cam.ty.2, cam.ty.3), 0)
-            let tx = Ax + gap + avail / 2 + lx.$i - pn.x
+            // Where its row puts it, with the camera's pan taken off. The pan
+            // is dropped in the overview.
+            let ovt = pick(sc, ov.0, ov.1, ov.2, ov.3)
+            let pn.x = if(tiled and not win.$i.fullscreen and not ovt, pick(sc, cam.tx.0, cam.tx.1, cam.tx.2, cam.tx.3), 0)
+            let pn.y = if(tiled and not win.$i.fullscreen and not ovt, pick(sc, cam.ty.0, cam.ty.1, cam.ty.2, cam.ty.3), 0)
+            let tx = AxT + gap + avail / 2 + lx.$i - pn.x
             let ty = Ay + Ha / 2 + ly.$i - pn.y
-            let camoff.x = if(tiled and not win.$i.fullscreen, camx - pick(sc, vx.0, vx.1, vx.2, vx.3), 0)
-            let camoff.y = if(tiled and not win.$i.fullscreen, camy - pick(sc, vy.0, vy.1, vy.2, vy.3), 0)
+            // The overview's zoom where it is going: around the middle of what
+            // the drawer leaves, centred on the monitor. Taken from where
+            // everything ends, never from the springs on their way, so each
+            // window's one spring goes straight to where it is seen.
+            let zt = if(ovt, pick(sc, zt.0, zt.1, zt.2, zt.3), 1)
+            let mt.x = AxT + gap + avail / 2
+            let mt.y = Ay + Ha / 2
+            let mv.x = if(ovt, (Ws + pick(sc, rmt.0, rmt.1, rmt.2, rmt.3)) / 2 - mt.x, 0)
             // Floating: where it was put; a dialog in the middle at its own size.
             fact fx.$i = 0
             fact fy.$i = 0
@@ -398,7 +403,7 @@ scene Session {
             // too; a window rule's float is one.
             let fgw = if(fw.$i >= 1, max(fw.$i, 200), if(win.$i.dialog, dw, 200))
             let fgh = if(fw.$i >= 1, max(fh.$i, 120), if(win.$i.dialog, dh, 120))
-            let fgx = if(fw.$i < 1, Ax + (Wa - fgw) / 2, fx.$i)
+            let fgx = if(fw.$i < 1, AxT + (Wa - fgw) / 2, fx.$i)
             let fgy = if(fw.$i < 1, (Hs - fgh) / 2, fy.$i)
             let full = win.$i.fullscreen
             // A tiled window being carried leaves its place and follows the mouse.
@@ -406,32 +411,34 @@ scene Session {
             // where the pointer's monitor sits from this window's, for a
             // carried window: it is kept in its own monitor's coordinates
             let dmx = pick(mon, mx.0, mx.1, mx.2, mx.3) - pick(sc, mx.0, mx.1, mx.2, mx.3)
-            let goal.x = if(full, 0, if(flo, fgx, if(lifted, g.px + dmx - g.ox + camoff.x, tx)))
-            let goal.y = if(full, 0, if(flo, fgy, if(lifted, g.py - g.oy + camoff.y, ty)))
+            let goal.x = if(full, 0, if(flo, fgx, if(lifted, g.px + dmx - g.ox, tx)))
+            let goal.y = if(full, 0, if(flo, fgy, if(lifted, g.py - g.oy, ty)))
             let goal.w = if(full, Ws, if(flo, fgw, tw.$i))
             let goal.h = if(full, Hs, if(flo, fgh, th.$i))
+            // ...and where that is seen, zoomed: what its springs go to.
+            let sg.x = mt.x + mv.x + zt * (goal.x - mt.x)
+            let sg.y = mt.y + zt * (goal.y - mt.y)
+            let sg.w = zt * goal.w
+            let sg.h = zt * goal.h
 
-            follow x.$i = goal.x
-            follow y.$i = goal.y
-            follow w.$i = goal.w
-            follow h.$i = goal.h
+            follow x.$i = sg.x
+            follow y.$i = sg.y
+            follow w.$i = sg.w
+            follow h.$i = sg.h
 
             // Sent to another monitor by the keyboard: its springs are put where
-            // it is now in that monitor's coordinates (each camera off and on),
+            // it is now in that monitor's coordinates,
             // so it travels there across the boundary instead of appearing.
             fact psc.$i = 0
             fact xing.$i = 0
-            let cam.was.x = if(tiled and not full, pick(psc.$i, vx.0, vx.1, vx.2, vx.3) * (1 / max(pick(psc.$i, zm.0, zm.1, zm.2, zm.3), 0.01) - 1), 0)
-            let cam.was.y = if(tiled and not full, pick(psc.$i, vy.0, vy.1, vy.2, vy.3) * (1 / max(pick(psc.$i, zm.0, zm.1, zm.2, zm.3), 0.01) - 1), 0)
             on change win.$i.screen while ksend == i and win.$i.open {
-                x.$i: x.$i - cam.was.x + pick(psc.$i, mx.0, mx.1, mx.2, mx.3) - pick(sc, mx.0, mx.1, mx.2, mx.3) + camoff.x ~0ms
-                y.$i: y.$i - cam.was.y + camoff.y ~0ms
+                x.$i: x.$i + pick(psc.$i, mx.0, mx.1, mx.2, mx.3) - pick(sc, mx.0, mx.1, mx.2, mx.3) ~0ms
                 xing.$i = 1
             }
             on change win.$i.screen while ksend != i { psc.$i = win.$i.screen }
             on change win.$i.open while win.$i.open { psc.$i = win.$i.screen }
             // Landed: drawn on its own monitor alone again.
-            let landed = abs(x.$i - goal.x) < 1 and abs(y.$i - goal.y) < 1 and abs(w.$i - goal.w) < 1
+            let landed = abs(x.$i - sg.x) < 1 and abs(y.$i - sg.y) < 1 and abs(w.$i - sg.w) < 1
             // (what it came from is kept until then: the jump above is worked
             // out after the rule's other changes)
             on change landed while landed and xing.$i > 0.5 {
@@ -456,15 +463,15 @@ scene Session {
             follow seen.$i = if(win.$i.open and not waits, 1, 0)
             // Not seen yet, it is where it goes at once, so it fades in without
             // moving while the rest make room and the camera pans.
-            on change goal.x while win.$i.open and seen.$i < 0.02 { x.$i: goal.x ~0ms }
-            on change goal.y while win.$i.open and seen.$i < 0.02 { y.$i: goal.y ~0ms }
-            on change goal.w while win.$i.open and seen.$i < 0.02 { w.$i: goal.w ~0ms }
-            on change goal.h while win.$i.open and seen.$i < 0.02 { h.$i: goal.h ~0ms }
+            on change sg.x while win.$i.open and seen.$i < 0.02 { x.$i: sg.x ~0ms }
+            on change sg.y while win.$i.open and seen.$i < 0.02 { y.$i: sg.y ~0ms }
+            on change sg.w while win.$i.open and seen.$i < 0.02 { w.$i: sg.w ~0ms }
+            on change sg.h while win.$i.open and seen.$i < 0.02 { h.$i: sg.h ~0ms }
             on change win.$i.open while win.$i.open {
-                x.$i: goal.x ~0ms
-                y.$i: goal.y ~0ms
-                w.$i: goal.w ~0ms
-                h.$i: goal.h ~0ms
+                x.$i: sg.x ~0ms
+                y.$i: sg.y ~0ms
+                w.$i: sg.w ~0ms
+                h.$i: sg.h ~0ms
                 seen.$i: 0 ~0ms
                 frost.$i: 0 ~0ms
                 frost.$i: 1 after 250ms
@@ -531,11 +538,11 @@ scene Session {
             follow dropp.$i = if(dmode == 1 and dropj == i, 1, 0)
             prop agp.$i = 0 ~400ms
             follow agp.$i = if(ag.live and ag.win == i and win.$i.open, 1, 0)
-            let x = x.$i - camoff.x
-            let y = y.$i - camoff.y
+            let x = x.$i
+            let y = y.$i
             let w = w.$i
             let h = h.$i
-            let r = if(full, 0, radius)
+            let r = if(full, 0, radius * clamp(w.$i / max(goal.w, 1), 0.2, 1))
             // how it stacks, its handles with it
             let wz = if(full, 100000, if(win.$i.dialog, 60000, if(lifted or xing.$i > 0.5, 90000, if(win.$i.floating, 1000 + stamp.$i, 0))))
             group {
@@ -591,7 +598,7 @@ scene Session {
             // The keyboard follows the pointer, without moving the camera, and
             // only once the camera and the window have settled, so windows
             // sliding under a still pointer do not take it.
-            on enter win.$i while not win.$i.focused and dmode < 0.5 and not ov and still and abs(x.$i - goal.x) < 2 and abs(y.$i - goal.y) < 2 {
+            on enter win.$i while not win.$i.focused and dmode < 0.5 and not ov and still and abs(x.$i - sg.x) < 2 and abs(y.$i - sg.y) < 2 {
                 mon = screen.index
                 focus win.$i
             }
@@ -695,7 +702,7 @@ scene Session {
             // letting go the two trade places, row heights with them.
             on drag grab.$i while dmode == 1 and dslot == i and tiled { dropj = -1 }
             repeat j in 0..16 {
-                on drag grab.$i while dmode == 1 and dslot == i and tiled and mon == sc and j != i and win.$j.place >= 0 and win.$j.screen == sc and win.$j.pool == win.$i.pool and pointer.x + camoff.x >= x.$j and pointer.x + camoff.x < x.$j + w.$j and pointer.y + camoff.y >= y.$j and pointer.y + camoff.y < y.$j + h.$j { dropj = j }
+                on drag grab.$i while dmode == 1 and dslot == i and tiled and mon == sc and j != i and win.$j.place >= 0 and win.$j.screen == sc and win.$j.pool == win.$i.pool and pointer.x >= x.$j and pointer.x < x.$j + w.$j and pointer.y >= y.$j and pointer.y < y.$j + h.$j { dropj = j }
                 on release grab.$i while dmode == 1 and dslot == i and tiled and dropj == j {
                     t.c = cpos.$i
                     t.r = rpos.$i
@@ -712,9 +719,8 @@ scene Session {
             // that monitor's coordinates at once, so it does not glide across.
             on release grab.$i while dmode == 1 and dslot == i and mon != sc {
                 fx.$i = fx.$i - dmx
-                // (from this monitor's rows to that one's: each camera off and on)
-                x.$i: x.$i - camoff.x - dmx ~0ms
-                y.$i: y.$i - camoff.y ~0ms
+                // (from this monitor's coordinates to that one's)
+                x.$i: x.$i - dmx ~0ms
                 send win(i) to mon
             }
             on release grab.$i while dslot == i {
