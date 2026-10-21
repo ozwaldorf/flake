@@ -18,7 +18,7 @@ part Toasts {
     let ts.w = 340
 
     surface toasts {
-        // its own names for what the rail works out (see taskbar.plm)
+        // its own names for what the rail works out (see pages/screen.plm)
         let ts.me = screen.index
         let ts.W = pick(ts.me, mw.0, mw.1, mw.2, mw.3)
         let ts.railw = sliver + (rail - sliver) * pick(ts.me, rv.0, rv.1, rv.2, rv.3)

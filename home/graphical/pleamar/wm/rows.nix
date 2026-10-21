@@ -143,8 +143,8 @@ in
     ''
       let W.${n} = screen.${n}.width
       let H.${n} = screen.${n}.height
-      let Ax.${n} = strut + win.reserved.${n}.left - win.reserved.${n}.right + room.${n}
-      let Wa.${n} = W.${n} - 2 * strut
+      let Ax.${n} = strut + win.reserved.${n}.left - win.reserved.${n}.right + room.${n} + max(edge.${n}, 0)
+      let Wa.${n} = W.${n} - 2 * strut - abs(edge.${n})
       let Ay.${n} = win.reserved.${n}.top + strut + gap
       let Ha.${n} = H.${n} - win.reserved.${n}.top - win.reserved.${n}.bottom - 2 * strut - 2 * gap
       let avail.${n} = Wa.${n} - 2 * gap''

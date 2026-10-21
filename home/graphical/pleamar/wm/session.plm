@@ -43,6 +43,12 @@ scene Session {
     fact room.1 = 0
     fact room.2 = 0
     fact room.3 = 0
+    // The shell's rail, kept clear on each monitor, signed the same way: the
+    // working area narrows by it instead of sliding aside.
+    fact edge.0 = 0
+    fact edge.1 = 0
+    fact edge.2 = 0
+    fact edge.3 = 0
     // The shell opens its drawer with an overview and closes it after, and
     // says so a moment later: the room is taken at once, so the zoom and the
     // windows' slide start together. ovdr: the overview opened the drawer.
@@ -346,27 +352,6 @@ scene Session {
     on shell_hello {
         emit focus_report(kmon)
         emit ptr_report(ptr.code)
-    }
-    // the shell's task bar: told again whenever what it shows, or the order
-    // windows sit in, changes (the logic sorts and sends it)
-    event tb_dirty ->
-    event tb_focus
-    // a shell that just started is sent the list even if it has not changed
-    event tb_hello ->
-    on shell_hello { emit tb_hello }
-    repeat i in 0..16 {
-        on change win.$i.open { emit tb_dirty }
-        on change win.$i.focused { emit tb_dirty }
-        on change win.$i.urgent { emit tb_dirty }
-        on change win.$i.screen { emit tb_dirty }
-        on change win.$i.workspace { emit tb_dirty }
-        on change rpos.$i { emit tb_dirty }
-        on change cpos.$i { emit tb_dirty }
-        // Picked in the task bar: the keyboard, and the camera on it.
-        on tb_focus(v) while v == i {
-            focus win.$i
-            pan = 1
-        }
     }
 
     zone box desk { from: 0, 0; size: Wm, Hm }
@@ -704,12 +689,6 @@ scene Session {
                 // as a click would, its workspace shown and the camera on it.
                 on still keys.super for 30ms while keys.super < 0.5 and win.$i.focused and sc == s and ovh.$s and dmode < 0.5 {
                     workspace win.$i.workspace on s
-                    cam.a.$s = i
-                    ofs.x.$s = 0
-                    ofs.y.$s = 0
-                }
-                // and so does one picked in the task bar
-                on tb_focus(v) while v == i and tiled and sc == s {
                     cam.a.$s = i
                     ofs.x.$s = 0
                     ofs.y.$s = 0

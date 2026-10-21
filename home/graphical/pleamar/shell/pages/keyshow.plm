@@ -1,5 +1,5 @@
 // The input overlay: the latest key or mouse button pressed, in a pill
-// along the bottom of the monitor with the keyboard, above the task bar. Off
+// along the bottom of the monitor with the keyboard. Off
 // unless turned on from the control centre (ks_toggle); logic/keyshow.luau
 // reads them from libinput meanwhile.
 part KeyShow {

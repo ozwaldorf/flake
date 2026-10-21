@@ -46,7 +46,7 @@ function S.onNotifications(fn)
     table.insert(S.notes, fn)
 end
 
-for _, name in ipairs({ "icons", "meters", "settings", "info", "apps", "clipboard", "keys", "taskbar", "toasts", "recorder", "keyshow" }) do
+for _, name in ipairs({ "icons", "meters", "settings", "info", "apps", "clipboard", "keys", "toasts", "recorder", "keyshow" }) do
     local ok, mod = pcall(require, "logic/" .. name)
     if not ok then
         log("module " .. name .. ": " .. tostring(mod))
@@ -74,9 +74,18 @@ end)
 -- or this file slow enough to be cut off, and what is reported only on a
 -- change (the monitors' sizes) would never arrive. Asked again, it only says
 -- the same once more.
-S.wm("emit shell_hello")
+-- The rail, always out, is told with it: the window manager keeps its width
+-- clear on the left of the first monitor and the right of the others.
+local RAIL = 44
+local function hello()
+    for s = 0, 3 do
+        S.wm("fact edge." .. s .. " " .. (s == 0 and RAIL or -RAIL))
+    end
+    S.wm("emit shell_hello")
+end
+hello()
 for _, ms in ipairs({ 200, 500, 1000, 2000, 3000 }) do
-    after(ms, function() S.wm("emit shell_hello") end)
+    after(ms, hello)
 end
 
 -- Kept until dismissed: the list of notifications is the history. The

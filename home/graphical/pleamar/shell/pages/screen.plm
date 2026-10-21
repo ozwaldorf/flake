@@ -18,6 +18,6 @@ part Screen {
     let right = me > 0
     let rox = if(right, Ws - push, 0)
     let rx = if(right, push - railw, 0)
-    // How deep the recess looks: deeper as the drawer opens.
+    // How dark the edge shadows are: darker as the drawer opens.
     let recess = 0.2 + 0.1 * reveal + 0.25 * clamp((push - railw) / pagew, 0, 1)
 }

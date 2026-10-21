@@ -1,6 +1,6 @@
-// The desk: a rail on the left edge of each monitor that widens on hover and
+// The desk: a rail on the left edge of each monitor that
 // opens into a drawer of pages (control centre, system, apps, clipboard,
-// keys), a task bar along the bottom, toasts beside the rail and a veil over
+// keys), toasts beside the rail and a veil over
 // everything. The rail sits behind the windows: opening it reserves room, and
 // the window manager slides the strip aside to uncover it.
 //
@@ -23,7 +23,6 @@ scene Desk {
     let inset = 16
     let drawerw = pagew + 2 * inset
     let tabsh = 44
-    let taskbar = 44
     // A page's room: from its top-left corner (pg.x, pg.y), pagew wide.
     let pg.x = rail + inset
     let pg.y = inset
@@ -129,27 +128,29 @@ scene Desk {
     fact ovgo = false
     on change page while page != 1 { ovgo = false }
     let pidx = pick(max(page, 1) - 1, 0, 1, 2, 3, 4)
+    // Closed, the pages and the tab pill stay on the last page shown.
+    let lidx = pick(max(lastpage, 1) - 1, 0, 1, 2, 3, 4)
     prop pager = 0 ~niri
-    follow pager = pidx
+    follow pager = lidx
+    prop tabpill = 0 ~quint
+    follow tabpill = lidx
     prop dw = 0 ~niri
     follow dw = if(open, drawerw, 0)
     on change page while page > 0.5 { lastpage = page }
-    // From closed it opens straight on the page; between pages it slides.
-    on change page while page > 0.5 and dw < 1 { pager: pidx ~0ms }
+    // From closed it opens straight on the page, even mid-close; between
+    // pages it slides. shown is the drawer's state before this change.
+    fact shown = false
+    on change page while page > 0.5 and not shown {
+        pager: pidx ~0ms
+        tabpill: pidx ~0ms
+    }
+    on change page { shown = page > 0.5 }
 
-    // the rail of each monitor: a sliver, 44 wide on hover
-    fact hov.0 = false
-    fact hov.1 = false
-    fact hov.2 = false
-    fact hov.3 = false
-    prop rv.0 = 0 ~niri
-    prop rv.1 = 0 ~niri
-    prop rv.2 = 0 ~niri
-    prop rv.3 = 0 ~niri
-    follow rv.0 = if(hov.0 or (open and dmon == 0), 1, 0)
-    follow rv.1 = if(hov.1 or (open and dmon == 1), 1, 0)
-    follow rv.2 = if(hov.2 or (open and dmon == 2), 1, 0)
-    follow rv.3 = if(hov.3 or (open and dmon == 3), 1, 0)
+    // the rail of each monitor: always out, 44 wide
+    let rv.0 = 1
+    let rv.1 = 1
+    let rv.2 = 1
+    let rv.3 = 1
 
     // the veil: a blur over everything that takes all input
     fact veil = false
@@ -274,33 +275,39 @@ scene Desk {
             move: rox, 0
             zone box keep { from: 0, 0; size: push, Hs }
             on still inrail for 400ms while not inrail and open and here and not held { page = 0 }
-            on enter keep while not dragging { hov.$screen = true }
             // Hover is read from where the mouse is, not from the zone's enter and away:
-            // the compositor reports a leave while the rail slides out under a
+            // the compositor reports a leave while the drawer slides out under a
             // mouse held at the edge, and a fast move to the edge brings no enter.
             // the cursor across the rail and drawer, from where they start
             let lx = railbar.cursor.x - rox
             let inrail = ptrmon == me and not dragging and lx >= 0 and lx < push + 2 and railbar.cursor.y >= 0 and railbar.cursor.y < Hs
-            on still inrail for 400ms while not inrail and pick(me, hov.0, hov.1, hov.2, hov.3) { hov.$screen = false }
-            on change inrail while inrail { hov.$screen = true }
 
-            // the backdrop: mantle under the drawer, base under the rail, with
-            // shadows cut into the edge so it reads as a recess
+            // the backdrop: mantle under the drawer, base under the rail. The
+            // rail stands above the wallpaper, its shadow falling out onto it;
+            // the drawer is a shelf below both, shaded from either edge.
             box { from: 0, 0; size: push, Hs; color: mantle }
             box { from: rx, 0; size: railw, Hs; color: base }
             // (the drawer's outer edge is at push on the left side, at 0 on the
             // right; the rail's inner edge at railw, or at rx)
             let rcx = if(right, 0, push)
             let rcd = if(right, 18, -18)
+            let dopen = clamp((push - railw) / 40, 0, 1)
+            // shut: the rail's shadow on the wallpaper
+            group {
+                mask: rcx, 0 to rcx - rcd, 0
+                opacity: recess * (1 - dopen)
+                box { from: min(rcx, rcx - rcd), 0; size: 18, Hs; color: crust }
+            }
+            // open: the wallpaper's edge, and the rail, over the shelf
             group {
                 mask: rcx, 0 to rcx + rcd, 0
-                opacity: recess
+                opacity: recess * dopen
                 box { from: min(rcx, rcx + rcd), 0; size: 18, Hs; color: crust }
             }
             let rix = if(right, rx, railw)
             group {
                 mask: rix, 0 to rix - rcd, 0
-                opacity: recess * clamp((push - railw) / 40, 0, 1)
+                opacity: recess * dopen
                 box { from: min(rix, rix - rcd), 0; size: 18, Hs; color: crust }
             }
             // A pixel in the rail's top corner opens the control centre, as a hot
@@ -433,8 +440,6 @@ scene Desk {
                     let tabs.y = Hs - inset - tabsh
                     let tabw = pagew / 5
                     Well(pg.x, tabs.y, pagew, tabsh)
-                    prop tabpill = 0 ~quint
-                    follow tabpill = pidx
                     box { from: pg.x + tabpill * tabw + 4, tabs.y + 4; size: tabw - 8, tabsh - 8; corner: 6; color: surface0 }
                     repeat k in 0..5 {
                         let tx = pg.x + k * tabw + tabw / 2
@@ -458,14 +463,14 @@ scene Desk {
         }
     }
 
-    // The room the window manager leaves on each monitor: the rail's while
-    // it shows, and the drawer's beside it while it is open. On the left of
-    // the first monitor and (negative) the right of the others, where the
-    // rail is. Told to the window manager rather than reserved by surfaces,
-    // whose reserve cannot differ per monitor.
+    // The room the window manager slides aside on each monitor: the
+    // drawer's while it is open. On the left of the first monitor and
+    // (negative) the right of the others, where the rail is. Told to the
+    // window manager rather than reserved by surfaces, whose reserve cannot
+    // differ per monitor. The rail itself is kept clear apart (desk.luau).
     event room_report ->
     repeat s in 0..4 {
-        let room.$s = if(ovgo and dmon == s, 0, (44 * if(pick(s, hov.0, hov.1, hov.2, hov.3) or (open and dmon == s), 1, 0) + 432 * if(open and dmon == s, 1, 0)) * if(s > 0.5, -1, 1))
+        let room.$s = if(ovgo and dmon == s, 0, 432 * if(open and dmon == s, 1, 0) * if(s > 0.5, -1, 1))
         on change room.$s { emit room_report(s + 4 * (room.$s + 4096)) }
     }
 
@@ -500,8 +505,12 @@ scene Desk {
         on press veilz { veil = true }
     }
 
-    // the task bar, toasts, the recorder and the input overlay: parts of their own
-    include "pages/taskbar.plm"
+    // the recorder: gpu-screen-recorder, toggled with `emit rec_toggle`
+    event rec_toggle ->
+    fact rec.on = false
+    fact rec.secs = 0
+
+    // toasts and the input overlay: parts of their own
     include "pages/toasts.plm"
     include "pages/keyshow.plm"
 
