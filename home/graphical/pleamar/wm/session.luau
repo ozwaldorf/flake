@@ -39,6 +39,16 @@ on("ov_report", function(code)
     local s = code % 4
     tell("fact ovm." .. s .. " " .. tostring(code >= 4))
 end)
+-- ...and what it is as this starts: a scene read again has its overviews
+-- closed with no change to report, and the shell, left with an open one,
+-- would only ever close it.
+do
+    local ovs = {}
+    for s = 0, 3 do
+        table.insert(ovs, "fact ovm." .. s .. " " .. tostring(fact["ov." .. s] == true))
+    end
+    tell(table.unpack(ovs))
+end
 
 -- the wallpaper: two slots, the new one fading in over the old. The new one is
 -- put in the hidden slot first and faded to a moment later, once it has been
