@@ -1,21 +1,18 @@
 // The frosting behind the window manager's glass, Apple's CABackdropLayer:
-// clamp to SDR, saturate, then a gaussian (inputRadius is sigma, in points)
-// at a quarter of the size with its edges normalised, back at full size with
-// grain. Chain: down 0.5 repeat 2, h 1, v 1, grain 4. s.a: sigma, saturation,
-// brightness (added), grain. s.b: lighten floor, darken ceiling (the tint
-// layers' blends).
+// clamp to SDR, then a gaussian (inputRadius is sigma, in points) at a
+// quarter of the size with its edges normalised, back at full size with
+// grain. Saturation and tone are the glass's own (`vivid:`, `smoke:`,
+// `milk:`). Chain: down 0.5 repeat 2, h 1, v 1, grain 4. s.a: sigma, grain.
 
-// Clamped and saturated on the straight colour, before the blur.
-fn saturate(s: Blur, c: vec4<f32>) -> vec4<f32> {
+// Clamped to SDR on the straight colour, before the blur.
+fn sdr(c: vec4<f32>) -> vec4<f32> {
     if (c.a < 0.0001) {
         return c;
     }
-    let rgb = clamp(c.rgb / c.a, vec3<f32>(0.0), vec3<f32>(1.0));
-    let luma = dot(rgb, vec3<f32>(0.2126, 0.7152, 0.0722));
-    return vec4<f32>(clamp(mix(vec3<f32>(luma), rgb, s.a.y), vec3<f32>(0.0), vec3<f32>(1.0)) * c.a, c.a);
+    return vec4<f32>(clamp(c.rgb / c.a, vec3<f32>(0.0), vec3<f32>(1.0)) * c.a, c.a);
 }
 
-// A 2x2 box, one tap on each source pixel; the first saturates them.
+// A 2x2 box, one tap on each source pixel; the first clamps them.
 fn down(s: Blur) -> vec4<f32> {
     let t = 0.5 / s.source;
     let a = prev(s, s.uv + vec2<f32>(-t.x, -t.y));
@@ -25,9 +22,8 @@ fn down(s: Blur) -> vec4<f32> {
     if (f32(s.step) > 0.5) {
         return (a + b + c + d) * 0.25;
     }
-    return (saturate(s, a) + saturate(s, b) + saturate(s, c) + saturate(s, d)) * 0.25;
+    return (sdr(a) + sdr(b) + sdr(c) + sdr(d)) * 0.25;
 }
-
 // One axis of the gaussian, two texels a tap through the bilinear filter.
 // Taps past the picture are left out and the weights renormalised, so the
 // edge neither darkens nor smears. 24 pairs cover 48 texels: past 3 sigma
@@ -59,14 +55,8 @@ fn h(s: Blur) -> vec4<f32> {
     return gauss(s, vec2<f32>(1.0, 0.0));
 }
 
-// The second axis, then brightness and the lighten / darken blends.
 fn v(s: Blur) -> vec4<f32> {
-    let c = gauss(s, vec2<f32>(0.0, 1.0));
-    if (c.a < 0.0001) {
-        return c;
-    }
-    let rgb = clamp(c.rgb / c.a + vec3<f32>(s.a.z), vec3<f32>(s.b.x), vec3<f32>(s.b.y));
-    return vec4<f32>(rgb * c.a, c.a);
+    return gauss(s, vec2<f32>(0.0, 1.0));
 }
 
 // PCG2D (Jarzynski and Olano): integer hashing without the patterns a sin
@@ -84,13 +74,13 @@ fn pcg2d(p: vec2<u32>) -> vec2<u32> {
 
 // Back at full size, grain on each real pixel: blown up from the quarter
 // size it would be blotches. Triangular (two uniforms summed), the shape
-// that hides banding without lifting the noise floor; s.a.w is its peak.
+// that hides banding without lifting the noise floor; s.a.y is its peak.
 fn grain(s: Blur) -> vec4<f32> {
     let c = prev(s, s.uv);
     if (c.a < 0.0001) {
         return c;
     }
     let u = vec2<f32>(pcg2d(vec2<u32>(s.pos)) >> vec2<u32>(8u)) / 16777216.0;
-    let n = (u.x + u.y - 1.0) * s.a.w;
+    let n = (u.x + u.y - 1.0) * s.a.y;
     return vec4<f32>(clamp(c.rgb / c.a + vec3<f32>(n), vec3<f32>(0.0), vec3<f32>(1.0)) * c.a, c.a);
 }

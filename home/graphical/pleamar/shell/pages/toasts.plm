@@ -43,10 +43,15 @@ part Toasts {
                 move: -14 * (1 - ts.songp), 0
                 body {
                     color: base
-                    glass: 45%
+                    glass: 80%
+                    tint: 0
+                    vivid: 140%
+                    smoke: 20%
+                    milk: 20%
                     frost: 100%
                     refraction: 0
                     dispersion: 0
+                    dome: 60%
                     ripple: 0
                     shadow: 0, 6, 24, 35%, crust
                     box { from: 0, 0; size: ts.w, 76; corner: 10 }
@@ -82,10 +87,15 @@ part Toasts {
             move: -slide, 0
             body {
                 color: base
-                glass: 45%
+                glass: 80%
+                tint: 0
+                vivid: 140%
+                smoke: 20%
+                milk: 20%
                 frost: 100%
                 refraction: 0
                 dispersion: 0
+                dome: 60%
                 ripple: 0
                 shadow: 0, 6, 24, 35%, crust
                 box { from: 0, 0; size: ts.w, words.height + 28; corner: 10 }

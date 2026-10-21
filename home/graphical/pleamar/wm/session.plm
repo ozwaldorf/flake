@@ -22,11 +22,10 @@ scene Session {
     let para = 0.18
 
     // The frosting behind the windows' glass (blur.wgsl): Apple's backdrop,
-    // saturated, a gaussian at a quarter of the size, grain at full. values:
-    // sigma, saturation, brightness, grain; lighten floor, darken ceiling.
+    // a gaussian at a quarter of the size, grain at full. values: sigma, grain.
     blur = file "blur.wgsl" {
         passes: down 0.5 repeat 2, h 1, v 1, grain 4
-        values: 30, 1.8, 0, 0.02, 0, 1
+        values: 30, 0.06
         reach: 64
     }
 
@@ -553,18 +552,20 @@ scene Session {
                 // shadow cut out around it.
                 body {
                     color: base
-                    glass: if(full, 0, 100%)
+                    glass: 80%
                     refraction: 0
                     dispersion: 0
+                    dome: 60%
                     ripple: 0
                     // clear at first, frosting over as it arrives
                     frost: frost.$i
-                    // none of the glass's own colouring: it shows the blur as it is
                     tint: 0
-                    vivid: 100%
+                    vivid: 140%
+                    smoke: 20%
+                    milk: 20%
                     mirror: 0
                     highlight: 0
-                    shadow: 0, 5, 30, 44% * (1 - full) * frost.$i, crust
+                    shadow: 0, 5, 30, 26% * (1 - full) * frost.$i, crust
                     box { from: x, y; size: w, h; corner: r }
                 }
                 group {

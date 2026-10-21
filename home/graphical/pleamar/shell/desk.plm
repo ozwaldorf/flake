@@ -31,11 +31,10 @@ scene Desk {
     spring quint = 260, 32
 
     // The frosting behind the shell's glass: the window manager's own
-    // (wm/blur.wgsl), so the two match. Its glass keeps vivid at 118%, so
-    // the chain saturates 1.8 / 1.18.
+    // (wm/blur.wgsl), so the two match.
     blur = file "../wm/blur.wgsl" {
         passes: down 0.5 repeat 2, h 1, v 1, grain 4
-        values: 30, 1.53, 0, 0.02, 0, 1
+        values: 30, 0.06
         reach: 64
     }
 
@@ -485,9 +484,14 @@ scene Desk {
         open: veilp > 0.001
         body {
             color: crust
-            glass: 100%
+            glass: 80%
+            tint: 0
+            vivid: 140%
+            smoke: 20%
+            milk: 20%
             refraction: 0
             dispersion: 0
+            dome: 60%
             ripple: 0
             frost: 100%
             opacity: veilp
