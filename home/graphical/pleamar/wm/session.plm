@@ -25,7 +25,7 @@ scene Session {
     // a gaussian at a quarter of the size, grain at full. values: sigma, grain.
     blur = file "blur.wgsl" {
         passes: down 0.5 repeat 2, h 1, v 1, grain 4
-        values: 30, 0.06
+        values: 30, 0.03
         reach: 64
     }
 
@@ -559,7 +559,7 @@ scene Session {
                     ripple: 0
                     // clear at first, frosting over as it arrives
                     frost: frost.$i
-                    tint: 0
+                    tint: 40%
                     vivid: 140%
                     smoke: 20%
                     milk: 20%

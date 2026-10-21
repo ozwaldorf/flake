@@ -34,7 +34,7 @@ scene Desk {
     // (wm/blur.wgsl), so the two match.
     blur = file "../wm/blur.wgsl" {
         passes: down 0.5 repeat 2, h 1, v 1, grain 4
-        values: 30, 0.06
+        values: 30, 0.03
         reach: 64
     }
 
@@ -485,7 +485,7 @@ scene Desk {
         body {
             color: crust
             glass: 80%
-            tint: 0
+            tint: 40%
             vivid: 140%
             smoke: 20%
             milk: 20%

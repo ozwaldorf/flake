@@ -36,7 +36,7 @@ part KeyShow {
             body {
                 color: base
                 glass: 80%
-                tint: 0
+                tint: 40%
                 vivid: 140%
                 smoke: 20%
                 milk: 20%
