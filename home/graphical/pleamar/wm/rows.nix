@@ -279,9 +279,18 @@ in
       // The monitor the pointer is on, and the workspace it shows.
       let p.ws = pick(mon, ${concatMapStringsSep ", " (s: "win.shown.${S s}") mons})
 
-      // positions back to whole numbers once a move has settled
+      // positions back to whole numbers once a move has settled. norm counts
+      // up so every request is a change. Each slot's rank is taken before any
+      // is written: c.idx and r.idx read the others' positions, and the slots'
+      // rules run one after the other.
       fact norm = 0
-      on still norm for 60ms while norm > 0.5 { norm = 0 }
+  ${perSlot (i: ''
+    fact nr.${S i} = 0
+    fact nc.${S i} = 0
+    on still norm for 50ms while win.${S i}.place >= 0 {
+        nr.${S i} = r.idx.${S i}
+        nc.${S i} = c.idx.${S i}
+    }'')}
 
       // moving the keyboard
       on focus_left while f.on and f.left >= 0 {
@@ -341,11 +350,11 @@ in
       // it is alone at that end already.
       on move_up while f.on and (f.up >= 0 or f.rn > 1.5) {
           pan = 1
-          norm = 1
+          norm = norm + 1
       }
       on move_down while f.on and (f.down >= 0 or f.rn > 1.5) {
           pan = 1
-          norm = 1
+          norm = norm + 1
       }
       fact sendir = 0
       // the window the keyboard is sending to another monitor, until it lands
@@ -415,9 +424,9 @@ in
           cpos.${n} = 0
           hp.${n} = 0.5
       }
-      on still norm for 50ms while norm > 0.5 and win.${n}.place >= 0 {
-          rpos.${n} = r.idx.${n}
-          cpos.${n} = c.idx.${n}
+      on still norm for 50ms while win.${n}.place >= 0 {
+          rpos.${n} = nr.${n}
+          cpos.${n} = nc.${n}
       }
       // Width presets for the window, height presets for its whole row.
       on cycle_width while f.on and ${me} { wp.${n} = ${nextPreset "wp.${n}"} }
@@ -429,13 +438,13 @@ in
           rpos.${n} = ${pickMon "win.${n}.screen" (s: pick "max(cam.k.${s}, 0)" (j: "rpos.${j}"))}
           cpos.${n} = if(sendir > 0, -1000, 1000)
           hp.${n} = ${pickMon "win.${n}.screen" (s: pick "max(cam.k.${s}, 0)" (j: "r.hp.${j}"))}
-          norm = 1
+          norm = norm + 1
       }
       on change win.${n}.floating while not win.${n}.floating and win.${n}.open {
           rpos.${n} = 1000
           cpos.${n} = 0
           hp.${n} = 0.5
-          norm = 1
+          norm = norm + 1
       }
       // A window that opens goes right of the one that had the keyboard, in
       // its row, or in a new row at the bottom if that one is elsewhere; or,
@@ -447,7 +456,7 @@ in
           cpos.${n} = if(n.newrow, 0, if(n.ok, n.fcpos + 1, 0))
           wp.${n} = 0.5
           hp.${n} = if(n.ok, n.fhp, 0.5)
-          norm = 1
+          norm = norm + 1
       }
       // Auto shapes: one in the middle, two side by side, then two over one
       // (the new window goes below, the two above stay; each row two thirds

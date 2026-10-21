@@ -797,7 +797,7 @@ scene Session {
                     rpos.$i = rpos.$j
                     cpos.$i = cpos.$j + dside * 0.01
                     hp.$i = r.hp.$j
-                    norm = 1
+                    norm = norm + 1
                 }
             }
             // ...and the monitor's rows are its own from then, as a move makes them.
