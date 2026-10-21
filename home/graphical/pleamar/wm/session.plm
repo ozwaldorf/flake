@@ -737,14 +737,19 @@ scene Session {
                 }
             }
 
-            // With Super held the window is a handle: its edges and corners
-            // stretch it, the rest carries it. A tiled window's sides set its
+            // Its edges and corners stretch it: bands across its border, half
+            // in the gap, half over the program. A tiled window's sides set its
             // width, its top and bottom its row's height. Only the left
             // button: pleamar reports no drag or release for the others.
-            let edgex = max(min(w / 5, 120), 40)
-            let edgey = max(min(h / 5, 120), 40)
+            let edge = 16
+            let ex0 = x - edge / 2
+            let ey0 = y - edge / 2
+            let ex1 = x + w - edge / 2
+            let ey1 = y + h - edge / 2
+            // With Super held they give way: the whole window carries it.
             // Held while a drag of it lasts, wherever the pointer went.
-            let handle = ((keys.super > 0.5 and here) or dslot == i) and win.$i.open and not full
+            let handle = ((keys.super > 0.5 and here) or (dmode == 1 and dslot == i)) and win.$i.open and not full
+            let sizing = ((keys.super < 0.5 and here and not ovt) or (dmode == 3 and dslot == i)) and win.$i.open and not full
             // Without Super, its title bar alone carries it.
             let bargrab = keys.super < 0.5 and here and win.$i.open and not full and not ovt
             // In a group of the window's own z, so the handles of one on top
@@ -754,14 +759,14 @@ scene Session {
                 // the overview's pick under the handles: with Super held, a press carries
                 zone box pickw.$i { from: x, y; size: w, h; cursor: pointer; active: ov and here and win.$i.open }
                 zone box grab.$i { from: x, y; size: w, if(handle, h, bh); cursor: if(dmode == 1 and dslot == i, grabbing, grab); active: handle or bargrab }
-                zone box grabl.$i { from: x, y; size: edgex, h; cursor: ew_resize; active: handle }
-                zone box grabr.$i { from: x + w - edgex, y; size: edgex, h; cursor: ew_resize; active: handle }
-                zone box grabt.$i { from: x, y; size: w, edgey; cursor: ns_resize; active: handle }
-                zone box grabb.$i { from: x, y + h - edgey; size: w, edgey; cursor: ns_resize; active: handle }
-                zone box grabtl.$i { from: x, y; size: edgex, edgey; cursor: nwse_resize; active: handle }
-                zone box grabtr.$i { from: x + w - edgex, y; size: edgex, edgey; cursor: nesw_resize; active: handle }
-                zone box grabbl.$i { from: x, y + h - edgey; size: edgex, edgey; cursor: nesw_resize; active: handle }
-                zone box grabbr.$i { from: x + w - edgex, y + h - edgey; size: edgex, edgey; cursor: nwse_resize; active: handle }
+                zone box grabl.$i { from: ex0, ey0; size: edge, h + edge; cursor: ew_resize; active: sizing }
+                zone box grabr.$i { from: ex1, ey0; size: edge, h + edge; cursor: ew_resize; active: sizing }
+                zone box grabt.$i { from: ex0, ey0; size: w + edge, edge; cursor: ns_resize; active: sizing }
+                zone box grabb.$i { from: ex0, ey1; size: w + edge, edge; cursor: ns_resize; active: sizing }
+                zone box grabtl.$i { from: ex0, ey0; size: edge, edge; cursor: nwse_resize; active: sizing }
+                zone box grabtr.$i { from: ex1, ey0; size: edge, edge; cursor: nesw_resize; active: sizing }
+                zone box grabbl.$i { from: ex0, ey1; size: edge, edge; cursor: nesw_resize; active: sizing }
+                zone box grabbr.$i { from: ex1, ey1; size: edge, edge; cursor: nwse_resize; active: sizing }
                 zone box wmax.$i { at: x + w - 40, y + th / 2; size: 20, th; cursor: pointer; label: "Maximize"; active: btns and here and dmode < 0.5 and not win.$i.dialog }
                 zone box wclose.$i { at: x + w - 18, y + th / 2; size: 20, th; cursor: pointer; label: "Close"; active: btns and here and dmode < 0.5 }
                 // maximize and close, at the title bar's right end, moving and
@@ -798,9 +803,9 @@ scene Session {
             on change wp.$i while big.$i and tiled and wp.$i < 0.99 { big.$i = false }
             on press wclose.$i { close win(i) }
             on change win.$i.open while not win.$i.open { big.$i = false }
-            // Carried from the middle, or by its title bar: the edge bands are
-            // on top and take their own presses.
-            on press grab.$i while bargrab or (pointer.x >= x + edgex and pointer.x < x + w - edgex and pointer.y >= y + edgey and pointer.y < y + h - edgey) {
+            // Carried by its title bar, or anywhere with Super held: the edge
+            // bands are on top and take their own presses.
+            on press grab.$i {
                 focus win.$i
                 dslot = i
                 dmode = 1
