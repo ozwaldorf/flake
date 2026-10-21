@@ -255,8 +255,9 @@ scene Session {
         follow wv.p.$s = win.reserved.$s.left - win.reserved.$s.right + room.$s * 0.25
     }
     // The parallax, one spring per monitor toward where the camera is going,
-    // on the windows' spring so the two move as one. The overview moves no
-    // camera, so it holds there until it closes.
+    // on the windows' spring so the two move as one. While the overview is in
+    // or on its way, the spring is kept where the camera goes, unseen: what is
+    // shown then is that place, faded by the zoom (below).
     prop wd.x.0 = 0 ~niri
     prop wd.x.1 = 0 ~niri
     prop wd.x.2 = 0 ~niri
@@ -266,27 +267,32 @@ scene Session {
     prop wd.y.2 = 0 ~niri
     prop wd.y.3 = 0 ~niri
     repeat s in 0..4 {
-        on change cam.tx.$s while not ov.$s { wd.x.$s: -cam.tx.$s * para }
-        on change cam.ty.$s while not ov.$s { wd.y.$s: -cam.ty.$s * para }
-        on change ov.$s while not ov.$s {
-            wd.x.$s: -cam.tx.$s * para
-            wd.y.$s: -cam.ty.$s * para
+        on change cam.tx.$s { wd.x.$s: -cam.tx.$s * para }
+        on change cam.ty.$s { wd.y.$s: -cam.ty.$s * para }
+        on change cam.tx.$s while ovp.$s > 0.001 { wd.x.$s: -cam.tx.$s * para ~0ms }
+        on change cam.ty.$s while ovp.$s > 0.001 { wd.y.$s: -cam.ty.$s * para ~0ms }
+        on change ovp.$s while ovp.$s > 0.001 {
+            wd.x.$s: -cam.tx.$s * para ~0ms
+            wd.y.$s: -cam.ty.$s * para ~0ms
         }
     }
-    // Bigger than the monitor by what the parallax may reach, and less so in
-    // the overview, where it pulls back to the whole picture with the windows,
-    // on their spring. The offset eases into that reach instead of stopping at
-    // it, so a long pan, or the overview taking the reach away, never halts it
-    // mid-motion.
+    // Bigger than the monitor by what the parallax may reach, and in the
+    // overview the whole picture, pulled back with the windows on their spring.
+    // The parallax eases into its reach instead of stopping at it, so a long
+    // pan never halts it mid-motion; the zoom then fades it out toward the
+    // middle in step with itself, from where the camera is going, so opening
+    // and closing go straight between the two whichever window came before.
     let wv.z = 1.2 - 0.2 * ovp
     let wv.w = Wm * wv.z
     let wv.h = Hm * wv.z
-    let wv.mx = max((wv.w - Wm) / 2, 0.01)
-    let wv.my = max((wv.h - Hm) / 2, 0.01)
-    let wv.dx = pick(me, wd.x.0, wd.x.1, wd.x.2, wd.x.3) + pick(me, wv.p.0, wv.p.1, wv.p.2, wv.p.3)
-    let wv.dy = pick(me, wd.y.0, wd.y.1, wd.y.2, wd.y.3)
-    let wv.ox = wv.dx / sqrt(1 + (wv.dx / wv.mx) * (wv.dx / wv.mx)) - wv.mx
-    let wv.oy = wv.dy / sqrt(1 + (wv.dy / wv.my) * (wv.dy / wv.my)) - wv.my
+    let wv.mx = (wv.w - Wm) / 2
+    let wv.my = (wv.h - Hm) / 2
+    let wv.nx = Wm * 0.1
+    let wv.ny = Hm * 0.1
+    let wv.dx = if(ovp > 0.001, -pick(me, cam.tx.0, cam.tx.1, cam.tx.2, cam.tx.3) * para, pick(me, wd.x.0, wd.x.1, wd.x.2, wd.x.3)) + pick(me, wv.p.0, wv.p.1, wv.p.2, wv.p.3)
+    let wv.dy = if(ovp > 0.001, -pick(me, cam.ty.0, cam.ty.1, cam.ty.2, cam.ty.3) * para, pick(me, wd.y.0, wd.y.1, wd.y.2, wd.y.3))
+    let wv.ox = wv.dx / sqrt(1 + (wv.dx / wv.nx) * (wv.dx / wv.nx)) * (1 - ovp) - wv.mx
+    let wv.oy = wv.dy / sqrt(1 + (wv.dy / wv.ny) * (wv.dy / wv.ny)) * (1 - ovp) - wv.my
     image wall.ia { at: wv.ox, wv.oy; size: wv.w, wv.h; fit: cover; opacity: (1 - wall.mix) * wall.lit }
     image wall.ib { at: wv.ox, wv.oy; size: wv.w, wv.h; fit: cover; opacity: wall.mix * wall.lit }
 
