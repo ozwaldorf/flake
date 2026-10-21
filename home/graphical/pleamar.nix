@@ -200,6 +200,8 @@ let
 
     # Blur behind every window's menus, not only the ones that ask
     blur menus on
+    # Behind the shell's glass (lens off): wide, grained, saturated like the wm's
+    blur passes 5 offset 3 noise 0.03 saturation 1.4
 
     # rio --app-id float
     window app=float float size 800x500

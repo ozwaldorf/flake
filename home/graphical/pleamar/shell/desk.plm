@@ -30,14 +30,6 @@ scene Desk {
     spring niri = 800, 57
     spring quint = 260, 32
 
-    // The frosting behind the shell's glass: the window manager's own
-    // (wm/blur.wgsl), so the two match.
-    blur = file "../wm/blur.wgsl" {
-        passes: down 0.5 repeat 2, h 1, v 1, grain 4
-        values: 30, 0.03
-        reach: 64
-    }
-
     // icons: Nerd Font glyphs, set by the logic (logic/icons.luau)
     text ic.close = ""
     text ic.cpu = ""
@@ -485,15 +477,16 @@ scene Desk {
         body {
             color: crust
             glass: 80%
-            tint: 40%
+            lens: false
+            tint: 0
             vivid: 140%
-            smoke: 20%
+            smoke: 40%
             milk: 20%
             refraction: 0
             dispersion: 0
             dome: 60%
             ripple: 0
-            frost: 100%
+            frost: 90%
             opacity: veilp
             box { from: 0, 0; size: vs.W, vs.H }
         }

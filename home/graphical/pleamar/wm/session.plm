@@ -558,10 +558,10 @@ scene Session {
                     dome: 60%
                     ripple: 0
                     // clear at first, frosting over as it arrives
-                    frost: frost.$i
-                    tint: 40%
+                    frost: frost.$i * 90%
+                    tint: 0
                     vivid: 140%
-                    smoke: 20%
+                    smoke: 40%
                     milk: 20%
                     mirror: 0
                     highlight: 0
