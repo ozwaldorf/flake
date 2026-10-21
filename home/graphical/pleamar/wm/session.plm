@@ -459,10 +459,14 @@ scene Session {
             // where the pointer's monitor sits from this window's, for a
             // carried window: it is kept in its own monitor's coordinates
             let dmx = pick(mon, mx.0, mx.1, mx.2, mx.3) - pick(sc, mx.0, mx.1, mx.2, mx.3)
-            // Maximized from its title bar: the whole working area, over the
-            // tiles, its place among them kept for when it comes back.
+            // Maximized from its title bar. Tiled, it stays in its row: the
+            // whole width, the row the whole height, what they were kept
+            // (bwp, bhp) for when it comes back. Floating, the whole working
+            // area, over the tiles.
             fact big.$i = false
-            let mxd = big.$i and not lifted
+            fact bwp.$i = 0.5
+            fact bhp.$i = 1
+            let mxd = big.$i and flo and not lifted
             let goal.w = if(full, Ws, if(mxd, avail, if(flo, fgw, tw.$i)))
             let goal.h = if(full, Hs, if(mxd, Ha, if(flo, fgh, th.$i)))
             // where it is held, unzoomed, at the size it has now
@@ -774,8 +778,24 @@ scene Session {
             }
             on press wmax.$i {
                 focus win.$i
+                pan = 1
                 toggle big.$i
             }
+            on press wmax.$i while tiled and not big.$i {
+                bwp.$i = wp.$i
+                bhp.$i = r.hp.$i
+                wp.$i = 1
+            }
+            on press wmax.$i while tiled and big.$i { wp.$i = bwp.$i }
+            repeat j in 0..16 {
+                on press wmax.$i while tiled and not big.$i and win.$j.place >= 0 and win.$j.screen == sc and win.$j.pool == win.$i.pool and rpos.$j == rpos.$i { hp.$j = 1 }
+                on press wmax.$i while tiled and big.$i and win.$j.place >= 0 and win.$j.screen == sc and win.$j.pool == win.$i.pool and rpos.$j == rpos.$i { hp.$j = bhp.$i }
+            }
+            repeat s in 0..4 {
+                on press wmax.$i while tiled and sc == s { auto.$s = false }
+            }
+            // Resized another way, it is no longer maximized.
+            on change wp.$i while big.$i and tiled and wp.$i < 0.99 { big.$i = false }
             on press wclose.$i { close win(i) }
             on change win.$i.open while not win.$i.open { big.$i = false }
             // Carried from the middle, or by its title bar: the edge bands are
@@ -798,8 +818,8 @@ scene Session {
             // The pointer is told in the coordinates of the monitor it is on,
             // so the window is held by where it was grabbed, drawn on the
             // monitor the pointer is over, and given to it when let go.
-            // A maximized window carried away is put back to its own size.
-            on drag grab.$i while dmode == 1 and dslot == i and big.$i { big.$i = false }
+            // A maximized floating window carried away is put back to its own size.
+            on drag grab.$i while dmode == 1 and dslot == i and big.$i and flo { big.$i = false }
             on drag grab.$i while dmode == 1 and dslot == i {
                 g.px = pointer.x
                 g.py = pointer.y + pick(g.hs, org.0, org.1, org.2, org.3) - pick(mon, org.0, org.1, org.2, org.3)
