@@ -309,9 +309,24 @@ in
           focus win(f.down)
       }
 
+      // A window and its neighbour in the row trade places: both places are
+      // taken here first, since the two slots' rules run one after the other
+      // and the first to run changed what the second read (nothing moved
+      // when the neighbour's slot came first).
+      fact mv.f = 0
+      fact mv.n = 0
+      on move_left while f.on and f.left >= 0 {
+          pan = 1
+          mv.f = f.cpos
+          mv.n = ${pick "max(f.left, 0)" (j: "cpos.${j}")}
+      }
+      on move_right while f.on and f.right >= 0 {
+          pan = 1
+          mv.f = f.cpos
+          mv.n = ${pick "max(f.right, 0)" (j: "cpos.${j}")}
+      }
+
       // moving windows past the end of the row, to the next monitor
-      on move_left while f.on and f.left >= 0 { pan = 1 }
-      on move_right while f.on and f.right >= 0 { pan = 1 }
       on move_left while win.focus >= 0 and (not f.on or f.left < 0) and f.sc > 0.5 {
           sendir = -1
           ksend = win.focus
@@ -373,11 +388,11 @@ in
     in
     ''
       // slot ${n}
-      // A window and its neighbour in the row trade places.
-      on move_left while f.on and f.left >= 0 and ${ws} and cpos.${n} == f.cpos and rpos.${n} == f.rpos { cpos.${n} = ${pick "max(f.left, 0)" (j: "cpos.${j}")} }
-      on move_left while f.on and f.left == ${n} { cpos.${n} = f.cpos }
-      on move_right while f.on and f.right >= 0 and ${ws} and cpos.${n} == f.cpos and rpos.${n} == f.rpos { cpos.${n} = ${pick "max(f.right, 0)" (j: "cpos.${j}")} }
-      on move_right while f.on and f.right == ${n} { cpos.${n} = f.cpos }
+      // A window and its neighbour in the row trade places (taken above).
+      on move_left while f.on and f.left >= 0 and ${ws} and cpos.${n} == f.cpos and rpos.${n} == f.rpos { cpos.${n} = mv.n }
+      on move_left while f.on and f.left == ${n} { cpos.${n} = mv.f }
+      on move_right while f.on and f.right >= 0 and ${ws} and cpos.${n} == f.cpos and rpos.${n} == f.rpos { cpos.${n} = mv.n }
+      on move_right while f.on and f.right == ${n} { cpos.${n} = mv.f }
       // Into the row above or below, beside the window nearest its middle,
       // taking that row's height; past the end, a new row of half height.
       on move_up while f.on and ${me} and f.up >= 0 {
