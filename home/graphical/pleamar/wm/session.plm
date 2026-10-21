@@ -243,28 +243,28 @@ scene Session {
     prop wall.pulse = 0 ~700ms
     follow wall.pulse = if(wall.busy, wall.ph, 0)
     let wall.lit = 1 - 0.35 * wall.pulse
-    // The drawer's push, a quarter of its room and as slow as the parallax, so the
+    // The drawer's push, a quarter of its room, on the windows' spring, so the
     // wallpaper leans with it rather than sliding by its width. One spring per
     // monitor: a spring followed from every monitor's copy is one value they
     // fight over.
-    prop wv.p.0 = 0 ~900ms
-    prop wv.p.1 = 0 ~900ms
-    prop wv.p.2 = 0 ~900ms
-    prop wv.p.3 = 0 ~900ms
+    prop wv.p.0 = 0 ~niri
+    prop wv.p.1 = 0 ~niri
+    prop wv.p.2 = 0 ~niri
+    prop wv.p.3 = 0 ~niri
     repeat s in 0..4 {
         follow wv.p.$s = win.reserved.$s.left - win.reserved.$s.right + room.$s * 0.25
     }
-    // The parallax, one slow spring per monitor toward where the camera is
-    // going, not riding the camera's own: it settles after the windows. The
-    // overview moves no camera, so it holds there until it closes.
-    prop wd.x.0 = 0 ~900ms
-    prop wd.x.1 = 0 ~900ms
-    prop wd.x.2 = 0 ~900ms
-    prop wd.x.3 = 0 ~900ms
-    prop wd.y.0 = 0 ~900ms
-    prop wd.y.1 = 0 ~900ms
-    prop wd.y.2 = 0 ~900ms
-    prop wd.y.3 = 0 ~900ms
+    // The parallax, one spring per monitor toward where the camera is going,
+    // on the windows' spring so the two move as one. The overview moves no
+    // camera, so it holds there until it closes.
+    prop wd.x.0 = 0 ~niri
+    prop wd.x.1 = 0 ~niri
+    prop wd.x.2 = 0 ~niri
+    prop wd.x.3 = 0 ~niri
+    prop wd.y.0 = 0 ~niri
+    prop wd.y.1 = 0 ~niri
+    prop wd.y.2 = 0 ~niri
+    prop wd.y.3 = 0 ~niri
     repeat s in 0..4 {
         on change cam.tx.$s while not ov.$s { wd.x.$s: -cam.tx.$s * para }
         on change cam.ty.$s while not ov.$s { wd.y.$s: -cam.ty.$s * para }
@@ -274,14 +274,19 @@ scene Session {
         }
     }
     // Bigger than the monitor by what the parallax may reach, and less so in
-    // the overview: the wallpaper pulls back with the windows, on their spring.
-    let wv.z = 1.2 - 0.1 * ovp
+    // the overview, where it pulls back to the whole picture with the windows,
+    // on their spring. The offset eases into that reach instead of stopping at
+    // it, so a long pan, or the overview taking the reach away, never halts it
+    // mid-motion.
+    let wv.z = 1.2 - 0.2 * ovp
     let wv.w = Wm * wv.z
     let wv.h = Hm * wv.z
-    let wv.mx = (wv.w - Wm) / 2
-    let wv.my = (wv.h - Hm) / 2
-    let wv.ox = clamp(pick(me, wd.x.0, wd.x.1, wd.x.2, wd.x.3) + pick(me, wv.p.0, wv.p.1, wv.p.2, wv.p.3), -wv.mx, wv.mx) - wv.mx
-    let wv.oy = clamp(pick(me, wd.y.0, wd.y.1, wd.y.2, wd.y.3), -wv.my, wv.my) - wv.my
+    let wv.mx = max((wv.w - Wm) / 2, 0.01)
+    let wv.my = max((wv.h - Hm) / 2, 0.01)
+    let wv.dx = pick(me, wd.x.0, wd.x.1, wd.x.2, wd.x.3) + pick(me, wv.p.0, wv.p.1, wv.p.2, wv.p.3)
+    let wv.dy = pick(me, wd.y.0, wd.y.1, wd.y.2, wd.y.3)
+    let wv.ox = wv.dx / sqrt(1 + (wv.dx / wv.mx) * (wv.dx / wv.mx)) - wv.mx
+    let wv.oy = wv.dy / sqrt(1 + (wv.dy / wv.my) * (wv.dy / wv.my)) - wv.my
     image wall.ia { at: wv.ox, wv.oy; size: wv.w, wv.h; fit: cover; opacity: (1 - wall.mix) * wall.lit }
     image wall.ib { at: wv.ox, wv.oy; size: wv.w, wv.h; fit: cover; opacity: wall.mix * wall.lit }
 
