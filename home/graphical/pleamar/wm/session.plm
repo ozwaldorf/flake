@@ -19,7 +19,7 @@ scene Session {
     // niri's own spring: stiffness 800, critically damped.
     spring niri = 800, 57
     // How far the wallpaper moves for the camera's distance.
-    let para = 0.18
+    let para = 0.08
 
     // The frosting behind the windows' glass (blur.wgsl): Apple's backdrop,
     // a gaussian at a quarter of the size, grain at full. values: sigma, grain.
@@ -252,14 +252,28 @@ scene Session {
     repeat s in 0..4 {
         follow wv.p.$s = win.reserved.$s.left - win.reserved.$s.right + room.$s
     }
-    // Bigger than the monitor by what the parallax may reach, which it
-    // follows on the camera's own springs.
+    // The parallax, one slow spring per monitor toward where the camera is
+    // going (still in the overview), not riding the camera's own: it
+    // settles after the windows.
+    prop wd.x.0 = 0 ~900ms
+    prop wd.x.1 = 0 ~900ms
+    prop wd.x.2 = 0 ~900ms
+    prop wd.x.3 = 0 ~900ms
+    prop wd.y.0 = 0 ~900ms
+    prop wd.y.1 = 0 ~900ms
+    prop wd.y.2 = 0 ~900ms
+    prop wd.y.3 = 0 ~900ms
+    repeat s in 0..4 {
+        follow wd.x.$s = -if(ov.$s, 0, cam.tx.$s) * para
+        follow wd.y.$s = -if(ov.$s, 0, cam.ty.$s) * para
+    }
+    // Bigger than the monitor by what the parallax may reach.
     let wv.w = Wm * 1.2
     let wv.h = Hm * 1.2
     let wv.mx = (wv.w - Wm) / 2
     let wv.my = (wv.h - Hm) / 2
-    let wv.ox = clamp(-pick(me, vx.0, vx.1, vx.2, vx.3) * para, -wv.mx, wv.mx) - wv.mx + pick(me, wv.p.0, wv.p.1, wv.p.2, wv.p.3)
-    let wv.oy = clamp(-pick(me, vy.0, vy.1, vy.2, vy.3) * para, -wv.my, wv.my) - wv.my
+    let wv.ox = clamp(pick(me, wd.x.0, wd.x.1, wd.x.2, wd.x.3), -wv.mx, wv.mx) - wv.mx + pick(me, wv.p.0, wv.p.1, wv.p.2, wv.p.3)
+    let wv.oy = clamp(pick(me, wd.y.0, wd.y.1, wd.y.2, wd.y.3), -wv.my, wv.my) - wv.my
     image wall.ia { at: wv.ox, wv.oy; size: wv.w, wv.h; fit: cover; opacity: (1 - wall.mix) * wall.lit }
     image wall.ib { at: wv.ox, wv.oy; size: wv.w, wv.h; fit: cover; opacity: wall.mix * wall.lit }
 
