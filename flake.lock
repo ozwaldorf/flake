@@ -547,11 +547,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792537693,
-        "narHash": "sha256-R09F+eVhD6ZmxtGuObS7N58qgRXyRhNYo8CA9xaNfls=",
+        "lastModified": 1792551807,
+        "narHash": "sha256-tsyzIaFTn21vHcJCN0JJ9nr2A3MN3/bO1IsDxhInxT4=",
         "owner": "ozwaldorf",
         "repo": "pleamar-wm",
-        "rev": "43c246892b341996894db093188ae65d5e4c7537",
+        "rev": "ebd7b88d5753ceeb08c1cfd60f29e01c3f043304",
         "type": "github"
       },
       "original": {
