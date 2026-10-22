@@ -547,15 +547,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1792565965,
-        "narHash": "sha256-Kz4YbbPbCNZdBjJaK59wW2QMnmb3zNRzlpQ3zjcGygc=",
-        "owner": "k4ditano",
+        "lastModified": 1792635805,
+        "narHash": "sha256-f6Yjg3JEJchlr/Q4KsHWcMZZaB9Q2w33oXOVTaf2Lqs=",
+        "owner": "ozwaldorf",
         "repo": "pleamar-wm",
-        "rev": "fcf1d60720a6cac91ee232b5f7c127cf3ab3076f",
+        "rev": "21d902e5a1c4bacf4ad85afc69fcc4b416b2fa94",
         "type": "github"
       },
       "original": {
-        "owner": "k4ditano",
+        "owner": "ozwaldorf",
+        "ref": "fix/cursor-transition-stuck",
         "repo": "pleamar-wm",
         "type": "github"
       }
