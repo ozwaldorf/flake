@@ -980,6 +980,11 @@ scene Session {
     // a surface of their own over everything, the programs' menus too, and
     // clicks go through. A ring where it clicks, and its name beside it. They
     // stay while the agent is at work and fade after.
+    // Its picture: the user's cursor, every frame, tinted blue
+    // (gen/agent-cursor.plm, from the cursor theme), on a clock in ms the logic
+    // keeps while an agent is at work (a `spin` here runs once per monitor).
+    fact agc.clock = 0
+    include "../gen/agent-cursor.plm"
     text agent.name = "agent"
     fact agent.active = 0
     fact agent.win = -1
@@ -1044,36 +1049,12 @@ scene Session {
                 group {
                     pivot: ax, ay
                     scale: 1 - 0.12 * ag.$k.press, 1 - 0.12 * ag.$k.press
-                    // an arrow in blue, its tip on the point
-                    path {
-                        at: ax, ay
-                        color: mix(#ffffff, blue, 0.75)
-                        move 0, 0
-                        line 0, 19
-                        line 4.8, 14.4
-                        line 8, 21.6
-                        line 11, 20.3
-                        line 7.8, 13.3
-                        line 13.8, 13.3
-                        close
-                    }
-                    path {
-                        at: ax, ay
-                        stroke: 1.4
-                        color: crust
-                        move 0, 0
-                        line 0, 19
-                        line 4.8, 14.4
-                        line 8, 21.6
-                        line 11, 20.3
-                        line 7.8, 13.3
-                        line 13.8, 13.3
-                        close
-                    }
+                    // the user's own cursor, tinted blue, its tip on the point
+                    image agc.sheet { at: ax - agc.hx, ay - agc.hy; size: agc.cell, agc.cell; cell: agc.frame, agc.cols, agc.rows }
                 }
                 // Its name underneath, centred on the hand.
-                let tx = ax + 7
-                let ty = ay + 26
+                let tx = ax - agc.hx + agc.cell / 2
+                let ty = ay - agc.hy + agc.cell + 2
                 box { from: tx - tag.$k.width / 2 - 8, ty; size: tag.$k.width + 16, 18; corner: 9; color: crust; opacity: 85% }
                 text agent.name { at: tx, ty + 9.5; anchor: center; size: 10; weight: 600; color: mix(#ffffff, blue, 0.4); family: "Berkeley Mono"; measure: tag.$k }
             }

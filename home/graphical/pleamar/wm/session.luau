@@ -130,3 +130,15 @@ run("pleamar-wallpaper", { "current" }, function(out, code)
 end)
 on("wall_next", function() wallpaper({ "next" }) end)
 on("wall_set", function() wallpaper({ "set", text["wall.req"] }) end)
+
+local function on_(v) return v == true or (type(v) == "number" and v > 0.5) end
+
+-- The agent cursor's clock (agc.clock, ms), for its frames: only while an
+-- agent's cursor shows. A `spin` in this scene runs once per monitor drawing
+-- it, so the time is kept here.
+local AGC_STEP = 30
+every(AGC_STEP, function()
+    if fact["ag.recent"] or on_(fact["agent.active"]) then
+        fact["agc.clock"] = (fact["agc.clock"] or 0) + AGC_STEP
+    end
+end)
