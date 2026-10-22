@@ -201,6 +201,27 @@ return function(S)
 
     on("ks_toggle", function()
         fact["ks.on"] = not fact["ks.on"]
-        if fact["ks.on"] then start() else stop() end
+        if not fact["ks.on"] then
+            stop()
+        elseif not fact["ks.fed"] then
+            start()
+        end
+    end)
+
+    -- Told rather than read (ks.fed): "N type C", "N space", "N key LABEL" or
+    -- "N click LABEL", N counting up so the same press twice is still a change.
+    on("text:ks.feed", function()
+        if not fact["ks.on"] or not fact["ks.fed"] then return end
+        local kind, rest = (text["ks.feed"] or ""):match("^%d+ (%a+) ?(.*)$")
+        if kind == "type" then
+            typed(rest)
+        elseif kind == "space" then
+            typed(" ")
+        elseif kind == "key" then
+            local p = last()
+            if rest == "Enter" and p and p.text then typed(RET) else push(rest) end
+        elseif kind == "click" then
+            push(rest, true)
+        end
     end)
 end

@@ -1,12 +1,15 @@
 // The input overlay: the latest key or mouse button pressed, in a pill
 // along the bottom of the monitor with the keyboard. Off
 // unless turned on from the control centre (ks_toggle); logic/keyshow.luau
-// reads them from libinput meanwhile.
+// reads them from libinput meanwhile. A session with no devices of its own (a
+// screenless demo) is told them instead: ks.fed, then each in ks.feed.
 part KeyShow {
     // w worked out by the logic, the font being monospaced.
     model ks.keys max 1 { label: text; w: number; mouse: bool; gone: bool }
     event ks_toggle ->
     fact ks.on = false
+    fact ks.fed = false
+    text ks.feed = ""
 
     surface keyshow {
         let ks.me = screen.index
