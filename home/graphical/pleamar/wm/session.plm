@@ -585,6 +585,7 @@ scene Session {
 
             let here = sc == me and win.$i.pool == win.pool[sc]
             let lit = win.$i.focused
+            image ico.$i = from win.$i.icon, 32, 32
             prop litp.$i = 0 ~160ms
             follow litp.$i = if(lit, 1, 0)
             prop liftp.$i = 0 ~160ms
@@ -664,7 +665,10 @@ scene Session {
                     let atbox = (win.$i.dialog and fw.$i < 1) or not win.$i.open
                     window win.$i { at: x, y + bh; size: if(atbox, w, max(w, goal.w * zc)), if(atbox, h - bh, max(h - bh, (goal.h - bar) * zc)); ask: if(win.$i.dialog and fw.$i < 1, 0, goal.w), if(win.$i.dialog and fw.$i < 1, 0, goal.h - bar) }
                     box { from: x, y; size: w, th; color: crust; opacity: 0.88 * (1 - full) }
-                    text win.$i.title { at: x + 12, y + th / 2; anchor: left center; size: 12; color: mix(subtext0, text, litp.$i); family: "Berkeley Mono"; width: w - 24 - btns * 44; lines: 1; opacity: (1 - full) * if(bh > 13 or tov > 0.5, 1, tov * 2) }
+                    // its program's icon, scaled with the title bar
+                    let isz = clamp(th - 10, 0, 16)
+                    image ico.$i { at: x + 10, y + (th - isz) / 2; size: isz, isz; opacity: (1 - full) * if(bh > 13 or tov > 0.5, 1, tov * 2) * mix(0.7, 1, litp.$i) }
+                    text win.$i.title { at: x + 16 + isz, y + th / 2; anchor: left center; size: 12; color: mix(subtext0, text, litp.$i); family: "Berkeley Mono"; width: w - 26 - isz - btns * 44; lines: 1; opacity: (1 - full) * if(bh > 13 or tov > 0.5, 1, tov * 2) }
                 }
                 box { from: x, y; size: w, h; corner: r; stroke: 1; color: mix(base, text, litp.$i); opacity: 1 - full }
                 // where a carried window would land: this one, marked
