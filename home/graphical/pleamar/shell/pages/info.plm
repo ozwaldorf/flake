@@ -77,13 +77,13 @@ part InfoPage {
 
     // cpu, and memory beside it: the figure over the line it has drawn lately
     Well(inf.x, inf.y2, inf.wide, inf.r2)
-    InfLine_c(inf.x + 5, inf.y2 + inf.r2 - 5, inf.wide - 10, 0.62 * (inf.r2 - 10), mauve)
+    InfLine(inf.x + 5, inf.y2 + inf.r2 - 5, inf.wide - 10, 0.62 * (inf.r2 - 10), 0, mauve)
     Heading(inf.x, inf.y2, inf.wide, "CPU", ic.cpu, mauve)
     text inf.cpufig { at: inf.x + 14, inf.y2 + 52; anchor: left center; size: 28; color: text; family: "Berkeley Mono" }
     text inf.cpuname { at: inf.x + 14, inf.y2 + 77; anchor: left center; size: 10; color: overlay1; family: "Berkeley Mono"; width: inf.wide - 28; lines: 1 }
     let inf.mx = inf.x + inf.wide + 8
     Well(inf.mx, inf.y2, inf.narrow, inf.r2)
-    InfLine_m(inf.mx + 5, inf.y2 + inf.r2 - 5, inf.narrow - 10, 0.62 * (inf.r2 - 10), green)
+    InfLine(inf.mx + 5, inf.y2 + inf.r2 - 5, inf.narrow - 10, 0.62 * (inf.r2 - 10), 1, green)
     Heading(inf.mx, inf.y2, inf.narrow, "MEMORY", ic.memory, green, inf.memtot)
     text inf.memfig { at: inf.mx + 14, inf.y2 + 52; anchor: left center; size: 28; color: text; family: "Berkeley Mono" }
 
@@ -92,7 +92,7 @@ part InfoPage {
         show: inf.gpu.on
         let rows = floor((inf.r2 - 49 + 3) / 13)
         Well(inf.x, inf.y3, inf.w, inf.r2)
-        InfLine_g(inf.x + 5, inf.y3 + inf.r2 - 5, inf.w - 10 - 78, 0.62 * (inf.r2 - 10), blue)
+        InfLine(inf.x + 5, inf.y3 + inf.r2 - 5, inf.w - 10 - 78, 0.62 * (inf.r2 - 10), 2, blue)
         Heading(inf.x, inf.y3, inf.w, "GPU", ic.gpu, blue, inf.vramtext)
         text inf.gpufig { at: inf.x + 14, inf.y3 + 52; anchor: left center; size: 28; color: text; family: "Berkeley Mono" }
         text inf.gpuname { at: inf.x + 14, inf.y3 + 77; anchor: left center; size: 10; color: overlay1; family: "Berkeley Mono"; width: inf.w - 120; lines: 1 }
@@ -104,8 +104,8 @@ part InfoPage {
     let inf.fh = 0.6 * (inf.r2 - 10)
     let inf.mid = inf.y4 + inf.r2 - 5 - inf.fh / 2
     Well(inf.x, inf.y4, inf.wide, inf.r2)
-    InfLine_r(inf.x + 5, inf.mid, inf.wide - 10 - 104, inf.fh / 2, yellow)
-    InfLine_w(inf.x + 5, inf.mid, inf.wide - 10 - 104, inf.fh / 2, peach, 1)
+    InfLine(inf.x + 5, inf.mid, inf.wide - 10 - 104, inf.fh / 2, 3, yellow)
+    InfLine(inf.x + 5, inf.mid, inf.wide - 10 - 104, inf.fh / 2, 4, peach, 1)
     box { from: inf.x + 5, inf.mid; size: inf.wide - 10 - 104, 1; color: mix(mix(mantle, crust, 0.4), surface1, 0.6) }
     Heading(inf.x, inf.y4, inf.wide, "DISK", ic.disk, yellow, inf.diskuse)
     text inf.read { at: inf.x + 14, inf.y4 + 41.5; anchor: left center; size: 10; color: yellow; family: "Berkeley Mono" }
@@ -113,8 +113,8 @@ part InfoPage {
     Blocks(inf.x + inf.wide - 14, inf.y4 + inf.r2 - 14, 6, floor((inf.r2 - 49 + 3) / 13), inf.disk, yellow)
     let inf.nx = inf.x + inf.wide + 8
     Well(inf.nx, inf.y4, inf.narrow, inf.r2)
-    InfLine_d(inf.nx + 5, inf.mid, inf.narrow - 10, inf.fh / 2, red)
-    InfLine_u(inf.nx + 5, inf.mid, inf.narrow - 10, inf.fh / 2, peach, 1)
+    InfLine(inf.nx + 5, inf.mid, inf.narrow - 10, inf.fh / 2, 5, red)
+    InfLine(inf.nx + 5, inf.mid, inf.narrow - 10, inf.fh / 2, 6, peach, 1)
     box { from: inf.nx + 5, inf.mid; size: inf.narrow - 10, 1; color: mix(mix(mantle, crust, 0.4), surface1, 0.6) }
     Heading(inf.nx, inf.y4, inf.narrow, "NET", ic.network, red)
     text inf.down { at: inf.nx + 14, inf.y4 + 41.5; anchor: left center; size: 10; color: red; family: "Berkeley Mono" }

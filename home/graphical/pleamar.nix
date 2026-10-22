@@ -210,37 +210,9 @@ let
 
   # What the scenes need that is generated: linked into the working tree as
   # pleamar/gen (ignored by git), where the scenes include it from.
-  # The agent's cursor: the user's own (the theme's `default`, every frame),
-  # tinted blue, as a sheet the window manager scene draws.
-  agentCursor =
-    let
-      cursor = config.home.pointerCursor;
-    in
-    pkgs.runCommand "pleamar-agent-cursor"
-      {
-        nativeBuildInputs = [
-          pkgs.python3
-          pkgs.imagemagick
-        ];
-      }
-      ''
-        mkdir -p $out
-        python3 ${./pleamar/agent-cursor.py} ${cursor.package}/share/icons/${cursor.name}/cursors/default \
-          ${toString (cursor.size * 3 / 2)} ${toString cursor.size} $out
-        magick -size $(cat $out/agent-cursor.size) -depth 8 rgba:$out/agent-cursor.rgba \
-          -fill '#${palette.blue}' -colorize 40% $out/agent-cursor.png
-        rm $out/agent-cursor.rgba $out/agent-cursor.size
-      '';
-
   generated = pkgs.linkFarm "pleamar-generated" {
-    "agent-cursor.plm" = "${agentCursor}/agent-cursor.plm";
-    "agent-cursor.png" = "${agentCursor}/agent-cursor.png";
     "theme.plm" = pkgs.writeText "theme.plm" (import ./pleamar/theme.nix { inherit lib palette; });
-    "rows.plm" = pkgs.writeText "rows.plm" (import ./pleamar/wm/rows.nix { inherit lib; });
     "keybinds.luau" = pkgs.writeText "keybinds.luau" keybindsLuau;
-    "info-series.plm" = pkgs.writeText "info-series.plm" (
-      import ./pleamar/shell-series.nix { inherit lib; }
-    );
   };
   tree = "/etc/nixos/home/graphical/pleamar";
 

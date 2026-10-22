@@ -50,25 +50,21 @@ scene Desk {
     text ic.gear = ""
     text ic.battery = ""
 
-    // what the window manager reports
-    fact ws.shown.0 = 1
-    fact ws.shown.1 = 1
-    fact ws.shown.2 = 1
-    fact ws.shown.3 = 1
-    fact ws.pools.0 = 1
-    fact ws.pools.1 = 1
-    fact ws.pools.2 = 1
-    fact ws.pools.3 = 1
-    fact ws.occ.0 = 0
-    fact ws.occ.1 = 0
-    fact ws.occ.2 = 0
-    fact ws.occ.3 = 0
-    // the rail's highlight of the shown workspace, per monitor and workspace:
-    // a spring inside the rail would be one value shared by every monitor
+    // what the window manager reports, per monitor
     repeat s in 0..4 {
+        fact ws.shown.$s = 1
+        fact ws.pools.$s = 1
+        fact ws.occ.$s = 0
+        // its size (size_report) and overview (ov_report)
+        fact mw.$s = 1920
+        fact mh.$s = 1080
+        fact ovm.$s = false
+        // the rail's highlight of the shown workspace, per monitor and
+        // workspace: a spring inside the rail would be one value shared by
+        // every monitor
         repeat k in 1..11 {
             prop wf.$s.$k = 0 ~260ms
-            follow wf.$s.$k = if(pick(s, ws.shown.0, ws.shown.1, ws.shown.2, ws.shown.3) == k, 1, 0)
+            follow wf.$s.$k = if(ws.shown[s] == k, 1, 0)
         }
     }
     fact focmon = 0
@@ -77,20 +73,6 @@ scene Desk {
     // the monitors apart
     fact ptrmon = 0
     fact dragging = false
-    // each monitor's size, as the window manager says (size_report)
-    fact mw.0 = 1920
-    fact mw.1 = 1920
-    fact mw.2 = 1920
-    fact mw.3 = 1920
-    fact mh.0 = 1080
-    fact mh.1 = 1080
-    fact mh.2 = 1080
-    fact mh.3 = 1080
-    // each monitor's overview, as the window manager says (ov_report)
-    fact ovm.0 = false
-    fact ovm.1 = false
-    fact ovm.2 = false
-    fact ovm.3 = false
     event ws_go ->
     event wm_overview ->
 
@@ -102,7 +84,10 @@ scene Desk {
     event notes_changed ->
     on change notes.0.id { emit notes_changed }
     on change notes.count { emit notes_changed }
-    let notes.critical = notes.total > 0 and (notes.0.urgency > 1.5 or notes.1.urgency > 1.5 or notes.2.urgency > 1.5 or notes.3.urgency > 1.5 or notes.4.urgency > 1.5)
+    // the most urgent of the latest five
+    let notes.top = 0
+    repeat k in 0..5 { notes.top = max(notes.top, notes[k].urgency) }
+    let notes.critical = notes.total > 0 and notes.top > 1.5
 
     // load meters, sampled by the logic (logic/meters.luau): 0 to 1
     fact m.cpu = 0
@@ -147,10 +132,8 @@ scene Desk {
     on change page { shown = page > 0.5 }
 
     // the rail of each monitor: always out, 44 wide
-    let rv.0 = 1
-    let rv.1 = 1
-    let rv.2 = 1
-    let rv.3 = 1
+    let rv[4]
+    repeat s in 0..4 { rv[s] = 1 }
 
     // the veil: a blur over everything that takes all input
     fact veil = false
@@ -191,7 +174,7 @@ scene Desk {
         held = false
     }
     // the overview of the monitor with the keyboard, toggled with its drawer
-    let kov = pick(focmon, ovm.0, ovm.1, ovm.2, ovm.3)
+    let kov = ovm[focmon]
     on drawer_overview while kov {
         page = 0
         held = false
@@ -230,7 +213,7 @@ scene Desk {
 
     // The control centre goes with the window manager's overview on the same
     // monitor, both ways.
-    let dov = pick(dmon, ovm.0, ovm.1, ovm.2, ovm.3)
+    let dov = ovm[dmon]
     on change page while page == 1 and not dov { emit wm_overview(dmon + 4) }
     // Off to another page, the drawer stays: + 8 says so, and its room is
     // told again, the window manager having taken it for the overview.
@@ -258,7 +241,7 @@ scene Desk {
     include "pages/search.plm"
     include "pages/cards.plm"
     include "pages/info-decl.plm"
-    include "../gen/info-series.plm"
+    include "pages/info-series.plm"
 
     // the rail surface: the rail, the drawer behind it and its pages. First,
     // since a focused field borrows the first surface's keyboard mode
@@ -358,9 +341,9 @@ scene Desk {
             // workspace marks, so they are on top and take their own presses.
             zone box railz { from: rx, 80; size: railw, max(meter.y - 4 * 42 - 6 - 80, 0) }
             on press railz while open { page = 0 }
-            let ws.shown = pick(me, ws.shown.0, ws.shown.1, ws.shown.2, ws.shown.3)
-            let ws.pools = pick(me, ws.pools.0, ws.pools.1, ws.pools.2, ws.pools.3)
-            let ws.occ = pick(me, ws.occ.0, ws.occ.1, ws.occ.2, ws.occ.3)
+            let ws.shown = ws.shown[me]
+            let ws.pools = ws.pools[me]
+            let ws.occ = ws.occ[me]
             column {
                 at: cx, 98
                 anchor: center top
@@ -371,12 +354,12 @@ scene Desk {
                         // holds windows, as niri keeps
                         show: k <= ws.shown or floor(ws.occ / pow(2, k - 2)) > 0
                         let busy = mod(floor(ws.occ / pow(2, k - 1)), 2) > 0.5
-                        let wf = pick(me, wf.0.$k, wf.1.$k, wf.2.$k, wf.3.$k)
+                        let wf = wf[me][k]
                         // as big as the mark itself, so the column closes up and the
                         // shown one pushes the others as it grows
                         let wmw = 6 + 6 * reveal
                         let wmh = 12 + 18 * wf
-                        size: 6 + 6 * reveal, 12 + 18 * pick(me, wf.0.$k, wf.1.$k, wf.2.$k, wf.3.$k)
+                        size: 6 + 6 * reveal, 12 + 18 * wf[me][k]
                         box { at: wmw / 2, wmh / 2; size: wmw, wmh; color: mix(if(busy, overlay1, if(reveal > 0.5, surface2, surface1)), blue, wf) }
                         zone box wsz.$k { at: wmw / 2, wmh / 2; size: 20, wmh + 12; cursor: pointer; label: "Workspace {k}" }
                         on press wsz.$k { emit ws_go(me + 4 * k) }
@@ -484,8 +467,8 @@ scene Desk {
     // before the screens dim and by Super+V
     surface veilsurf {
         // its own names: a let shared with the rail's copies is one value
-        let vs.W = pick(screen.index, mw.0, mw.1, mw.2, mw.3)
-        let vs.H = pick(screen.index, mh.0, mh.1, mh.2, mh.3)
+        let vs.W = mw[screen.index]
+        let vs.H = mh[screen.index]
         size: full, full
         anchor: top_left
         level: overlay

@@ -12,6 +12,22 @@ part SettingsData {
     service media as ccmd { playing: bool; title: text; artist: text; length: number; position: number; rate: number; art: text; player: text }
     model cctrays max 16 { key: text; title: text; icon: image 20, 20 }
     service tray { list: cctrays }
+    // The tray cards' weights along a line of six, and where each starts:
+    // the sum of those before it (cc.tl[n] is the whole of the first n).
+    let cc.tw[6]
+    cc.tw[0] = 1
+    cc.tw[1] = 1.6
+    cc.tw[2] = 1.25
+    cc.tw[3] = 1.45
+    cc.tw[4] = 1.1
+    cc.tw[5] = 1.35
+    let cc.tsum = 0
+    let cc.tl[7]
+    repeat i in 0..6 {
+        cc.tl[i] = cc.tsum
+        cc.tsum += cc.tw[i]
+    }
+    cc.tl[6] = cc.tsum
     model ccmenu max 24 { label: text; enabled: bool = true; separator: bool; checked: number = -1 }
 
     // What the logic writes and hears: also scene level, so it can see them.

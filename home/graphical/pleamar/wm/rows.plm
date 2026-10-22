@@ -1,0 +1,629 @@
+// The row layout's bookkeeping.
+//
+// Each monitor shows one workspace made of rows stacked top to bottom. A row
+// is a strip of windows, each with its own width, centred when it fits and
+// panned when it does not. Each window has a row position and a position
+// within its row (gaps allowed, only the order counts); windows on one monitor
+// sharing a row position are one row, and the first of them holds its height.
+//
+// Up to three windows the shape follows the count (centre, pair, two over
+// one); a fourth window, or a window moving between rows or being resized,
+// makes the monitor's rows its own until it is down to one window again.
+part Rows {
+    // per slot: where in the scene, and how big
+    // rpos, cpos: its row's position and its own within the row (gaps
+    // allowed, only the order counts). wp: its width, as a share of the
+    // working area. hp: a head's row height, as a share of it. stamp: when
+    // it last had the keyboard.
+    repeat i in 0..win.max {
+        fact rpos.$i = 0
+        fact cpos.$i = 0
+        fact wp.$i = 0.5
+        fact hp.$i = 1
+        fact stamp.$i = 0
+        // springs shared across monitors
+        prop x.$i = 0 ~niri
+        prop y.$i = 0 ~niri
+        prop w.$i = 100 ~niri
+        prop h.$i = 100 ~niri
+    }
+    fact stamp.top = 0
+
+    // per monitor: the camera, the row shapes, and the window it follows
+    // auto: the shape follows the count. cam.a: the window the camera is
+    // on, moved by the keyboard, not the pointer. ofs: a pan by hand.
+    repeat s in 0..4 {
+        fact auto.$s = true
+        fact cam.a.$s = -1
+        fact ofs.x.$s = 0
+        fact ofs.y.$s = 0
+        prop vx.$s = 0 ~niri
+        prop vy.$s = 0 ~niri
+    }
+
+    // The rows, in order: monitor, workspace, row, place in it. Untiled
+    // slots go last, each on its own (a closed one keeps its row, and is
+    // nobody's company), and the window just placed (nwl, while nhold)
+    // before them on its own: the rest make room for it in the same frame
+    // as the camera, once it shows.
+    let rb[win.max]
+    repeat i in 0..win.max {
+        rb[i] = if(win[i].place < 0, 2 + i, if(nhold > 0.5 and nwl == i, 1, 0))
+    }
+    let ro[win.max] = sort(i in win by rb[i], win[i].screen, win[i].pool, rpos[i], cpos[i])
+    // Forward: each one's turn in its row (a row's head is the first, and
+    // holds its height), which row it is, and the widths and heights before.
+    let rk = 0
+    let ri = 0
+    let cb = 0
+    let hb = 0
+    let hh = 0
+    let fk[win.max]
+    let fri[win.max]
+    let fcb[win.max]
+    let fhb[win.max]
+    let fhp[win.max]
+    repeat p in 0..win.max {
+        let s = ro[p]
+        let t = ro[p - 1]
+        let ng = rb[s] != rb[t] or win[s].screen != win[t].screen or win[s].pool != win[t].pool
+        let nr = ng or rpos[s] != rpos[t]
+        rk = if(nr, 0, rk + 1)
+        ri = if(ng, 0, ri + nr)
+        cb = if(nr, 0, cb + wp[t])
+        hb = if(ng, 0, if(nr, hb + hh, hb))
+        hh = if(nr, hp[s], hh)
+        fk[p] = rk
+        fri[p] = ri
+        fcb[p] = cb
+        fhb[p] = hb
+        fhp[p] = hh
+    }
+    // Back: each row's count and width, each stack's rows and height.
+    let rn = 0
+    let rwd = 0
+    let gc = 0
+    let gh = 0
+    let brn[win.max]
+    let brw[win.max]
+    let bgc[win.max]
+    let bgh[win.max]
+    repeat q in 0..win.max {
+        let p = win.max - 1 - q
+        let s = ro[p]
+        let u = ro[p + 1]
+        let ge = rb[s] != rb[u] or win[s].screen != win[u].screen or win[s].pool != win[u].pool
+        let re = ge or rpos[s] != rpos[u]
+        rn = if(re, fk[p] + 1, rn)
+        rwd = if(re, fcb[p] + wp[s], rwd)
+        gc = if(ge, fri[p] + 1, gc)
+        gh = if(ge, fhb[p] + fhp[p], gh)
+        brn[p] = rn
+        brw[p] = rwd
+        bgc[p] = gc
+        bgh[p] = gh
+    }
+    // The whole order on a monitor's workspace, the window just placed in
+    // it; untiled slots last, each on its own.
+    let ob[win.max]
+    repeat i in 0..win.max {
+        ob[i] = if(win[i].place < 0, 1 + i, 0)
+    }
+    let oo[win.max] = sort(i in win by ob[i], win[i].screen, win[i].pool, rpos[i], cpos[i])
+    let ok = 0
+    let oi[win.max]
+    repeat p in 0..win.max {
+        let s = oo[p]
+        let t = oo[p - 1]
+        ok = if(ob[s] != ob[t] or win[s].screen != win[t].screen or win[s].pool != win[t].pool, 0, ok + 1)
+        oi[p] = ok
+    }
+    let og = 0
+    let ogs[win.max]
+    repeat q in 0..win.max {
+        let p = win.max - 1 - q
+        let s = oo[p]
+        let u = oo[p + 1]
+        og = if(ob[s] != ob[u] or win[s].screen != win[u].screen or win[s].pool != win[u].pool, oi[p] + 1, og)
+        ogs[p] = og
+    }
+
+    // per slot, read through its place in the order
+    let r.head[win.max]
+    let c.idx[win.max]
+    let r.n[win.max]
+    let r.idx[win.max]
+    let r.cnt[win.max]
+    let r.hp[win.max]
+    let r.hb[win.max]
+    let m.ht[win.max]
+    let r.w[win.max]
+    let c.before[win.max]
+    let o.idx[win.max]
+    let m.k[win.max]
+    repeat i in 0..win.max {
+        let p = ro.pos[i]
+        r.head[i] = fk[p] < 0.5
+        c.idx[i] = fk[p]
+        r.n[i] = brn[p]
+        r.idx[i] = fri[p]
+        r.cnt[i] = bgc[p]
+        r.hp[i] = fhp[p]
+        r.hb[i] = fhb[p]
+        m.ht[i] = bgh[p]
+        r.w[i] = brw[p]
+        c.before[i] = fcb[p]
+        o.idx[i] = oi[oo.pos[i]]
+        m.k[i] = ogs[oo.pos[i]]
+        // Members of a row follow its head's height, so whichever of them
+        // heads it next keeps it.
+        on change r.hp.$i while not r.head.$i and win.$i.place >= 0 { hp.$i = r.hp.$i }
+    }
+
+    // per monitor: its working area
+    // Space a layer reserves at the left or right shifts the scene rather
+    // than narrowing it, so the shell's drawer slides windows aside; room
+    // is what the shell's rail and drawer take, told by the shell itself
+    let W[4]
+    let H[4]
+    let Ax[4]
+    let Wa[4]
+    let Ay[4]
+    let Ha[4]
+    let avail[4]
+    repeat s in 0..4 {
+        W[s] = screen[s].width
+        H[s] = screen[s].height
+        Ax[s] = strut + win.reserved[s].left - win.reserved[s].right + room[s] + max(edge[s], 0)
+        Wa[s] = W[s] - 2 * strut - abs(edge[s])
+        Ay[s] = win.reserved[s].top + strut + gap
+        Ha[s] = H[s] - win.reserved[s].top - win.reserved[s].bottom - 2 * strut - 2 * gap
+        avail[s] = Wa[s] - 2 * gap
+    }
+
+    // per slot: its place, centred on the middle of the working area
+    // uw, uh: what a width or height share of 1 measures, gap included.
+    let uw[win.max]
+    let uh[win.max]
+    let av[win.max]
+    let ha[win.max]
+    let tw[win.max]
+    let th[win.max]
+    let rw[win.max]
+    let tht[win.max]
+    let lx[win.max]
+    let ly[win.max]
+    let cx[win.max]
+    let tgx[win.max]
+    let tgy[win.max]
+    repeat i in 0..win.max {
+        let sc = win[i].screen
+        uw[i] = Wa[sc] - gap
+        uh[i] = Ha[sc] + gap
+        av[i] = avail[sc]
+        ha[i] = Ha[sc]
+        tw[i] = max(uw[i] * wp[i] - gap, 40)
+        th[i] = max(uh[i] * r.hp[i] - gap, 40)
+        rw[i] = uw[i] * r.w[i] - gap
+        tht[i] = uh[i] * m.ht[i] - gap
+        lx[i] = uw[i] * c.before[i] - rw[i] / 2
+        ly[i] = uh[i] * r.hb[i] - tht[i] / 2
+        cx[i] = lx[i] + tw[i] / 2
+        // Where the camera goes to show it: still when its row (or the stack)
+        // fits, else on it, with the first and last snapped to the edge.
+        tgx[i] = if(rw[i] <= av[i] + 0.5, 0, if(c.idx[i] < 0.5, (av[i] - rw[i]) / 2, if(c.idx[i] > r.n[i] - 1.5, (rw[i] - av[i]) / 2, cx[i])))
+        tgy[i] = if(tht[i] <= ha[i] + 0.5, 0, if(r.idx[i] < 0.5, (ha[i] - tht[i]) / 2, if(r.idx[i] > r.cnt[i] - 1.5, (tht[i] - ha[i]) / 2, ly[i] + th[i] / 2)))
+    }
+
+    // the window taking the place of a focused one that closes (below)
+    let cl.min = 2000000000
+    let cl.target = -1
+    repeat j in 0..win.max {
+        let ck = if(win[j].open and win[j].place >= 0 and win[j].screen == cl.sc and win[j].pool == cl.pool, if(rpos[j] == cl.rpos, if(cpos[j] > cl.cpos, cpos[j] - cl.cpos, 1000 + cl.cpos - cpos[j]), 100000 + abs(rpos[j] - cl.rpos) * 1000 + cpos[j]), 1000000000) + j * 0.001
+        cl.target = if(ck < cl.min, j, cl.target)
+        cl.min = min(cl.min, ck)
+    }
+
+    // per monitor: what is shown, the window there that had the keyboard
+    // last (for crossing monitors), and the widest row and the whole stack
+    // (for the overview)
+    let m.count[4]
+    let m.topslot[4]
+    let m.rw[4]
+    let m.th[4]
+    repeat s in 0..4 {
+        let nshow = 0
+        let top = 0
+        let at = -1
+        let wide = 0
+        let tall = 0
+        repeat j in 0..win.max {
+            let shown = win[j].place >= 0 and win[j].screen == s and win[j].pool == win.pool[s]
+            let mine = win[j].open and not win[j].minimized and win[j].screen == s and win[j].pool == win.pool[s]
+            nshow += shown
+            at = if(mine and stamp[j] + 1 > top, j, at)
+            top = if(mine, max(top, stamp[j] + 1), top)
+            wide = max(wide, shown * rw[j])
+            tall = max(tall, shown * tht[j])
+        }
+        m.count[s] = nshow
+        m.topslot[s] = at
+        m.rw[s] = wide
+        m.th[s] = tall
+    }
+
+    // the camera's window: the one it was put on while still here, or the
+    // last with the keyboard. A new window, until it has its place and the
+    // shape has settled, holds it on the window it was opened from. One
+    // closing goes straight to the one taking its place, from the frame it
+    // closes, not by whatever pleamar-wm focused meanwhile.
+    let cam.k[4]
+    let cam.tx[4]
+    let cam.ty[4]
+    repeat s in 0..4 {
+        let c = if(cl.pending and cl.sc == s and cl.min < 100000000, cl.target, if((nw >= 0 and cam.a[s] == nw) or (nhold > 0.5 and cam.a[s] == nwl), if(lf == cam.a[s], lf.prev, lf), cam.a[s]))
+        let cc = max(c, 0)
+        cam.k[s] = if(c >= 0 and win[cc].place >= 0 and win[cc].screen == s and win[cc].pool == win.pool[s], c, m.topslot[s])
+        cam.tx[s] = if(cam.k[s] >= 0, tgx[max(cam.k[s], 0)], 0) + ofs.x[s]
+        cam.ty[s] = if(cam.k[s] >= 0, tgy[max(cam.k[s], 0)], 0) + ofs.y[s]
+    }
+
+    // the focused window
+    let f = max(win.focus, 0)
+    // A closed window can stay named as focused for a moment: f.live says
+    // it is still there.
+    let f.live = win.focus >= 0 and win[f].open
+    let f.on = win.focus >= 0 and win[f].place >= 0
+    let f.sc = win[f].screen
+    let f.pool = win[f].pool
+    // f.vis: and on the workspace its monitor shows
+    let f.vis = f.live and f.pool == win.pool[f.sc]
+    let f.rpos = rpos[f]
+    let f.cpos = cpos[f]
+    let f.c = c.idx[f]
+    let f.rn = r.n[f]
+    let f.ri = r.idx[f]
+    let f.hp = r.hp[f]
+    let f.o = o.idx[f]
+    let f.cx = cx[f]
+    let f.auto = auto[f.sc]
+    // neighbours in the row and in the whole order, and in the rows above
+    // and below the window nearest its middle
+    let f.left = -1
+    let f.right = -1
+    let f.prev = -1
+    let f.next = -1
+    let f.du = 100000
+    let f.up = -1
+    let f.dd = 100000
+    let f.down = -1
+    repeat j in 0..win.max {
+        let sf = win[j].place >= 0 and win[j].screen == f.sc and win[j].pool == f.pool
+        let row = sf and rpos[j] == f.rpos
+        f.left = if(row and c.idx[j] == f.c - 1, j, f.left)
+        f.right = if(row and c.idx[j] == f.c + 1, j, f.right)
+        f.prev = if(sf and o.idx[j] == f.o - 1, j, f.prev)
+        f.next = if(sf and o.idx[j] == f.o + 1, j, f.next)
+        let du = if(sf and r.idx[j] == f.ri - 1, abs(cx[j] - f.cx) + j * 0.01, 100000)
+        let dd = if(sf and r.idx[j] == f.ri + 1, abs(cx[j] - f.cx) + j * 0.01, 100000)
+        f.up = if(du < f.du, j, f.up)
+        f.du = min(f.du, du)
+        f.down = if(dd < f.dd, j, f.down)
+        f.dd = min(f.dd, dd)
+    }
+    let fu = max(f.up, 0)
+    let fd = max(f.down, 0)
+    let f.uprpos = rpos[fu]
+    let f.downrpos = rpos[fd]
+    let f.uphp = r.hp[fu]
+    let f.downhp = r.hp[fd]
+    // where in the row above or below it goes: beside the nearest one, on
+    // the side its middle is
+    let f.upcpos = cpos[fu] + if(f.cx > cx[fu], 0.5, -0.5)
+    let f.downcpos = cpos[fd] + if(f.cx > cx[fd], 0.5, -0.5)
+    let f.monl = m.topslot[max(f.sc - 1, 0)]
+    let f.monr = m.topslot[f.sc + 1]
+
+    // positions back to whole numbers once a move has settled. norm counts
+    // up so every request is a change. Every slot's rank is taken before
+    // any is written: c.idx and r.idx read the others' positions.
+    fact norm = 0
+    repeat i in 0..win.max {
+        fact nr.$i = 0
+        fact nc.$i = 0
+    }
+    on still norm for 50ms {
+        repeat i in 0..win.max {
+            nr.$i = if(win.$i.place >= 0, r.idx.$i, nr.$i)
+            nc.$i = if(win.$i.place >= 0, c.idx.$i, nc.$i)
+        }
+        repeat i in 0..win.max {
+            rpos.$i = if(win.$i.place >= 0, nr.$i, rpos.$i)
+            cpos.$i = if(win.$i.place >= 0, nc.$i, cpos.$i)
+        }
+    }
+
+    // moving the keyboard
+    on focus_left while f.on and f.left >= 0 {
+        pan = 1
+        focus win(f.left)
+    }
+    on focus_left while (not f.on or f.left < 0) and f.sc > 0.5 and f.monl >= 0 {
+        pan = 1
+        focus win(f.monl)
+    }
+    on focus_right while f.on and f.right >= 0 {
+        pan = 1
+        focus win(f.right)
+    }
+    on focus_right while (not f.on or f.right < 0) and f.sc < screens.count - 1.5 and f.monr >= 0 {
+        pan = 1
+        focus win(f.monr)
+    }
+    on focus_up while f.on and f.up >= 0 {
+        pan = 1
+        focus win(f.up)
+    }
+    on focus_down while f.on and f.down >= 0 {
+        pan = 1
+        focus win(f.down)
+    }
+
+    // A window and its neighbour in the row trade places: both places, and
+    // the neighbour, are taken before either is written, since writing one
+    // changes who the neighbour is.
+    fact mv.f = 0
+    fact mv.n = 0
+    fact mv.s = -1
+    on move_left while f.on and f.left >= 0 {
+        pan = 1
+        mv.f = f.cpos
+        mv.n = cpos[f.left]
+        mv.s = f.left
+        cpos[win.focus] = mv.n
+        cpos[mv.s] = mv.f
+    }
+    on move_right while f.on and f.right >= 0 {
+        pan = 1
+        mv.f = f.cpos
+        mv.n = cpos[f.right]
+        mv.s = f.right
+        cpos[win.focus] = mv.n
+        cpos[mv.s] = mv.f
+    }
+
+    // moving windows past the end of the row, to the next monitor
+    on move_left while win.focus >= 0 and (not f.on or f.left < 0) and f.sc > 0.5 {
+        sendir = -1
+        ksend = win.focus
+        send win(win.focus) to f.sc - 1
+    }
+    on move_right while win.focus >= 0 and (not f.on or f.right < 0) and f.sc < screens.count - 1.5 {
+        sendir = 1
+        ksend = win.focus
+        send win(win.focus) to f.sc + 1
+    }
+    // Up or down into the next row, beside the window nearest its middle,
+    // taking that row's height; past the end, a new row of half height,
+    // unless it is alone at that end already.
+    on move_up while f.on and f.up >= 0 {
+        rpos[win.focus] = f.uprpos
+        cpos[win.focus] = f.upcpos
+        hp[win.focus] = f.uphp
+    }
+    on move_up while f.on and f.up < 0 and f.rn > 1.5 {
+        rpos[win.focus] = -1000
+        cpos[win.focus] = 0
+        hp[win.focus] = 0.5
+    }
+    on move_down while f.on and f.down >= 0 {
+        rpos[win.focus] = f.downrpos
+        cpos[win.focus] = f.downcpos
+        hp[win.focus] = f.downhp
+    }
+    on move_down while f.on and f.down < 0 and f.rn > 1.5 {
+        rpos[win.focus] = 1000
+        cpos[win.focus] = 0
+        hp[win.focus] = 0.5
+    }
+    on move_up while f.on and (f.up >= 0 or f.rn > 1.5) {
+        pan = 1
+        norm = norm + 1
+    }
+    on move_down while f.on and (f.down >= 0 or f.rn > 1.5) {
+        pan = 1
+        norm = norm + 1
+    }
+    fact sendir = 0
+    // the window the keyboard is sending to another monitor, until it lands
+    fact ksend = -1
+
+    // Width presets for the window, height presets for its whole row: cycled
+    // upwards and back to the smallest.
+    on cycle_width while f.on { wp[win.focus] = if(wp[win.focus] < 0.32, 0.3333, if(wp[win.focus] < 0.49, 0.5, if(wp[win.focus] < 0.65, 0.6667, if(wp[win.focus] < 0.99, 1, 0.3333)))) }
+    fact cy.h = 1
+    on cycle_height while f.on {
+        cy.h = if(f.hp < 0.32, 0.3333, if(f.hp < 0.49, 0.5, if(f.hp < 0.65, 0.6667, if(f.hp < 0.99, 1, 0.3333))))
+        repeat j in 0..win.max {
+            hp.$j = if(win.$j.place >= 0 and win.$j.screen == f.sc and win.$j.pool == f.pool and rpos.$j == f.rpos, cy.h, hp.$j)
+        }
+    }
+
+    // The rows become the monitor's own: by moving between them, resizing,
+    // or a fourth window.
+    on move_up while f.on and (f.up >= 0 or f.rn > 1.5) { auto[f.sc] = false }
+    on move_down while f.on and (f.down >= 0 or f.rn > 1.5) { auto[f.sc] = false }
+    on cycle_width while f.on { auto[f.sc] = false }
+    on cycle_height while f.on { auto[f.sc] = false }
+    repeat s in 0..4 {
+        // Three is the last shape it makes: a fourth window makes the monitor's
+        // rows its own, and it joins the focused row (placed by hand, below).
+        on change m.count.$s while m.count.$s > 3.5 { auto.$s = false }
+        on still m.count.$s for 100ms while m.count.$s > 3.5 and auto.$s { auto.$s = false }
+        on change m.count.$s while m.count.$s < 1.5 { auto.$s = true }
+    }
+    // The keyboard moving a window takes the camera with it.
+    on change pan while pan > 0.5 and f.on and nw != win.focus {
+        cam.a[f.sc] = win.focus
+        ofs.x[f.sc] = 0
+        ofs.y[f.sc] = 0
+    }
+
+    // the window waiting for its place (opened under placement manual), and
+    // the one that had the keyboard before it
+    fact nw = -1
+    fact nwt = 0
+    // nwl, nhold: the last window placed, held while the auto shape is made
+    // around it. Making it lets go (below); this, if none is made.
+    fact nwl = -1
+    fact nhold = 0
+    on still nhold for 60ms while nhold > 0.5 { nhold = 0 }
+    fact lf = -1
+    fact lf.prev = -1
+    event place_new
+    on change win.focus {
+        lf.prev = lf
+        lf = win.focus
+    }
+    let n = max(nw, 0)
+    let n.sc = win[n].screen
+    let n.pool = win[n].pool
+    let n.auto = auto[n.sc]
+    let n.from = if(lf == nw, lf.prev, lf)
+    let n.fk = max(n.from, 0)
+    let n.ok = nw >= 0 and n.from >= 0 and n.from != nw and win[n.fk].place >= 0 and win[n.fk].screen == n.sc and win[n.fk].pool == n.pool
+    let n.frpos = rpos[n.fk]
+    let n.fcpos = cpos[n.fk]
+    let n.fhp = r.hp[n.fk]
+    // A row three wide is full while the monitor has fewer than seven
+    // tiles: the next window starts a row of its own below it instead.
+    let n.rc = 0
+    let n.m = 1
+    repeat j in 0..win.max {
+        let there = win[j].open and win[j].place >= 0 and win[j].screen == n.sc and win[j].pool == n.pool
+        n.rc += there and rpos[j] == n.frpos
+        n.m += there
+    }
+    let n.newrow = n.ok and n.rc > 2.5 and n.m < 6.5
+
+    repeat i in 0..win.max {
+        // A window that arrives from another monitor joins the row the camera
+        // is on there, at the side it came in from.
+        on change win.$i.pool while win.$i.open and nw != i {
+            rpos.$i = rpos[max(cam.k[win.$i.screen], 0)]
+            cpos.$i = if(sendir > 0, -1000, 1000)
+            hp.$i = r.hp[max(cam.k[win.$i.screen], 0)]
+            norm = norm + 1
+        }
+        on change win.$i.floating while not win.$i.floating and win.$i.open {
+            rpos.$i = 1000
+            cpos.$i = 0
+            hp.$i = 0.5
+            norm = norm + 1
+        }
+        // Auto shapes: one in the middle, two side by side, then two over one
+        // (the new window goes below, the two above stay; each row two thirds
+        // high, the strip scrolling to the lower one); a fourth is placed by
+        // hand. Once the count has settled, so the order it reads is the one
+        // the other rules left.
+        let autoOn = auto[win.$i.screen]
+        let k = o.idx.$i
+        let cnt = m.k.$i
+        let ash = cnt + 10 * autoOn + 100 * (win.$i.place >= 0) + 1000 * win.$i.screen
+        on still ash for 40ms while autoOn and win.$i.place >= 0 and cnt < 3.5 {
+            rpos.$i = if(abs(cnt - 3) < 0.5, if(k < 1.5, 0, 1), if(abs(cnt - 4) < 0.5, floor(k / 2), 0))
+            cpos.$i = if(abs(cnt - 3) < 0.5, if(k < 1.5, k, 0), if(abs(cnt - 4) < 0.5, mod(k, 2), k))
+            wp.$i = if(cnt < 1.5, 0.6667, 0.5)
+            hp.$i = if(abs(cnt - 3) < 0.5, 0.6667, if(cnt > 2.5, 0.5, 1))
+            nhold = 0
+        }
+    }
+
+    // A window that opens goes right of the one that had the keyboard, in
+    // its row, or in a new row at the bottom if that one is elsewhere; or,
+    // that row being full (n.newrow), in a new row just below it. Then it
+    // takes its place, and any other left waiting with it.
+    on place_new while not n.auto and n.ok and not n.newrow {
+        repeat j in 0..win.max {
+            cpos.$j = cpos.$j + (win.$j.place >= 0 and win.$j.screen == n.sc and win.$j.pool == n.pool and rpos.$j == n.frpos and cpos.$j > n.fcpos)
+        }
+    }
+    on place_new while not n.auto and n.newrow {
+        repeat j in 0..win.max {
+            rpos.$j = rpos.$j + (win.$j.place >= 0 and win.$j.screen == n.sc and win.$j.pool == n.pool and rpos.$j > n.frpos)
+        }
+    }
+    on place_new while not n.auto and nw >= 0 {
+        rpos[nw] = if(n.newrow, n.frpos + 1, if(n.ok, n.frpos, 1000))
+        cpos[nw] = if(n.newrow, 0, if(n.ok, n.fcpos + 1, 0))
+        wp[nw] = 0.5
+        hp[nw] = if(n.ok, n.fhp, 0.5)
+        norm = norm + 1
+    }
+    on place_new {
+        nwl = nw
+        nrev = nw
+        nhold = if(n.auto and n.m > 1.5 and n.m < 3.5, 1, 0)
+        accept win(nw)
+        repeat j in 0..win.max { accept win(if(win.$j.pending, j, -1)) }
+        nw = -1
+        newpan = 1
+    }
+    // nrev: the window placed, hidden until the rest on its monitor have made
+    // room and the camera has panned three quarters of the way. They start
+    // as it is placed, or as the shape is made (nhold), both of which change
+    // nq; niri's spring, critically damped from rest, is 75% there after
+    // 2.69 / sqrt(800) s whatever the distance.
+    fact nrev = -1
+    let nq = nhold + 2 * (nrev >= 0)
+    on still nq for 95ms while nrev >= 0 and nhold < 0.5 { nrev = -1 }
+
+    // A focused window that closes hands the keyboard to the one taking its
+    // place: the next in its row, else the one before it, else the nearest
+    // window in the nearest row. A closed slot keeps its monitor, workspace
+    // and place, so they are read as it closes.
+    fact cl.sc = 0
+    fact cl.pool = 0
+    fact cl.rpos = 0
+    fact cl.cpos = 0
+    fact cl.pending = false
+    repeat i in 0..win.max {
+        on change win.$i.open while not win.$i.open and (lf == i or lf.prev == i) {
+            cl.sc = win.$i.screen
+            cl.pool = win.$i.pool
+            cl.rpos = rpos.$i
+            cl.cpos = cpos.$i
+            cl.pending = true
+        }
+    }
+    on still win.focus for 50ms while cl.pending and cl.min < 100000000 {
+        pan = 1
+        focus win(cl.target)
+        cl.pending = false
+    }
+    on still win.focus for 50ms while cl.pending and cl.min >= 100000000 { cl.pending = false }
+    // The camera goes straight to it, not by way of whatever pleamar-wm
+    // focused in the meantime.
+    on change cl.pending while cl.pending and cl.min < 100000000 {
+        cam.a[cl.sc] = cl.target
+        ofs.x[cl.sc] = 0
+        ofs.y[cl.sc] = 0
+    }
+    on change cl.target while cl.pending and cl.min < 100000000 { cam.a[cl.sc] = cl.target }
+
+    // the window being dragged, and a resize of it: its width and its
+    // row's height, as shares
+    let d = max(dslot, 0)
+    let d.sc = win[d].screen
+    let d.pool = win[d].pool
+    let d.rpos = rpos[d]
+    fact rsw = 0.5
+    fact rsh = 1
+    on change rsh while dmode == 3 and dslot >= 0 {
+        repeat j in 0..win.max {
+            hp.$j = if(win.$j.place >= 0 and win.$j.screen == d.sc and win.$j.pool == d.pool and rpos.$j == d.rpos, rsh, hp.$j)
+        }
+    }
+    on change rsw while dmode == 3 and dslot >= 0 { auto[d.sc] = false }
+    on change rsh while dmode == 3 and dslot >= 0 { auto[d.sc] = false }
+}

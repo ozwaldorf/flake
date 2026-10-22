@@ -4,11 +4,11 @@
 // level is worked out once, for the first monitor.
 part Screen {
     let me = screen.index
-    let Ws = pick(me, mw.0, mw.1, mw.2, mw.3)
-    let Hs = pick(me, mh.0, mh.1, mh.2, mh.3)
+    let Ws = mw[me]
+    let Hs = mh[me]
     // the height a drawer page has, under its top inset and above the tabs
     let pg.h = Hs - inset - (inset + tabsh + 8)
-    let reveal = pick(me, rv.0, rv.1, rv.2, rv.3)
+    let reveal = rv[me]
     let here = dmon == me
     let railw = sliver + (rail - sliver) * reveal
     let push = railw + if(here, dw, 0)

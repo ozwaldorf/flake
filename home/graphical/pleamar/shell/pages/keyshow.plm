@@ -10,7 +10,7 @@ part KeyShow {
 
     surface keyshow {
         let ks.me = screen.index
-        let ks.W = pick(ks.me, mw.0, mw.1, mw.2, mw.3)
+        let ks.W = mw[ks.me]
         size: full, 64
         anchor: bottom
         screens: each

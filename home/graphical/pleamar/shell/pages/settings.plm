@@ -197,10 +197,10 @@ part SettingsPage {
                     let r = floor(t.index / 6)
                     let i = mod(t.index, 6)
                     let c = min(6, cctrays.count - 6 * r)
-                    let total = pick(c - 1, 1, 2.6, 3.85, 5.3, 6.4, 7.75)
+                    let total = cc.tl[c]
                     let room = pagew - (c - 1) * 8
-                    let tx = room * pick(i, 0, 1, 2.6, 3.85, 5.3, 6.4) / total + 8 * i
-                    let tw = room * pick(i, 1, 1.6, 1.25, 1.45, 1.1, 1.35) / total
+                    let tx = room * cc.tl[i] / total + 8 * i
+                    let tw = room * cc.tw[i] / total
                     let ty = r * 68
                     zone box cc.ti { from: tx, ty; size: tw, 60; corner: 9; cursor: pointer; label: t.title }
                     Well(tx, ty, tw, 60)

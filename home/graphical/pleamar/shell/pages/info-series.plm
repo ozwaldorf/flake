@@ -1,0 +1,172 @@
+// The system page's charts. A path's steps read facts, not model records, so
+// each series is one fact per sample (written by logic/info.luau, already
+// scaled 0 to 1 against the window's range), and the chart's path walks them.
+part InfoSeries {
+    // c cpu, m memory, g gpu; r and w disk read and write, d and u network
+    // down and up
+    fact inf.s.first = 60
+    repeat k in 0..60 {
+        fact inf.s.c.$k = 0
+        fact inf.s.m.$k = 0
+        fact inf.s.g.$k = 0
+        fact inf.s.r.$k = 0
+        fact inf.s.w.$k = 0
+        fact inf.s.d.$k = 0
+        fact inf.s.u.$k = 0
+    }
+
+    // The series by place, in the order above, and where each sample sits
+    // across the chart, 0 to 1. Samples before inf.s.first have not been
+    // taken yet: they collapse onto the first one, so the line grows in from
+    // the right as the window fills.
+    let inf.s.v[7][60]
+    let inf.s.t[60]
+    repeat k in 0..60 {
+        inf.s.v[0][k] = inf.s.c[k]
+        inf.s.v[1][k] = inf.s.m[k]
+        inf.s.v[2][k] = inf.s.g[k]
+        inf.s.v[3][k] = inf.s.r[k]
+        inf.s.v[4][k] = inf.s.w[k]
+        inf.s.v[5][k] = inf.s.d[k]
+        inf.s.v[6][k] = inf.s.u[k]
+        inf.s.t[k] = max(k, inf.s.first) / 59
+    }
+
+    // Series s as a line from its baseline at (x, y), growing up (dir -1) or
+    // down (dir 1), over a faint fill back to the baseline.
+    component InfLine(x: number, y: number, w: number, h: number, s: number, tone: color, dir: number = -1) {
+        path {
+            at: x, y
+            color: tone
+            opacity: 14%
+            move w * inf.s.t[0], 0
+            line w * inf.s.t[0], dir * h * inf.s.v[s][0]
+            line w * inf.s.t[1], dir * h * inf.s.v[s][1]
+            line w * inf.s.t[2], dir * h * inf.s.v[s][2]
+            line w * inf.s.t[3], dir * h * inf.s.v[s][3]
+            line w * inf.s.t[4], dir * h * inf.s.v[s][4]
+            line w * inf.s.t[5], dir * h * inf.s.v[s][5]
+            line w * inf.s.t[6], dir * h * inf.s.v[s][6]
+            line w * inf.s.t[7], dir * h * inf.s.v[s][7]
+            line w * inf.s.t[8], dir * h * inf.s.v[s][8]
+            line w * inf.s.t[9], dir * h * inf.s.v[s][9]
+            line w * inf.s.t[10], dir * h * inf.s.v[s][10]
+            line w * inf.s.t[11], dir * h * inf.s.v[s][11]
+            line w * inf.s.t[12], dir * h * inf.s.v[s][12]
+            line w * inf.s.t[13], dir * h * inf.s.v[s][13]
+            line w * inf.s.t[14], dir * h * inf.s.v[s][14]
+            line w * inf.s.t[15], dir * h * inf.s.v[s][15]
+            line w * inf.s.t[16], dir * h * inf.s.v[s][16]
+            line w * inf.s.t[17], dir * h * inf.s.v[s][17]
+            line w * inf.s.t[18], dir * h * inf.s.v[s][18]
+            line w * inf.s.t[19], dir * h * inf.s.v[s][19]
+            line w * inf.s.t[20], dir * h * inf.s.v[s][20]
+            line w * inf.s.t[21], dir * h * inf.s.v[s][21]
+            line w * inf.s.t[22], dir * h * inf.s.v[s][22]
+            line w * inf.s.t[23], dir * h * inf.s.v[s][23]
+            line w * inf.s.t[24], dir * h * inf.s.v[s][24]
+            line w * inf.s.t[25], dir * h * inf.s.v[s][25]
+            line w * inf.s.t[26], dir * h * inf.s.v[s][26]
+            line w * inf.s.t[27], dir * h * inf.s.v[s][27]
+            line w * inf.s.t[28], dir * h * inf.s.v[s][28]
+            line w * inf.s.t[29], dir * h * inf.s.v[s][29]
+            line w * inf.s.t[30], dir * h * inf.s.v[s][30]
+            line w * inf.s.t[31], dir * h * inf.s.v[s][31]
+            line w * inf.s.t[32], dir * h * inf.s.v[s][32]
+            line w * inf.s.t[33], dir * h * inf.s.v[s][33]
+            line w * inf.s.t[34], dir * h * inf.s.v[s][34]
+            line w * inf.s.t[35], dir * h * inf.s.v[s][35]
+            line w * inf.s.t[36], dir * h * inf.s.v[s][36]
+            line w * inf.s.t[37], dir * h * inf.s.v[s][37]
+            line w * inf.s.t[38], dir * h * inf.s.v[s][38]
+            line w * inf.s.t[39], dir * h * inf.s.v[s][39]
+            line w * inf.s.t[40], dir * h * inf.s.v[s][40]
+            line w * inf.s.t[41], dir * h * inf.s.v[s][41]
+            line w * inf.s.t[42], dir * h * inf.s.v[s][42]
+            line w * inf.s.t[43], dir * h * inf.s.v[s][43]
+            line w * inf.s.t[44], dir * h * inf.s.v[s][44]
+            line w * inf.s.t[45], dir * h * inf.s.v[s][45]
+            line w * inf.s.t[46], dir * h * inf.s.v[s][46]
+            line w * inf.s.t[47], dir * h * inf.s.v[s][47]
+            line w * inf.s.t[48], dir * h * inf.s.v[s][48]
+            line w * inf.s.t[49], dir * h * inf.s.v[s][49]
+            line w * inf.s.t[50], dir * h * inf.s.v[s][50]
+            line w * inf.s.t[51], dir * h * inf.s.v[s][51]
+            line w * inf.s.t[52], dir * h * inf.s.v[s][52]
+            line w * inf.s.t[53], dir * h * inf.s.v[s][53]
+            line w * inf.s.t[54], dir * h * inf.s.v[s][54]
+            line w * inf.s.t[55], dir * h * inf.s.v[s][55]
+            line w * inf.s.t[56], dir * h * inf.s.v[s][56]
+            line w * inf.s.t[57], dir * h * inf.s.v[s][57]
+            line w * inf.s.t[58], dir * h * inf.s.v[s][58]
+            line w * inf.s.t[59], dir * h * inf.s.v[s][59]
+            line w, 0
+            close
+        }
+        path {
+            at: x, y
+            stroke: 1.6
+            color: tone
+            move w * inf.s.t[0], dir * h * inf.s.v[s][0]
+            line w * inf.s.t[1], dir * h * inf.s.v[s][1]
+            line w * inf.s.t[2], dir * h * inf.s.v[s][2]
+            line w * inf.s.t[3], dir * h * inf.s.v[s][3]
+            line w * inf.s.t[4], dir * h * inf.s.v[s][4]
+            line w * inf.s.t[5], dir * h * inf.s.v[s][5]
+            line w * inf.s.t[6], dir * h * inf.s.v[s][6]
+            line w * inf.s.t[7], dir * h * inf.s.v[s][7]
+            line w * inf.s.t[8], dir * h * inf.s.v[s][8]
+            line w * inf.s.t[9], dir * h * inf.s.v[s][9]
+            line w * inf.s.t[10], dir * h * inf.s.v[s][10]
+            line w * inf.s.t[11], dir * h * inf.s.v[s][11]
+            line w * inf.s.t[12], dir * h * inf.s.v[s][12]
+            line w * inf.s.t[13], dir * h * inf.s.v[s][13]
+            line w * inf.s.t[14], dir * h * inf.s.v[s][14]
+            line w * inf.s.t[15], dir * h * inf.s.v[s][15]
+            line w * inf.s.t[16], dir * h * inf.s.v[s][16]
+            line w * inf.s.t[17], dir * h * inf.s.v[s][17]
+            line w * inf.s.t[18], dir * h * inf.s.v[s][18]
+            line w * inf.s.t[19], dir * h * inf.s.v[s][19]
+            line w * inf.s.t[20], dir * h * inf.s.v[s][20]
+            line w * inf.s.t[21], dir * h * inf.s.v[s][21]
+            line w * inf.s.t[22], dir * h * inf.s.v[s][22]
+            line w * inf.s.t[23], dir * h * inf.s.v[s][23]
+            line w * inf.s.t[24], dir * h * inf.s.v[s][24]
+            line w * inf.s.t[25], dir * h * inf.s.v[s][25]
+            line w * inf.s.t[26], dir * h * inf.s.v[s][26]
+            line w * inf.s.t[27], dir * h * inf.s.v[s][27]
+            line w * inf.s.t[28], dir * h * inf.s.v[s][28]
+            line w * inf.s.t[29], dir * h * inf.s.v[s][29]
+            line w * inf.s.t[30], dir * h * inf.s.v[s][30]
+            line w * inf.s.t[31], dir * h * inf.s.v[s][31]
+            line w * inf.s.t[32], dir * h * inf.s.v[s][32]
+            line w * inf.s.t[33], dir * h * inf.s.v[s][33]
+            line w * inf.s.t[34], dir * h * inf.s.v[s][34]
+            line w * inf.s.t[35], dir * h * inf.s.v[s][35]
+            line w * inf.s.t[36], dir * h * inf.s.v[s][36]
+            line w * inf.s.t[37], dir * h * inf.s.v[s][37]
+            line w * inf.s.t[38], dir * h * inf.s.v[s][38]
+            line w * inf.s.t[39], dir * h * inf.s.v[s][39]
+            line w * inf.s.t[40], dir * h * inf.s.v[s][40]
+            line w * inf.s.t[41], dir * h * inf.s.v[s][41]
+            line w * inf.s.t[42], dir * h * inf.s.v[s][42]
+            line w * inf.s.t[43], dir * h * inf.s.v[s][43]
+            line w * inf.s.t[44], dir * h * inf.s.v[s][44]
+            line w * inf.s.t[45], dir * h * inf.s.v[s][45]
+            line w * inf.s.t[46], dir * h * inf.s.v[s][46]
+            line w * inf.s.t[47], dir * h * inf.s.v[s][47]
+            line w * inf.s.t[48], dir * h * inf.s.v[s][48]
+            line w * inf.s.t[49], dir * h * inf.s.v[s][49]
+            line w * inf.s.t[50], dir * h * inf.s.v[s][50]
+            line w * inf.s.t[51], dir * h * inf.s.v[s][51]
+            line w * inf.s.t[52], dir * h * inf.s.v[s][52]
+            line w * inf.s.t[53], dir * h * inf.s.v[s][53]
+            line w * inf.s.t[54], dir * h * inf.s.v[s][54]
+            line w * inf.s.t[55], dir * h * inf.s.v[s][55]
+            line w * inf.s.t[56], dir * h * inf.s.v[s][56]
+            line w * inf.s.t[57], dir * h * inf.s.v[s][57]
+            line w * inf.s.t[58], dir * h * inf.s.v[s][58]
+            line w * inf.s.t[59], dir * h * inf.s.v[s][59]
+        }
+    }
+}
