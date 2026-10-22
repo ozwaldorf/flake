@@ -506,10 +506,19 @@ in
       let n.newrow = n.ok and n.rc > 2.5 and n.m < 6.5
       on place_new {
           nwl = nw
+          nrev = nw
           nhold = if(${pickMon "n.sc" (s: "auto.${s}")} and n.m > 1.5 and n.m < 3.5, 1, 0)
           nw = -1
           newpan = 1
       }
+      // nrev: the window placed, hidden until the rest on its monitor have made
+      // room and the camera has panned three quarters of the way. They start
+      // as it is placed, or as the shape is made (nhold), both of which change
+      // nq; niri's spring, critically damped from rest, is 75% there after
+      // 2.69 / sqrt(800) s whatever the distance.
+      fact nrev = -1
+      let nq = nhold + 2 * (nrev >= 0)
+      on still nq for 95ms while nrev >= 0 and nhold < 0.5 { nrev = -1 }
 
       // A focused window that closes hands the keyboard to the one taking its
       // place: the next in its row, else the one before it, else the nearest

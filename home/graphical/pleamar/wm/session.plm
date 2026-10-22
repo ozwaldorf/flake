@@ -481,10 +481,15 @@ scene Session {
             let sg.w = zt * goal.w
             let sg.h = zt * goal.h
 
-            follow x.$i = sg.x
-            follow y.$i = sg.y
-            follow w.$i = sg.w
-            follow h.$i = sg.h
+            // Closed, it stays where it was (below).
+            fact last.x.$i = 0
+            fact last.y.$i = 0
+            fact last.w.$i = 0
+            fact last.h.$i = 0
+            follow x.$i = if(win.$i.open, sg.x, last.x.$i)
+            follow y.$i = if(win.$i.open, sg.y, last.y.$i)
+            follow w.$i = if(win.$i.open, sg.w, last.w.$i)
+            follow h.$i = if(win.$i.open, sg.h, last.h.$i)
 
             // Sent to another monitor by the keyboard: its springs are put where
             // it is now in that monitor's coordinates,
@@ -517,28 +522,24 @@ scene Session {
             }
             // A window that opens fades in where it goes; one that closes fades
             // out where it was. No growing or shrinking.
-            prop seen.$i = 0 ~150ms
-            // Its glass and frame, a moment after it: a program that has just
-            // opened (rio) hands over blank frames first, and they showed alone.
-            prop frost.$i = 1 ~180ms
-            // Held back until it has its place (place_new) and the shape around it
-            // is made (nhold), then faded in there.
-            let waits = nw == i or (nhold > 0.5 and nwl == i)
+            prop seen.$i = 0 ~250ms
+            // Held back until it has its place (place_new) and the rest have
+            // moved around it (nrev), then faded in there.
+            let waits = nw == i or nrev == i
             follow seen.$i = if(win.$i.open and not waits, 1, 0)
-            // Not seen yet, it is where it goes at once, so it fades in without
-            // moving while the rest make room and the camera pans.
-            on change sg.x while win.$i.open and seen.$i < 0.02 { x.$i: sg.x ~0ms }
-            on change sg.y while win.$i.open and seen.$i < 0.02 { y.$i: sg.y ~0ms }
-            on change sg.w while win.$i.open and seen.$i < 0.02 { w.$i: sg.w ~0ms }
-            on change sg.h while win.$i.open and seen.$i < 0.02 { h.$i: sg.h ~0ms }
+            // Until it has faded in, it is where it goes at once, so it shows
+            // without moving while the rest make room and the camera pans: the
+            // last of that lands a frame or two after it starts to show.
+            on change sg.x while win.$i.open and seen.$i < 0.99 { x.$i: sg.x ~0ms }
+            on change sg.y while win.$i.open and seen.$i < 0.99 { y.$i: sg.y ~0ms }
+            on change sg.w while win.$i.open and seen.$i < 0.99 { w.$i: sg.w ~0ms }
+            on change sg.h while win.$i.open and seen.$i < 0.99 { h.$i: sg.h ~0ms }
             on change win.$i.open while win.$i.open {
                 x.$i: sg.x ~0ms
                 y.$i: sg.y ~0ms
                 w.$i: sg.w ~0ms
                 h.$i: sg.h ~0ms
                 seen.$i: 0 ~0ms
-                frost.$i: 0 ~0ms
-                frost.$i: 1 after 250ms
                 stamp.$i = stamp.top + 1
                 stamp.top = stamp.top + 1
                 // At the end of the focused row until it is placed (place_new).
@@ -552,6 +553,19 @@ scene Session {
                 send win(i) to kmon
                 nw = if(win.$i.dialog or win.$i.floating, nw, i)
                 nwt = nwt + 1
+            }
+            // A closed slot leaves the rows (place -1), drops the camera's pan
+            // and a float's size, so where it goes moves the moment it closes:
+            // its springs stop where they are instead, still, for the fade.
+            on change win.$i.open while not win.$i.open {
+                last.x.$i = x.$i
+                last.y.$i = y.$i
+                last.w.$i = w.$i
+                last.h.$i = h.$i
+                x.$i: x.$i ~0ms
+                y.$i: y.$i ~0ms
+                w.$i: w.$i ~0ms
+                h.$i: h.$i ~0ms
             }
             on change win.$i.focused while win.$i.focused {
                 stamp.$i = stamp.top + 1
@@ -647,15 +661,14 @@ scene Session {
                     dispersion: 0
                     dome: 60%
                     ripple: 0
-                    // clear at first, frosting over as it arrives
-                    frost: frost.$i * 90%
+                    frost: 90%
                     tint: 0
                     vivid: 140%
                     smoke: 40%
                     milk: 20%
                     mirror: 0
                     highlight: 0
-                    shadow: 0, 5, 30, 26% * (1 - full) * frost.$i, crust
+                    shadow: 0, 5, 30, 26% * (1 - full), crust
                     box { from: x, y; size: w, h; corner: r }
                 }
                 group {
@@ -664,12 +677,14 @@ scene Session {
                     // as that travels; shrinking, at the box. Drawn at the box
                     // alone, a program that has not yet answered a resize is
                     // scaled by box over ask; at the size asked alone, one that
-                    // has leaves the box's far side bare.
-                    window win.$i { at: x, y + bh; size: if(win.$i.dialog and fw.$i < 1, w, max(w, goal.w * zc)), if(win.$i.dialog and fw.$i < 1, h - bh, max(h - bh, (goal.h - bar) * zc)); ask: if(win.$i.dialog and fw.$i < 1, 0, goal.w), if(win.$i.dialog and fw.$i < 1, 0, goal.h - bar); show: win.$i.open }
+                    // has leaves the box's far side bare. Closed, its last image
+                    // fades at the box.
+                    let atbox = (win.$i.dialog and fw.$i < 1) or not win.$i.open
+                    window win.$i { at: x, y + bh; size: if(atbox, w, max(w, goal.w * zc)), if(atbox, h - bh, max(h - bh, (goal.h - bar) * zc)); ask: if(win.$i.dialog and fw.$i < 1, 0, goal.w), if(win.$i.dialog and fw.$i < 1, 0, goal.h - bar) }
                     box { from: x, y; size: w, th; color: crust; opacity: 0.88 * (1 - full) }
                     text win.$i.title { at: x + 12, y + th / 2; anchor: left center; size: 12; color: mix(subtext0, text, litp.$i); family: "Berkeley Mono"; width: w - 24 - btns * 44; lines: 1; opacity: (1 - full) * if(bh > 13 or tov > 0.5, 1, tov * 2) }
                 }
-                box { from: x, y; size: w, h; corner: r; stroke: 1; color: mix(base, text, litp.$i); opacity: (1 - full) * frost.$i }
+                box { from: x, y; size: w, h; corner: r; stroke: 1; color: mix(base, text, litp.$i); opacity: 1 - full }
                 // where a carried window would land: this one, marked
                 box { from: x, y; size: w, h; corner: r; color: blue; opacity: 16% * dropp.$i }
                 box { from: x, y; size: w, h; corner: r; stroke: 2; color: blue; opacity: dropp.$i }
