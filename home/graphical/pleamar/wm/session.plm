@@ -405,6 +405,9 @@ scene Session {
         focus win(f.prev)
     }
 
+    // how the top window under the pointer stacks (hz: each one's, or -1)
+    prop hztop = -1 ~0ms
+
     group {
         // the windows
         repeat i in 0..16 {
@@ -645,6 +648,12 @@ scene Session {
             let wpy = y + if(g.last == i, if(g.bar > 0.5, min(g.oy * zt, h), g.fy * h), h / 2)
             // how it stacks, its handles with it
             let wz = if(full, 100000, if(win.$i.dialog, 60000, if(lifted or xing.$i > 0.5, 90000, if(mxd, 50000, if(win.$i.floating, 1000 + stamp.$i, 0)))))
+            // how it stacks while the pointer is over it, title bar included,
+            // to tell the top one
+            fact under.$i = false
+            fact onbar.$i = false
+            prop hz.$i = -1 ~0ms
+            follow hz.$i = if((under.$i or onbar.$i) and wshow, wz, -1)
             group {
                 z: wz
                 show: wshow
@@ -704,8 +713,20 @@ scene Session {
 
             // The keyboard follows the pointer, without moving the camera, and
             // only once the camera and the window have settled, so windows
-            // sliding under a still pointer do not take it.
-            on enter win.$i while not win.$i.focused and dmode < 0.5 and not ov and still and abs(x.$i - sg.x) < 2 and abs(y.$i - sg.y) < 2 {
+            // sliding under a still pointer do not take it. Entered mid-slide,
+            // it takes it on the next move instead. Of windows overlapping
+            // under it, title bars included, only the one on top.
+            let hoverok = not win.$i.focused and dmode < 0.5 and not ov and still and abs(x.$i - sg.x) < 2 and abs(y.$i - sg.y) < 2
+            // (covered zones see the pointer too)
+            on leave win.$i { under.$i = false }
+            on enter win.$i { under.$i = true }
+            on leave grab.$i { onbar.$i = false }
+            on enter grab.$i { onbar.$i = true }
+            on change cursor.x while hoverok and hz.$i >= 0 and hz.$i == hztop {
+                mon = screen.index
+                focus win.$i
+            }
+            on change cursor.y while hoverok and hz.$i >= 0 and hz.$i == hztop {
                 mon = screen.index
                 focus win.$i
             }
@@ -1133,6 +1154,7 @@ scene Session {
             on change rsw while dmode == 3 and dslot == i and tiled { wp.$i = rsw }
         }
     }
+    follow hztop = max(max(max(max(hz.0, hz.1), max(hz.2, hz.3)), max(max(hz.4, hz.5), max(hz.6, hz.7))), max(max(max(hz.8, hz.9), max(hz.10, hz.11)), max(max(hz.12, hz.13), max(hz.14, hz.15))))
 
     // actions, bound in keys.conf
     event close
