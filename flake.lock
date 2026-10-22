@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792611080,
-        "narHash": "sha256-v+sRdPLP+LTKbf4pNl2l1KoK8VaNDMMdSmcFGNxTxS0=",
+        "lastModified": 1792654560,
+        "narHash": "sha256-wJC6oVdILiTWdbjVQVSXd23SA9UhsXZ23yN97GNUwE4=",
         "owner": "ozwaldorf",
         "repo": "animated-cursors",
-        "rev": "e98ff51402996176c754b39a80cb4933ae3c8cb5",
+        "rev": "a983dbcd3867e94df89cc438e042ddd928bc6e3d",
         "type": "github"
       },
       "original": {
