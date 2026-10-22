@@ -19,6 +19,12 @@ let
     "#${channel 0}${channel 2}${channel 4}";
 in
 {
+  # The terminal Terminal=true desktop entries open in (the pleamar launcher)
+  xdg.terminal-exec = {
+    enable = true;
+    settings.default = [ "rio.desktop" ];
+  };
+
   programs.rio = {
     enable = true;
     settings = {
