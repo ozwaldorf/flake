@@ -23,11 +23,13 @@ scene Session {
     // How far the wallpaper moves for the camera's distance.
     let para = 0.08
 
-    // The frosting behind the windows' glass (blur.wgsl): Apple's backdrop,
-    // a gaussian at a quarter of the size, grain at full. values: sigma, grain.
+    // The frosting behind the windows' glass (blur.wgsl): a lens blur, a disc
+    // at a quarter of the size, grain at full. values: radius, grain,
+    // highlight boost. The radius grows like a magnifier lifted off the page
+    // as the camera pulls away (the overview).
     blur = file "blur.wgsl" {
-        passes: down 0.5 repeat 2, h 1, v 1, grain 4
-        values: 30, 0.03
+        passes: down 0.5 repeat 2, disc 1, soft 1, grain 4
+        values: 40 * (1 + 0.5 * pick(screen.index, ovp.0, ovp.1, ovp.2, ovp.3)), 0.03, 5
         reach: 64
     }
 
@@ -668,9 +670,9 @@ scene Session {
                     glass: 80%
                     refraction: 0
                     dispersion: 0
-                    dome: 60%
+                    dome: 70% + 30% * max(ovp, liftp.$i)
                     ripple: 0
-                    frost: 90%
+                    frost: 100%
                     tint: 0
                     vivid: 140%
                     smoke: 40%

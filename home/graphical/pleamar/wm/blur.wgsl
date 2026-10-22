@@ -1,8 +1,9 @@
-// The frosting behind the window manager's glass, Apple's CABackdropLayer:
-// clamp to SDR, then a gaussian (inputRadius is sigma, in points) at a
-// quarter of the size with its edges normalised, back at full size with
-// grain. Saturation and tone are the glass's own (`vivid:`, `smoke:`,
-// `milk:`). Chain: down 0.5 repeat 2, h 1, v 1, grain 4. s.a: sigma, grain.
+// The frosting behind the window manager's glass, a lens blur: clamp to SDR,
+// then a disc (radius in points) at a quarter of the size with its edges
+// normalised, bright texels weighted up so highlights open into discs,
+// softened, back at full size with grain. Saturation and tone are the
+// glass's own (`vivid:`, `smoke:`, `milk:`). Chain: down 0.5 repeat 2,
+// disc 1, soft 1, grain 4. s.a: radius, grain, highlight boost.
 
 // Clamped to SDR on the straight colour, before the blur.
 fn sdr(c: vec4<f32>) -> vec4<f32> {
@@ -24,39 +25,40 @@ fn down(s: Blur) -> vec4<f32> {
     }
     return (sdr(a) + sdr(b) + sdr(c) + sdr(d)) * 0.25;
 }
-// One axis of the gaussian, two texels a tap through the bilinear filter.
-// Taps past the picture are left out and the weights renormalised, so the
-// edge neither darkens nor smears. 24 pairs cover 48 texels: past 3 sigma
-// at 30pt up to a scale of 2.
-fn gauss(s: Blur, axis: vec2<f32>) -> vec4<f32> {
-    let sigma = max(s.a.x * s.scale / 4.0, 0.5);
-    let k = -0.5 / (sigma * sigma);
-    let t = axis / s.source;
-    var sum = prev(s, s.uv);
-    var total = 1.0;
-    for (var i = 0; i < 24; i++) {
-        let o1 = f32(2 * i + 1);
-        let o2 = o1 + 1.0;
-        let w1 = exp(k * o1 * o1);
-        let w2 = exp(k * o2 * o2);
-        let w = w1 + w2;
-        let o = (o1 * w1 + o2 * w2) / w;
-        let p = s.uv + t * o;
-        let n = s.uv - t * o;
-        let wp = w * f32(all(p >= vec2<f32>(0.0)) && all(p <= vec2<f32>(1.0)));
-        let wn = w * f32(all(n >= vec2<f32>(0.0)) && all(n <= vec2<f32>(1.0)));
-        sum += prev(s, p) * wp + prev(s, n) * wn;
-        total += wp + wn;
+
+// A flat disc, 160 taps on a golden-angle (Vogel) spiral, so they cover it
+// evenly with no rings. Each tap is weighted by 1 + boost * luma^4, which
+// stands in for the HDR an SDR backdrop lacks: lit points dominate their
+// disc instead of averaging away. Taps past the picture are left out and the
+// weights renormalised, so the edge neither darkens nor smears.
+fn disc(s: Blur) -> vec4<f32> {
+    let radius = max(s.a.x * s.scale / 4.0, 0.5);
+    var sum = vec4<f32>(0.0);
+    var total = 0.0;
+    for (var i = 0; i < 160; i++) {
+        let f = f32(i);
+        let r = sqrt((f + 0.5) / 160.0) * radius;
+        let th = f * 2.39996323;
+        let p = s.uv + vec2<f32>(cos(th), sin(th)) * r / s.source;
+        let inside = f32(all(p >= vec2<f32>(0.0)) && all(p <= vec2<f32>(1.0)));
+        let c = prev(s, p);
+        let l = dot(c.rgb / max(c.a, 0.0001), vec3<f32>(0.2126, 0.7152, 0.0722));
+        let w = inside * (1.0 + s.a.z * l * l * l * l);
+        sum += c * w;
+        total += w;
     }
-    return sum / total;
+    return sum / max(total, 0.0001);
 }
 
-fn h(s: Blur) -> vec4<f32> {
-    return gauss(s, vec2<f32>(1.0, 0.0));
-}
-
-fn v(s: Blur) -> vec4<f32> {
-    return gauss(s, vec2<f32>(0.0, 1.0));
+// A 3x3 tent through the bilinear filter, smoothing what the spiral's gaps
+// leave between taps.
+fn soft(s: Blur) -> vec4<f32> {
+    let t = 0.5 / s.source;
+    let a = prev(s, s.uv + vec2<f32>(-t.x, -t.y));
+    let b = prev(s, s.uv + vec2<f32>(t.x, -t.y));
+    let c = prev(s, s.uv + vec2<f32>(-t.x, t.y));
+    let d = prev(s, s.uv + vec2<f32>(t.x, t.y));
+    return (a + b + c + d) * 0.25;
 }
 
 // PCG2D (Jarzynski and Olano): integer hashing without the patterns a sin
