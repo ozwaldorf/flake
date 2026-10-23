@@ -16,6 +16,10 @@ scene Session {
     let gap = 18
     // the title bar each window gets above what its program draws
     let tbar = 28
+    // its buttons, from the icon theme as a GTK header bar would
+    image btn.close = icon "window-close-symbolic", 16, 16
+    image btn.max = icon "window-maximize-symbolic", 16, 16
+    image btn.restore = icon "window-restore-symbolic", 16, 16
     let strut = 14
     let radius = 10
     // niri's own spring: stiffness 800, critically damped.
@@ -32,6 +36,30 @@ scene Session {
         values: 40 * (1 + 0.5 * ovp[screen.index]), 0.03, 5
         reach: 64
     }
+
+    // The one glass of the desktop: the windows', their menus', the bars'
+    // and the desk's veil. A lens blur (blur.wgsl), a disc at a quarter of
+    // the size, grain at full; values: radius, grain, highlight boost. The
+    // radius grows like a magnifier lifted off the page as the camera pulls
+    // away (the overview of the monitor with the keyboard).
+    // material default {
+    //     blur: file "blur.wgsl" {
+    //         passes: down 0.5 repeat 2, disc 1, soft 1, grain 4
+    //         values: 40 * (1 + 0.5 * ovp[kmon]), 0.03, 5
+    //     }
+    //     reach: 64
+    //     frost: 100%
+    //     tint: 0
+    //     vivid: 140%
+    //     smoke: 40%
+    //     milk: 20%
+    //     refraction: 0
+    //     dispersion: 0
+    //     dome: 70%
+    //     ripple: 0
+    //     mirror: 0
+    //     highlight: 0
+    // }
 
     // the pointer's monitor
     fact mon = 0
@@ -162,9 +190,13 @@ scene Session {
     fact g.z = 1
     fact g.px = 0
     fact g.py = 0
-    // the monitor the drag started on, and where each copy sits (see desk)
+    // the monitor the drag started on, and where each copy sits (see desk):
+    // until learnt, where the compiler stacks them
     fact g.hs = 0
-    repeat s in 0..4 { fact org.$s = 0 }
+    fact org.0 = 0
+    fact org.1 = 10000
+    fact org.2 = 20000
+    fact org.3 = 30000
     fact dropj = -1
     // where on it: -1 before it, 1 after it (its outer quarters), 0 in its place
     fact dside = 0
@@ -178,10 +210,20 @@ scene Session {
 
     // each monitor's left edge on the desktop, the monitors side by side in
     // their order: a carried window is drawn on all of them, shifted by this
+    // ...or where each really sits, once the logic has asked the compositor:
+    // shifted down by it too, a window across an edge where the monitors'
+    // tops do not line up stays in one piece
+    fact mpos.ok = false
+    repeat s in 0..4 {
+        fact mpos.x.$s = 0
+        fact mpos.y.$s = 0
+    }
     let mxa = 0
     let mx[4]
+    let my[4]
     repeat s in 0..4 {
-        mx[s] = mxa
+        mx[s] = if(mpos.ok, mpos.x.$s, mxa)
+        my[s] = if(mpos.ok, mpos.y.$s, 0)
         mxa += W[s]
     }
 
@@ -222,7 +264,7 @@ scene Session {
     // the wallpaper: two slots crossfading, already graded to the palette by
     // the logic, at the file's own pixels and cut to cover each monitor. It
     // drifts with the camera (parallax), and slides with the shell's drawer.
-    permissions { run: "pleamar-wallpaper", "sh" }
+    permissions { run: "sh", "ls", "test", "magick", "lutgen", "rm", "tee", "cat" }
     text wall.a = ""
     text wall.b = ""
     // A path the shell asks for (`text wall.req ...`, then `emit wall_set`).
@@ -234,13 +276,7 @@ scene Session {
     event wall_set ->
     image wall.ia = from wall.a, 0, 0
     image wall.ib = from wall.b, 0, 0
-    // While the next one is fetched and graded, what is up breathes.
-    fact wall.busy = false
-    fact wall.ph = 0
-    every 700ms while wall.busy { wall.ph = 1 - wall.ph }
-    prop wall.pulse = 0 ~700ms
-    follow wall.pulse = if(wall.busy, wall.ph, 0)
-    let wall.lit = 1 - 0.35 * wall.pulse
+    shader tilt = file "tilt.wgsl"
     // The drawer's push, a quarter of its room, on the windows' spring, so the
     // wallpaper leans with it rather than sliding by its width. One spring per
     // monitor: a spring followed from every monitor's copy is one value they
@@ -253,11 +289,21 @@ scene Session {
     // on the windows' spring so the two move as one. While the overview is in
     // or on its way, the spring is kept where the camera goes, unseen: what is
     // shown then is that place, faded by the zoom (below).
+    // A tiled window that closes fades out before the rest close the gap:
+    // they, the camera and the parallax hold where they are until the fade
+    // is done (its 250ms spring).
+    fact clh = false
+    fact clt = 0
+    on still clt for 250ms while clh { clh = false }
     repeat s in 0..4 {
         prop wd.x.$s = 0 ~niri
         prop wd.y.$s = 0 ~niri
-        on change cam.tx.$s { wd.x.$s: -cam.tx.$s * para }
-        on change cam.ty.$s { wd.y.$s: -cam.ty.$s * para }
+        on change cam.tx.$s while not clh { wd.x.$s: -cam.tx.$s * para }
+        on change cam.ty.$s while not clh { wd.y.$s: -cam.ty.$s * para }
+        on change clh while not clh {
+            wd.x.$s: -cam.tx.$s * para
+            wd.y.$s: -cam.ty.$s * para
+        }
         on change cam.tx.$s while ovp.$s > 0.001 { wd.x.$s: -cam.tx.$s * para ~0ms }
         on change cam.ty.$s while ovp.$s > 0.001 { wd.y.$s: -cam.ty.$s * para ~0ms }
         on change ovp.$s while ovp.$s > 0.001 {
@@ -282,8 +328,16 @@ scene Session {
     let wv.dy = if(ovp > 0.001, -cam.ty[me] * para, wd.y[me])
     let wv.ox = wv.dx / sqrt(1 + (wv.dx / wv.nx) * (wv.dx / wv.nx)) * (1 - ovp) - wv.mx
     let wv.oy = wv.dy / sqrt(1 + (wv.dy / wv.ny) * (wv.dy / wv.ny)) * (1 - ovp) - wv.my
-    image wall.ia { at: wv.ox, wv.oy; size: wv.w, wv.h; fit: cover; opacity: (1 - wall.mix) * wall.lit }
-    image wall.ib { at: wv.ox, wv.oy; size: wv.w, wv.h; fit: cover; opacity: wall.mix * wall.lit }
+    // Tilt-shift: a sharp ellipse; values: its half height, the fall-off past
+    // it, the full blur, its half width (of the picture), and its centre's
+    // shift. The focus runs ahead of the parallax, further than the picture
+    // moves, so it reads as depth.
+    let tilt.lead = 1.5
+    group {
+        shader: tilt, 0.15, 0.3, 10, 0.25, tilt.lead * (wv.ox + wv.mx) / wv.w, tilt.lead * (wv.oy + wv.my) / wv.h
+        image wall.ia { at: wv.ox, wv.oy; size: wv.w, wv.h; fit: cover; opacity: 1 - wall.mix }
+        image wall.ib { at: wv.ox, wv.oy; size: wv.w, wv.h; fit: cover; opacity: wall.mix }
+    }
 
     // what the shell is told: the workspace of each monitor, which monitor
     // has the keyboard, whether the overview is open
@@ -403,8 +457,9 @@ scene Session {
             let ovt = ov[sc]
             let pn.x = if(tiled and not win.$i.fullscreen and not ovt, cam.tx[sc], 0)
             let pn.y = if(tiled and not win.$i.fullscreen and not ovt, cam.ty[sc], 0)
-            let tx = AxT + gap + avs / 2 + lx.$i - pn.x
-            let ty = Ays + Has / 2 + ly.$i - pn.y
+            // on whole pixels, so the program's buffer is not resampled
+            let tx = round(AxT + gap + avs / 2 + lx.$i - pn.x)
+            let ty = round(Ays + Has / 2 + ly.$i - pn.y)
             // The overview's zoom where it is going: around the middle of what
             // the drawer leaves, centred on the monitor. Taken from where
             // everything ends, never from the springs on their way, so each
@@ -424,7 +479,7 @@ scene Session {
             // Once moved or stretched (fw set), a dialog keeps where it was put
             // too; a window rule's float is one.
             let fgw = if(fw.$i >= 1, max(fw.$i, 200), if(win.$i.dialog, dw, 200))
-            let fgh = if(fw.$i >= 1, max(fh.$i, 120), if(win.$i.dialog, dh + tbar, 120))
+            let fgh = if(fw.$i >= 1, max(fh.$i, 120), if(win.$i.dialog, dh + tbar * win.$i.framed, 120))
             let fgx = if(fw.$i < 1, AxT + (Was - fgw) / 2, fx.$i)
             let fgy = if(fw.$i < 1, (Hs - fgh) / 2, fy.$i)
             let full = win.$i.fullscreen
@@ -433,6 +488,7 @@ scene Session {
             // where the pointer's monitor sits from this window's, for a
             // carried window: it is kept in its own monitor's coordinates
             let dmx = mx[mon] - mx[sc]
+            let dmy = my[mon] - my[sc]
             // Maximized. Tiled, it stays in its row: the whole width and the
             // row the whole height, however it got there; its title bar's
             // button sets that, or two thirds of each again. Floating, the
@@ -446,12 +502,12 @@ scene Session {
             let gox = g.fx * goal.w
             let goy = if(g.bar > 0.5, g.oy, g.fy * goal.h)
             let goal.x = if(full, 0, if(mxd, AxT + gap, if(flo, fgx, if(lifted, g.px + dmx - gox, tx))))
-            let goal.y = if(full, 0, if(mxd, Ays, if(flo, fgy, if(lifted, g.py - goy, ty))))
+            let goal.y = if(full, 0, if(mxd, Ays, if(flo, fgy, if(lifted, g.py + dmy - goy, ty))))
             // ...and where that is seen, zoomed: what its springs go to.
             // Carried, it is under the pointer by where it was held, at the zoom.
             let carried = dmode == 1 and dslot == i and not full
             let sg.x = if(carried, g.px + dmx - gox * zw, mt.x + mv.x + zw * (goal.x - mt.x))
-            let sg.y = if(carried, g.py - goy * zw, mt.y + zw * (goal.y - mt.y))
+            let sg.y = if(carried, g.py + dmy - goy * zw, mt.y + zw * (goal.y - mt.y))
             let sg.w = zw * goal.w
             let sg.h = zw * goal.h
 
@@ -460,10 +516,17 @@ scene Session {
             fact last.y.$i = 0
             fact last.w.$i = 0
             fact last.h.$i = 0
-            follow x.$i = if(win.$i.open, sg.x, last.x.$i)
-            follow y.$i = if(win.$i.open, sg.y, last.y.$i)
-            follow w.$i = if(win.$i.open, sg.w, last.w.$i)
-            follow h.$i = if(win.$i.open, sg.h, last.h.$i)
+            // Held while one closes (clh): where it was then.
+            fact hd.$i = false
+            fact hx.$i = 0
+            fact hy.$i = 0
+            fact hw.$i = 0
+            fact hh.$i = 0
+            let frz = clh and hd.$i and not carried
+            follow x.$i = if(win.$i.open, if(frz, hx.$i, sg.x), last.x.$i)
+            follow y.$i = if(win.$i.open, if(frz, hy.$i, sg.y), last.y.$i)
+            follow w.$i = if(win.$i.open, if(frz, hw.$i, sg.w), last.w.$i)
+            follow h.$i = if(win.$i.open, if(frz, hh.$i, sg.h), last.h.$i)
 
             // Sent to another monitor by the keyboard: its springs are put where
             // it is now in that monitor's coordinates,
@@ -473,6 +536,7 @@ scene Session {
             // The keyboard goes with it.
             on change win.$i.screen while ksend == i and win.$i.open {
                 x.$i: x.$i + mx[psc.$i] - mx[sc] ~0ms
+                y.$i: y.$i + my[psc.$i] - my[sc] ~0ms
                 xing.$i = 1
                 kmon = sc
                 focus win.$i
@@ -517,6 +581,7 @@ scene Session {
                 w.$i: sg.w ~0ms
                 h.$i: sg.h ~0ms
                 seen.$i: 0 ~0ms
+                hd.$i = false
                 stamp.$i = stamp.top + 1
                 stamp.top = stamp.top + 1
                 // At the end of the row of the window that had the keyboard
@@ -545,6 +610,10 @@ scene Session {
                 y.$i: y.$i ~0ms
                 w.$i: w.$i ~0ms
                 h.$i: h.$i ~0ms
+            }
+            on change win.$i.open while not win.$i.open and win.$i.place >= 0 and seen.$i > 0.5 {
+                clh = true
+                clt = clt + 1
             }
             on change win.$i.focused while win.$i.focused {
                 stamp.$i = stamp.top + 1
@@ -606,8 +675,9 @@ scene Session {
             let zc = if(ovp[sc] > 0.001, clamp(w.$i / max(goal.w, 1), 0.05, 1), 1)
             let r = if(full, 0, radius * max(zc, 0.2))
             // its title bar, zoomed with it; the title over it at the view's own
-            // size, its band growing over the program in the overview to fit it
-            let bar = if(full, 0, tbar)
+            // size, its band growing over the program in the overview to fit it.
+            // None for a program that draws its own.
+            let bar = if(full or not win.$i.framed, 0, tbar)
             let bh = bar * zc
             let tov = ovp[sc]
             let th = bh + (30 - bh) * tov * (1 - full)
@@ -619,10 +689,12 @@ scene Session {
             // which stays under the pointer. Its buttons go with it.
             let wshow = if((dmode == 1 and dslot == i) or xing.$i > 0.5, true, here) and seen.$i > 0.005
             let wmx = if((dmode == 1 and dslot == i) or xing.$i > 0.5, mx[sc] - mx[me], 0)
+            let wmy = if((dmode == 1 and dslot == i) or xing.$i > 0.5, my[sc] - my[me], 0)
             let wpx = x + w * if(g.last == i, g.fx, 0.5)
             let wpy = y + if(g.last == i, if(g.bar > 0.5, min(g.oy * zw, h), g.fy * h), h / 2)
             // how it stacks, its handles with it
-            let wz = if(full, 100000, if(win.$i.dialog, 60000, if(lifted or xing.$i > 0.5, 90000, if(mxd, 50000, if(win.$i.floating, 1000 + stamp.$i, 0)))))
+            // A closed one fading out goes under the rest.
+            let wz = if(not win.$i.open, -1, if(full, 100000, if(win.$i.dialog, 60000, if(lifted or xing.$i > 0.5, 90000, if(mxd, 50000, if(win.$i.floating, 1000 + stamp.$i, 0))))))
             // how it stacks while the pointer is over it, title bar included,
             // to tell the top one
             fact under.$i = false
@@ -631,12 +703,13 @@ scene Session {
             group {
                 z: wz
                 show: wshow
-                move: wmx, 0
+                move: wmx, wmy
                 opacity: seen.$i
                 pivot: wpx, wpy
                 scale: 1 - 0.05 * liftp.$i
                 // Blur what shows through a translucent window, and a soft
-                // shadow cut out around it.
+                // shadow cut out around it; not under one that asks for glass
+                // of its own, which would frost this again.
                 body {
                     color: base
                     glass: 80%
@@ -651,7 +724,8 @@ scene Session {
                     milk: 20%
                     mirror: 0
                     highlight: 0
-                    shadow: 0, 5, 30, 26% * (1 - full), crust
+                    shadow: 0, 4, 48, 16% * (1 - full), crust
+                    // show: not win.$i.glass
                     box { from: x, y; size: w, h; corner: r }
                 }
                 group {
@@ -760,54 +834,90 @@ scene Session {
             let sizing = ((keys.super < 0.5 and here and not ovt) or (dmode == 3 and dslot == i)) and win.$i.open and not full
             // Without Super, its title bar alone carries it.
             let bargrab = keys.super < 0.5 and here and win.$i.open and not full and not ovt
+            // A program that draws its own title bar or edges asks for them here.
+            let held = win.$i.held > 0.5 and win.$i.open and not full
             // In a group of the window's own z, so the handles of one on top
             // take the press, not those of a tiled one under it.
             group {
                 z: wz
                 // the overview's pick under the handles: with Super held, a press carries
                 zone box pickw.$i { from: x, y; size: w, h; cursor: pointer; active: ov and here and win.$i.open }
-                zone box grab.$i { from: x, y; size: w, if(handle, h, bh); cursor: if(dmode == 1 and dslot == i, grabbing, grab); active: handle or bargrab }
+                zone box grab.$i { from: x, y; size: w, if(handle or held, h, bh); cursor: if(dmode == 1 and dslot == i, grabbing, grab); active: handle or bargrab or held; handle: i }
                 // the edges, then the corners over them: left, right, top,
                 // bottom, top left, top right, bottom left, bottom right
-                repeat e in 0..8 {
-                    let ex = pick(e, -1, 1, 0, 0, -1, 1, -1, 1)
-                    let ey = pick(e, 0, 0, -1, 1, -1, -1, 1, 1)
-                    zone box rsz.$e.$i { from: if(ex > 0, ex1, ex0), if(ey > 0, ey1, ey0); size: if(ex == 0, w + edge, edge), if(ey == 0, h + edge, edge); cursor: pick(e, ew_resize, ew_resize, ns_resize, ns_resize, nwse_resize, nesw_resize, nesw_resize, nwse_resize); active: sizing }
-                }
+                zone box rsz.0.$i { from: ex0, ey0; size: edge, h + edge; cursor: ew_resize; active: sizing or held; handle: i, left }
+                zone box rsz.1.$i { from: ex1, ey0; size: edge, h + edge; cursor: ew_resize; active: sizing or held; handle: i, right }
+                zone box rsz.2.$i { from: ex0, ey0; size: w + edge, edge; cursor: ns_resize; active: sizing or held; handle: i, top }
+                zone box rsz.3.$i { from: ex0, ey1; size: w + edge, edge; cursor: ns_resize; active: sizing or held; handle: i, bottom }
+                zone box rsz.4.$i { from: ex0, ey0; size: edge, edge; cursor: nwse_resize; active: sizing or held; handle: i, top_left }
+                zone box rsz.5.$i { from: ex1, ey0; size: edge, edge; cursor: nesw_resize; active: sizing or held; handle: i, top_right }
+                zone box rsz.6.$i { from: ex0, ey1; size: edge, edge; cursor: nesw_resize; active: sizing or held; handle: i, bottom_left }
+                zone box rsz.7.$i { from: ex1, ey1; size: edge, edge; cursor: nwse_resize; active: sizing or held; handle: i, bottom_right }
                 zone box wmax.$i { at: x + w - 40, y + th / 2; size: 20, th; cursor: pointer; label: "Maximize"; active: btns and here and dmode < 0.5 and not win.$i.dialog }
                 zone box wclose.$i { at: x + w - 18, y + th / 2; size: 20, th; cursor: pointer; label: "Close"; active: btns and here and dmode < 0.5 }
-                // maximize and close, at the title bar's right end, moving and
-                // shrinking with the window
+                // maximize (restore once maximized) and close, at the title
+                // bar's right end, moving and shrinking with the window
+                let bs = clamp(th - 8, 0, 20)
+                let bi = clamp(th - 14, 0, 16)
                 group {
                     show: btns and wshow
-                    move: wmx, 0
-                    opacity: seen.$i
+                    move: wmx, wmy
+                    opacity: seen.$i * mix(0.6, 1, max(litp.$i, max(wmax.$i.hover, wclose.$i.hover)))
                     pivot: wpx, wpy
                     scale: 1 - 0.05 * liftp.$i
-                    box { at: x + w - 40, y + th / 2; size: 12, 12; corner: 6; color: mix(surface2, green, max(wmax.$i.hover, maxed)); opacity: if(win.$i.dialog, 0, 1) }
-                    box { at: x + w - 18, y + th / 2; size: 12, 12; corner: 6; color: mix(surface2, red, wclose.$i.hover) }
+                    group {
+                        show: not win.$i.dialog
+                        box { at: x + w - 40, y + th / 2; size: bs, bs; corner: bs / 2; color: surface1; opacity: wmax.$i.hover }
+                        image btn.max { at: x + w - 40 - bi / 2, y + (th - bi) / 2; size: bi, bi; tint: text; opacity: if(maxed, 0, 1) }
+                        image btn.restore { at: x + w - 40 - bi / 2, y + (th - bi) / 2; size: bi, bi; tint: text; opacity: if(maxed, 1, 0) }
+                    }
+                    box { at: x + w - 18, y + th / 2; size: bs, bs; corner: bs / 2; color: red; opacity: wclose.$i.hover }
+                    image btn.close { at: x + w - 18 - bi / 2, y + (th - bi) / 2; size: bi, bi; tint: text }
                 }
             }
-            on press wmax.$i {
+            // Maximized, or back to the size it had before: a floating one keeps
+            // its own, a tiled one its width and its row's height, saved here.
+            fact pw.$i = 0.6667
+            fact ph.$i = 0.6667
+            on maxi(v) while v == i {
                 focus win.$i
                 pan = 1
             }
-            on press wmax.$i while flo { toggle big.$i }
+            on maxi(v) while v == i and flo { toggle big.$i }
             // (decided in the guards, which read the frame as it began: the
             // sizes change as these run)
-            on press wmax.$i while tiled and not maxed {
+            on maxi(v) while v == i and tiled and not maxed {
+                pw.$i = if(wp.$i > 0.99 and r.hp.$i > 0.99, 0.6667, wp.$i)
+                ph.$i = if(wp.$i > 0.99 and r.hp.$i > 0.99, 0.6667, r.hp.$i)
                 wp.$i = 1
                 repeat j in 0..win.max {
                     hp.$j = if(win.$j.place >= 0 and win.$j.screen == sc and win.$j.pool == win.$i.pool and rpos.$j == rpos.$i, 1, hp.$j)
                 }
             }
-            on press wmax.$i while tiled and maxed {
-                wp.$i = 0.6667
+            on maxi(v) while v == i and tiled and maxed {
+                wp.$i = pw.$i
                 repeat j in 0..win.max {
-                    hp.$j = if(win.$j.place >= 0 and win.$j.screen == sc and win.$j.pool == win.$i.pool and rpos.$j == rpos.$i, 0.6667, hp.$j)
+                    hp.$j = if(win.$j.place >= 0 and win.$j.screen == sc and win.$j.pool == win.$i.pool and rpos.$j == rpos.$i, ph.$i, hp.$j)
                 }
             }
-            on press wmax.$i while tiled { auto[sc] = false }
+            on maxi(v) while v == i and tiled { auto[sc] = false }
+            on press wmax.$i { emit maxi(i) }
+            // Its own maximize button, as that one.
+            on window_maximize(v) while v == i and here { emit maxi(i) }
+            // Super+f: maximized, then fullscreen, then back to its size.
+            on cycle_max while win.focus == i and not full and not maxed { emit maxi(i) }
+            on cycle_max while win.focus == i and not full and maxed { fullscreen win.$i }
+            on cycle_max while win.focus == i and full { fullscreen win.$i }
+            on cycle_max while win.focus == i and full and maxed { emit maxi(i) }
+            // Its own minimize button floats it, 800 by 500 in the middle, and back.
+            on window_minimize(v) while v == i and here and not win.$i.floating {
+                fw.$i = 800
+                fh.$i = 500
+                fx.$i = Axs + (Was - 800) / 2
+                fy.$i = (Hs - 500) / 2
+                float win.$i
+            }
+            on window_minimize(v) while v == i and here and win.$i.floating { tile win.$i }
             on press wclose.$i { close win(i) }
             on change win.$i.open while not win.$i.open { big.$i = false }
             // Carried by its title bar, or anywhere with Super held: the edge
@@ -832,16 +942,22 @@ scene Session {
             // monitor the pointer is over, and given to it when let go.
             // A maximized floating window carried away is put back to its own size.
             on drag grab.$i while dmode == 1 and dslot == i and big.$i and flo { big.$i = false }
-            on drag grab.$i while dmode == 1 and dslot == i {
-                g.px = pointer.x
-                g.py = pointer.y + org[g.hs] - org[mon]
-            }
-            on drag grab.$i while dmode == 1 and dslot == i and flo {
-                // (where it is seen, taken back out of the zoom)
-                fx.$i = mt.x + (pointer.x + dmx - gox * zw - mt.x - mv.x) / zw
-                fy.$i = mt.y + (pointer.y + org[g.hs] - org[mon] - goy * zw - mt.y) / zw
-                fw.$i = fgw
-                fh.$i = fgh
+            // The monitor is the one whose copy holds the pointer, not mon:
+            // the desk's enter lands after this, and the first move onto
+            // another monitor was read against the one it left.
+            repeat s in 0..4 {
+                on drag grab.$i while dmode == 1 and dslot == i and s < screens.count and (pointer.y + org[g.hs] - org.$s) >= 0 and (pointer.y + org[g.hs] - org.$s) < H.$s {
+                    mon = s
+                    g.px = pointer.x
+                    g.py = pointer.y + org[g.hs] - org.$s
+                }
+                on drag grab.$i while dmode == 1 and dslot == i and flo and s < screens.count and (pointer.y + org[g.hs] - org.$s) >= 0 and (pointer.y + org[g.hs] - org.$s) < H.$s {
+                    // (where it is seen, taken back out of the zoom)
+                    fx.$i = mt.x + (pointer.x + mx[s] - mx[sc] - gox * zw - mt.x - mv.x) / zw
+                    fy.$i = mt.y + (pointer.y + org[g.hs] - org.$s + my[s] - my[sc] - goy * zw - mt.y) / zw
+                    fw.$i = fgw
+                    fh.$i = fgh
+                }
             }
             // Carried over another tiled window: that one is marked, and on
             // letting go the two trade places, row heights with them. Over its outer
@@ -875,8 +991,10 @@ scene Session {
             // that monitor's coordinates at once, so it does not glide across.
             on release grab.$i while dmode == 1 and dslot == i and mon != sc {
                 fx.$i = fx.$i - dmx
+                fy.$i = fy.$i - dmy
                 // (from this monitor's coordinates to that one's)
                 x.$i: x.$i - dmx ~0ms
+                y.$i: y.$i - dmy ~0ms
                 send win(i) to mon
             }
             on release grab.$i while dslot == i {
@@ -935,7 +1053,13 @@ scene Session {
     // actions, bound in keys.conf
     event close
     event fullscreen
+    event cycle_max
+    // a window to maximize, or put back, by its slot
+    event maxi
     event toggle_float
+    // A program's own minimize and maximize buttons, with its slot.
+    event window_minimize
+    event window_maximize
     event focus_left
     event focus_right
     event focus_up
@@ -974,6 +1098,15 @@ scene Session {
     event workspace_on
     on workspace_on(c) { workspace floor(c / 4) on mod(c, 4) }
     on still nwt for 80ms while nw >= 0 { emit place_new }
+    on change clt {
+        repeat j in 0..win.max {
+            hd.$j = win.$j.open
+            hx.$j = x.$j
+            hy.$j = y.$j
+            hw.$j = w.$j
+            hh.$j = h.$j
+        }
+    }
 
     // An agent's cursors (`agent on` in session.conf): pleamar-wm says where
     // each is, on which monitor, and when it presses; they are drawn here, on

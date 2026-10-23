@@ -202,8 +202,8 @@ part Rows {
         uh[i] = Ha[sc] + gap
         av[i] = avail[sc]
         ha[i] = Ha[sc]
-        tw[i] = max(uw[i] * wp[i] - gap, 40)
-        th[i] = max(uh[i] * r.hp[i] - gap, 40)
+        tw[i] = round(max(uw[i] * wp[i] - gap, 40))
+        th[i] = round(max(uh[i] * r.hp[i] - gap, 40))
         rw[i] = uw[i] * r.w[i] - gap
         tht[i] = uh[i] * m.ht[i] - gap
         lx[i] = uw[i] * c.before[i] - rw[i] / 2

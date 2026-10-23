@@ -12,76 +12,6 @@ let
   desk = cmd: "pleamar-wm --say desk \"${cmd}\"";
   wm = cmd: "pleamar-wm --say wm \"${cmd}\"";
 
-  # Graded copies of the wallpapers: at their own size and shape, run through the
-  # carburetor CLUT once, when they are first shown, instead of every frame.
-  clut = pkgs.runCommand "carburetor-clut" { nativeBuildInputs = [ pkgs.lutgen ]; } ''
-    mkdir -p "$out"
-    lutgen generate -p carburetor -P -L 0.3 -r 10 -l 8 -o "$out/clut.png"
-  '';
-  fetchWallpaper = pkgs.writeShellApplication {
-    name = "fetch-wallpaper";
-    # The single quoted $ are jaq variables, not shell ones
-    excludeShellChecks = [ "SC2016" ];
-    runtimeInputs = [
-      pkgs.curl
-      pkgs.jaq
-      pkgs.coreutils
-    ];
-    text = builtins.readFile ./quickshell/scripts/fetch-wallpaper.sh;
-  };
-  wallpaper = pkgs.writeShellApplication {
-    name = "pleamar-wallpaper";
-    runtimeInputs = [
-      fetchWallpaper
-      pkgs.lutgen
-      pkgs.imagemagick
-      pkgs.coreutils
-    ];
-    text = ''
-      state="''${XDG_STATE_HOME:-$HOME/.local/state}/pleamar/wallpaper"
-      # Apart from the old 16:9 crops, which would otherwise be reused
-      cache="''${XDG_CACHE_HOME:-$HOME/.cache}/pleamar/wallpaper/native"
-      mkdir -p "$state" "$cache"
-
-      # Prints the graded copy of an image, making it the first time.
-      grade() {
-        out="$cache/$(basename "''${1%.*}").jpg"
-        if [ ! -s "$out" ]; then
-          tmp=$(mktemp --suffix=.png -p "$cache")
-          magick "$1" -auto-orient "$tmp" >&2
-          lutgen apply --hald-clut ${clut}/clut.png "$tmp" -o "$out" >&2
-          rm -f "$tmp"
-        fi
-        printf '%s\n' "$out"
-      }
-
-      case "''${1:-}" in
-        current)
-          cur=$(cat "$state/current" 2>/dev/null || true)
-          if [ -n "$cur" ] && [ -r "$cur" ]; then
-            grade "$cur"
-          else
-            exec "$0" next
-          fi
-          ;;
-        next)
-          path=$(fetch-wallpaper)
-          printf '%s\n' "$path" > "$state/current"
-          grade "$path"
-          ;;
-        set)
-          [ -r "''${2:-}" ] || exit 1
-          printf '%s\n' "$2" > "$state/current"
-          grade "$2"
-          ;;
-        *)
-          echo "pleamar-wallpaper current|next|set PATH" >&2
-          exit 1
-          ;;
-      esac
-    '';
-  };
-
   # The focused window, to the clipboard, through pleamar-wm's hyprctl answers.
   shotWindow = pkgs.writeShellApplication {
     name = "pleamar-shot-window";
@@ -148,7 +78,7 @@ let
     (bind "Shell" "Super+w" "Next wallpaper" "launch ${wm "emit wall_next"}")
     (bind "Windows" "Super+Shift+q" "Close window" "close")
     (bind "Windows" "Super+Shift+space" "Toggle floating" "toggle_float")
-    (bind "Windows" "Super+f" "Fullscreen" "fullscreen")
+    (bind "Windows" "Super+f" "Maximize, fullscreen, restore" "cycle_max")
     (bind "Windows" "Super+r" "Cycle window width" "cycle_width")
     (bind "Windows" "Super+Shift+r" "Cycle row height" "cycle_height")
     (bind "Focus" "Super+Left" "Focus window or monitor left" "focus_left")
@@ -186,8 +116,8 @@ let
 
   sessionConf = ''
     # Laptop panel on the left, external monitor to its right. The laptop
-    # (1067 tall) sits low so the external's bottom (1440) is 64 below its own.
-    monitor eDP-1 2560x1600@240 at 0,309 scale 1.5
+    # (1067 tall) sits low so the external's bottom (1440) is 123 below its own.
+    monitor eDP-1 2560x1600@240 at 0,250 scale 1.5
     monitor DP-2 preferred at 1707,0
 
     # pleamar-wm agent: a second pointer and keyboard for AI agents
@@ -203,6 +133,9 @@ let
     blur menus on
     # Behind the shell's glass (lens off): wide, grained, saturated like the wm's
     blur passes 5 offset 3 noise 0.03 saturation 1.4
+    # Every window's menus on glass, not only the ones that ask (the
+    # session's `default` material, as all glass is)
+    # window app=* menus=default
 
     # rio --app-id float
     window app=float float size 800x500
@@ -252,7 +185,9 @@ in
 {
   home.packages = [
     pkgs.libinput
-    wallpaper
+    # the wm's logic grades wallpapers with these
+    pkgs.imagemagick
+    pkgs.lutgen
     shotWindow
     shotRegion
     pkgs.grim
@@ -272,6 +207,16 @@ in
       export XCURSOR_SIZE=${toString config.home.pointerCursor.size}
       export NIXOS_OZONE_WL=1
     '';
+  };
+
+  # This desktop from a browser on 127.0.0.1:8765, started from the control
+  # centre's tile; out now: Super+Shift+Escape
+  systemd.user.services.pleamar-remote = {
+    Unit.Description = "pleamar-wm remote desktop";
+    Service = {
+      ExecStart = "${lib.getExe pkgs.pleamar-wm} remote";
+      Restart = "on-failure";
+    };
   };
 
   # Teaches Claude Code to write and check pleamar scenes. pleamar rewrites

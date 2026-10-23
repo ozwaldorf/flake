@@ -1,0 +1,30 @@
+// The control centre's Displays card data, at the scene level (see settings-data.plm).
+part PrefsData {
+    // the monitors as the compositor places them, in desktop units, and the
+    // box the map shows: all of them with room around to drag into
+    model pfouts max 4 { name: text; x: number; y: number; w: number; h: number }
+    fact pf.minx = 0
+    fact pf.miny = 0
+    fact pf.spanw = 1
+    fact pf.spanh = 1
+    // the widest monitor's shape, which the map takes
+    fact pf.aw = 16
+    fact pf.ah = 9
+    // the one being dragged (-1, none): where it was, where the pointer
+    // takes it, and where the logic snaps that to
+    fact pf.drag = -1
+    fact pf.x0 = 0
+    fact pf.y0 = 0
+    fact pf.nx = 0
+    fact pf.ny = 0
+    fact pf.sx = 0
+    fact pf.sy = 0
+    // what went wrong last, if anything
+    text pf.msg = ""
+    // the Displays card out, and its tile's status: the monitors by name
+    fact pf.open = false
+    text pf.status = ""
+    event pf.pick
+    event pf_drop ->
+    event pf_reset ->
+}

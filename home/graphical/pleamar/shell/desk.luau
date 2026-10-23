@@ -46,7 +46,7 @@ function S.onNotifications(fn)
     table.insert(S.notes, fn)
 end
 
-for _, name in ipairs({ "icons", "meters", "settings", "info", "apps", "clipboard", "keys", "toasts", "recorder", "keyshow" }) do
+for _, name in ipairs({ "icons", "meters", "settings", "info", "apps", "clipboard", "keys", "prefs", "toasts", "recorder", "keyshow", "remote" }) do
     local ok, mod = pcall(require, "logic/" .. name)
     if not ok then
         log("module " .. name .. ": " .. tostring(mod))

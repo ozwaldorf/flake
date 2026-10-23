@@ -48,11 +48,11 @@
       flake = false;
     };
     pleamar = {
-      url = "git+file:///home/oz/Code/pkg/pleamar?ref=layout-primitives-cursor-expressions";
+      url = "git+file:///home/oz/Code/pkg/pleamar?ref=agent-a11y";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     pleamar-wm = {
-      url = "github:ozwaldorf/pleamar-wm/layout-primitives-cursor-transition-fix";
+      url = "git+file:///home/oz/Code/pkg/pleamar-wm?ref=agent-a11y";
       inputs.nixpkgs.follows = "nixpkgs";
       # Built against pleamar as a path dependency
       inputs.pleamar.follows = "pleamar";

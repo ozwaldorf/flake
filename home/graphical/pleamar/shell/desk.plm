@@ -22,6 +22,8 @@ scene Desk {
     let pagew = 400
     let inset = 16
     let drawerw = pagew + 2 * inset
+    // the control centre's Displays card, wider than the drawer (prefs-card.plm)
+    let prefw = 720
     let tabsh = 44
     // A page's room: from its top-left corner (pg.x, pg.y), pagew wide.
     let pg.x = rail + inset
@@ -49,6 +51,8 @@ scene Desk {
     text ic.run = ""
     text ic.gear = ""
     text ic.battery = ""
+    text ic.display = ""
+    text ic.remote = ""
 
     // what the window manager reports, per monitor
     repeat s in 0..4 {
@@ -238,6 +242,7 @@ scene Desk {
     // facts the logic talks to (declared inside the per-monitor rail they
     // would be one per copy, out of the logic's reach)
     include "pages/settings-data.plm"
+    include "pages/prefs-data.plm"
     include "pages/search.plm"
     include "pages/cards.plm"
     include "pages/info-decl.plm"
@@ -278,26 +283,47 @@ scene Desk {
             box { from: rx, 0; size: railw, Hs; color: base }
             // (the drawer's outer edge is at push on the left side, at 0 on the
             // right; the rail's inner edge at railw, or at rx)
+            // Each shadow is two ramps, a short dense one and a long faint
+            // one, so it falls off fast at the edge and then fades out
+            // softly instead of ending on a line.
             let rcx = if(right, 0, push)
-            let rcd = if(right, 18, -18)
+            let rcd = if(right, 1, -1)
+            let rnear = 12
+            let rfar = 48
+            let rsoft = 0.7
             let dopen = clamp((push - railw) / 40, 0, 1)
             // shut: the rail's shadow on the wallpaper
             group {
-                mask: rcx, 0 to rcx - rcd, 0
-                opacity: recess * (1 - dopen)
-                box { from: min(rcx, rcx - rcd), 0; size: 18, Hs; color: crust }
+                mask: rcx, 0 to rcx - rcd * rnear, 0
+                opacity: 0.5 * rsoft * recess * (1 - dopen)
+                box { from: min(rcx, rcx - rcd * rnear), 0; size: rnear, Hs; color: crust }
+            }
+            group {
+                mask: rcx, 0 to rcx - rcd * rfar, 0
+                opacity: 0.5 * rsoft * recess * (1 - dopen)
+                box { from: min(rcx, rcx - rcd * rfar), 0; size: rfar, Hs; color: crust }
             }
             // open: the wallpaper's edge, and the rail, over the shelf
             group {
-                mask: rcx, 0 to rcx + rcd, 0
-                opacity: recess * dopen
-                box { from: min(rcx, rcx + rcd), 0; size: 18, Hs; color: crust }
+                mask: rcx, 0 to rcx + rcd * rnear, 0
+                opacity: 0.5 * rsoft * recess * dopen
+                box { from: min(rcx, rcx + rcd * rnear), 0; size: rnear, Hs; color: crust }
+            }
+            group {
+                mask: rcx, 0 to rcx + rcd * rfar, 0
+                opacity: 0.5 * rsoft * recess * dopen
+                box { from: min(rcx, rcx + rcd * rfar), 0; size: rfar, Hs; color: crust }
             }
             let rix = if(right, rx, railw)
             group {
-                mask: rix, 0 to rix - rcd, 0
-                opacity: recess * dopen
-                box { from: min(rix, rix - rcd), 0; size: 18, Hs; color: crust }
+                mask: rix, 0 to rix - rcd * rnear, 0
+                opacity: 0.5 * rsoft * recess * dopen
+                box { from: min(rix, rix - rcd * rnear), 0; size: rnear, Hs; color: crust }
+            }
+            group {
+                mask: rix, 0 to rix - rcd * rfar, 0
+                opacity: 0.5 * rsoft * recess * dopen
+                box { from: min(rix, rix - rcd * rfar), 0; size: rfar, Hs; color: crust }
             }
             // A pixel in the rail's top corner opens the control centre, as a hot
             // corner.
@@ -449,6 +475,9 @@ scene Desk {
                     }
                 }
             }
+
+            // over the desktop beside the drawer, past its clip
+            include "pages/prefs-card.plm"
         }
     }
 
@@ -478,15 +507,6 @@ scene Desk {
             color: crust
             glass: 80%
             lens: false
-            tint: 0
-            vivid: 140%
-            smoke: 40%
-            milk: 20%
-            refraction: 0
-            dispersion: 0
-            dome: 60%
-            ripple: 0
-            frost: 90%
             opacity: veilp
             box { from: 0, 0; size: vs.W, vs.H }
         }

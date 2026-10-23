@@ -1,0 +1,99 @@
+// The control centre's Displays card: how the monitors sit beside each
+// other, on a map to drag them on. Wider than the page (prefw), so drawn
+// outside the drawer's clip, over the desktop beside it, from the tile's
+// corner towards the middle of the monitor. Included past the pages, where
+// the rail and drawer start (rox). State in prefs-data.plm, logic in
+// logic/prefs.luau.
+part PrefsCard {
+    // the tile: the left of the input row, under the calendar and the
+    // Wi-Fi row
+    let pf.tw = (pagew - 16) / 3
+    let pf.cx = if(right, inset + pf.tw - prefw, pg.x)
+    let pf.cy = pg.y + 287 - cc.col.scroll
+    let pf.mapx = pf.cx + 14
+    let pf.mapy = pf.cy + 75
+    let pf.mapw = prefw - 28
+    // shaped as the widest monitor; the foot is kept for the instructions
+    let pf.maph = pf.mapw * pf.ah / max(pf.aw, 1)
+    let pf.foot = 40
+    let pf.ch = pf.mapy + pf.maph + 14 - pf.cy
+    // the map's scale and where the desktop's origin lands on it
+    let pf.k = min(pf.mapw / max(pf.spanw, 1), (pf.maph - pf.foot) / max(pf.spanh, 1))
+    let pf.ox = pf.mapx + (pf.mapw - pf.spanw * pf.k) / 2 - pf.minx * pf.k
+    let pf.oy = pf.mapy + (pf.maph - pf.foot - pf.spanh * pf.k) / 2 - pf.miny * pf.k
+
+    group {
+        // on the drawer's monitor, gone as soon as the pages slide away
+        show: here and pf.pop > 0.001
+        opacity: pf.pop * clamp(1 - abs(0 - pager), 0, 1)
+        body {
+            color: base
+            shadow: 0, 6, 24, 35%, crust
+            box { from: pf.cx, pf.cy; size: prefw, pf.ch; corner: 9 }
+        }
+        box { from: pf.cx + 0.5, pf.cy + 0.5; size: prefw - 1, pf.ch - 1; corner: 9; stroke: 1; color: surface1 }
+        zone box pf.card { from: pf.cx, pf.cy; size: prefw, pf.ch; corner: 9 }
+
+        // the tile's head, and a chevron that folds the card back
+        ellipse { at: pf.cx + 31, pf.cy + 31; radius: 17; color: blue }
+        text ic.display { at: pf.cx + 31, pf.cy + 31; anchor: center; size: 15; family: "FiraCode Nerd Font Propo"; color: crust }
+        text "Displays" { at: pf.cx + 62, pf.cy + 24; anchor: left center; size: 11; color: text; family: "Berkeley Mono" }
+        text pf.status { at: pf.cx + 62, pf.cy + 38.5; anchor: left center; size: 10; width: prefw - 140; lines: 1; color: overlay0; family: "Berkeley Mono" }
+        zone box pf.close { at: pf.cx + prefw - 24, pf.cy + 31; size: 32, 32; cursor: pointer; label: "Close" }
+        group {
+            pivot: pf.cx + prefw - 24, pf.cy + 31
+            rotate: -90deg
+            text cc.ic.chev { at: pf.cx + prefw - 24, pf.cy + 31; anchor: center; size: 10; family: "FiraCode Nerd Font"; color: if(pf.close.hover, text, overlay0) }
+        }
+        on press pf.close { pf.open = false }
+        box { from: pf.cx + 12, pf.cy + 62; size: prefw - 24, 1; color: surface1; opacity: 0.6 }
+
+        // the map
+        group {
+            clip box { from: pf.mapx, pf.mapy; size: pf.mapw, pf.maph; corner: 7 }
+            box { from: pf.mapx, pf.mapy; size: pf.mapw, pf.maph; corner: 7; color: crust; opacity: 0.6 }
+            for o in pfouts {
+                group {
+                    let moving = pf.drag == o.index
+                    let bx = pf.ox + if(moving, pf.sx, o.x) * pf.k
+                    let by = pf.oy + if(moving, pf.sy, o.y) * pf.k
+                    let bw = o.w * pf.k
+                    let bh = o.h * pf.k
+                    // where the pointer has it, under where it snaps
+                    box { from: pf.ox + pf.nx * pf.k, pf.oy + pf.ny * pf.k; size: bw, bh; corner: 6; stroke: 1; color: overlay0; opacity: 0.5 * moving }
+                    box { from: bx, by; size: bw, bh; corner: 6; color: mix(surface0, surface1, max(pf.hit.hover, moving)) }
+                    box { from: bx, by; size: bw, bh; corner: 6; stroke: 1.5; color: if(moving, blue, surface2) }
+                    text o.name { at: bx + bw / 2, by + bh / 2 - 16; anchor: center; size: 12; color: text; family: "Berkeley Mono" }
+                    text "{o.w}x{o.h}" { at: bx + bw / 2, by + bh / 2 + 1; anchor: center; size: 10; color: overlay1; family: "Berkeley Mono" }
+                    text "at {if(moving, pf.sx, o.x)}, {if(moving, pf.sy, o.y)}" { at: bx + bw / 2, by + bh / 2 + 16; anchor: center; size: 10; color: if(moving, blue, subtext0); family: "Berkeley Mono" }
+                    zone box pf.hit { from: bx, by; size: bw, bh; corner: 6; cursor: if(moving, grabbing, grab); label: "Display {o.name}" }
+                    on press pf.hit {
+                        pf.drag = o.index
+                        pf.x0 = o.x
+                        pf.y0 = o.y
+                        pf.nx = o.x
+                        pf.ny = o.y
+                        pf.sx = o.x
+                        pf.sy = o.y
+                    }
+                    on drag pf.hit {
+                        pf.nx = pf.x0 + drag.dx / pf.k
+                        pf.ny = pf.y0 + drag.dy / pf.k
+                    }
+                    on release pf.hit { emit pf_drop(o.index) }
+                }
+            }
+
+            // in the field's corners: what went wrong, how it is used, and
+            // back to where session.conf puts them
+            let pf.rx = pf.mapx + pf.mapw - 10 - 120
+            let pf.ry = pf.mapy + pf.maph - 10 - 26
+            text pf.msg { at: pf.mapx + 12, pf.mapy + 18; anchor: left center; size: 10; width: pf.mapw - 24; lines: 1; color: red; family: "Berkeley Mono" }
+            text "drag a display to move it: it snaps to the others' edges, and is kept for the next session" { at: pf.mapx + 12, pf.ry + 13; anchor: left center; size: 9; width: pf.mapw - 160; lines: 1; color: overlay0; family: "Berkeley Mono" }
+            zone box pf.reset { from: pf.rx, pf.ry; size: 120, 26; corner: 6; cursor: pointer; label: "Reset to session.conf" }
+            box { from: pf.rx, pf.ry; size: 120, 26; corner: 6; color: mix(surface0, surface1, pf.reset.hover) }
+            text "Reset to config" { at: pf.rx + 60, pf.ry + 13; anchor: center; size: 10; color: text; family: "Berkeley Mono" }
+            on press pf.reset { emit pf_reset }
+        }
+    }
+}

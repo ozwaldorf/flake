@@ -33,7 +33,7 @@ part SettingsPage {
         Well(0, 0, w, h)
         box { from: 0, 0; size: w, h; corner: 9; color: text; opacity: 0.04 * cct.hit.hover }
         ellipse { at: 31, h / 2; radius: 17; color: if(lit, blue, mix(surface1, text, 0.12 * puck.hover)) }
-        text icon { at: 31, h / 2; anchor: center; size: 15; family: "FiraCode Nerd Font"; color: if(lit, crust, text) }
+        text icon { at: 31, h / 2; anchor: center; size: 15; family: "FiraCode Nerd Font Propo"; color: if(lit, crust, text) }
         text label { at: lx, if(stacked, h / 2 - 7, h / 2); anchor: left center; size: 11; color: text; family: "Berkeley Mono" }
         text status { at: lx, h / 2 + 7.5; anchor: left center; size: 10; width: w - lx - 38; lines: 1; color: overlay0; family: "Berkeley Mono" }
         text cc.ic.chev { at: w - 24, h / 2; anchor: center; size: 10; family: "FiraCode Nerd Font"; color: if(opened or cct.hit.hover, text, overlay0); opacity: chev }
@@ -134,8 +134,14 @@ part SettingsPage {
             CcTile(cc.ic.bt, "Bluetooth", cc.btstatus, ccbt.powered, list == 2, cc.bt_toggle, cc.pick_list, (pagew - 8) / 2, chev: ccbt.powered, idx: 2) { show: ccbt.present }
         }
 
-        // the input overlay
-        CcTile(ic.keyboard, "Show input", pick(if(ks.on, 1, 0), "Off", "Keys and clicks on screen"), ks.on, false, ks_toggle, ks_toggle, pagew, chev: false) {}
+        // the monitors' places (prefs-card.plm), the input overlay, and this
+        // desktop from a browser elsewhere
+        row {
+            gap: 8
+            CcTile(ic.display, "Displays", pf.status, pf.open, pf.open, pf.pick, pf.pick, (pagew - 16) / 3) {}
+            CcTile(ic.keyboard, "Show input", "", ks.on, false, ks_toggle, ks_toggle, (pagew - 16) / 3, chev: false, stacked: false) {}
+            CcTile(ic.remote, "Remote", "", rm.on, false, rm_toggle, rm_toggle, (pagew - 16) / 3, chev: false, stacked: false) {}
+        }
 
         // power, and the backlight
         row {
@@ -287,6 +293,22 @@ part SettingsPage {
     zone box cc.away { from: pg.x, pg.y; size: pagew, pg.h; active: list > 0 }
     on press cc.away { list = 0 }
 
+    // The Displays card goes the same way, one or the other out. (Set, not
+    // toggled: every monitor's copy hears it.)
+    on pf.pick while pf.open { pf.open = false }
+    on pf.pick while not pf.open {
+        pf.open = true
+        // held open: the card lies past the drawer, where the pointer goes
+        held = true
+        list = 0
+    }
+    on change list while list > 0 { pf.open = false }
+    on change page while page != 1 { pf.open = false }
+    prop pf.pop = 0 ~160ms
+    follow pf.pop = if(pf.open, 1, 0)
+    zone box pf.away { from: pg.x, pg.y; size: pagew, pg.h; active: pf.open }
+    on press pf.away { pf.open = false }
+
     group {
         show: cc.held > 0
         opacity: cc.pop
@@ -303,7 +325,7 @@ part SettingsPage {
         // and a chevron that folds the card back
         zone ellipse cc.kpuck { at: cc.cx + 31, cc.cy + 31; radius: 17; cursor: pointer; label: "Toggle" }
         ellipse { at: cc.cx + 31, cc.cy + 31; radius: 17; color: if(cc.lit > 0.5, blue, mix(surface1, text, 0.12 * cc.kpuck.hover)) }
-        text pick(cc.k, cc.ic.wifi, cc.ic.bt, cc.ic.vol, cc.ic.mic, cc.ic.power) { at: cc.cx + 31, cc.cy + 31; anchor: center; size: 15; family: "FiraCode Nerd Font"; color: if(cc.lit > 0.5, crust, text) }
+        text pick(cc.k, cc.ic.wifi, cc.ic.bt, cc.ic.vol, cc.ic.mic, cc.ic.power) { at: cc.cx + 31, cc.cy + 31; anchor: center; size: 15; family: "FiraCode Nerd Font Propo"; color: if(cc.lit > 0.5, crust, text) }
         text pick(cc.k, "Wi-Fi", "Bluetooth", "Volume", "Mic", "Power") { at: cc.cx + 62, cc.cy + 24; anchor: left center; size: 11; color: text; family: "Berkeley Mono" }
         text pick(cc.k, cc.wifi.status, cc.btstatus, cc.out.name, cc.in.name, cc.power.status) { at: cc.cx + 62, cc.cy + 38.5; anchor: left center; size: 10; width: cc.cw - 140; lines: 1; color: overlay0; family: "Berkeley Mono" }
         text "{round(if(cc.held == 3, ccau.volume, ccau.input) * 100)}%" { at: cc.cx + cc.cw - 46, cc.cy + 31; anchor: right center; size: 10; color: overlay1; family: "Berkeley Mono"; opacity: cc.held == 3 or cc.held == 4 }

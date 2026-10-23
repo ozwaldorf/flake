@@ -40,15 +40,6 @@ part KeyShow {
                 color: base
                 glass: 80%
                 lens: false
-                tint: 0
-                vivid: 140%
-                smoke: 40%
-                milk: 20%
-                frost: 90%
-                refraction: 0
-                dispersion: 0
-                dome: 60%
-                ripple: 0
                 shadow: 0, 6, 24, 35%, crust
                 box { from: 0, 0; size: k.w, 40; corner: 10 }
             }

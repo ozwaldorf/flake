@@ -17,6 +17,18 @@ part Toasts {
 
     let ts.w = 340
 
+    // A new notice: the ones below start where they were and slide down by
+    // its height on the window layout's spring, and it fades in once they are
+    // three quarters of the way (95ms), as a new window does. ts.pending is
+    // set by the logic with the new row, so the list's growth is read as it.
+    fact ts.pending = false
+    fact ts.h0 = 0
+    fact ts.dh = 0
+    fact ts.armed = false
+    prop ts.dy = 0 ~niri
+    prop ts.in = 1 ~250ms
+    on still ts.pending for 200ms while ts.pending { ts.pending = false }
+
     surface toasts {
         // its own names for what the rail works out (see pages/screen.plm)
         let ts.me = screen.index
@@ -29,6 +41,31 @@ part Toasts {
         anchor: left
         screens: each
         level: overlay
+
+        // (here, where the list is measured: the monitor that shows it; the
+        // growth goes through ts.dh, since a transition reads its facts after
+        // the rule has set them). The new one's words are measured over a few
+        // frames: the rest stay where they were until it has its height, then
+        // slide.
+        on change ts.list.height while ts.pending and ts.me == focmon {
+            ts.dh = ts.list.height - ts.h0
+            ts.h0 = ts.list.height
+            ts.dy: ts.dh ~0ms
+            ts.in: 0 ~0ms
+            ts.pending = false
+            ts.armed = true
+        }
+        on change ts.list.height while ts.armed and not ts.pending and ts.me == focmon {
+            ts.dh = ts.list.height - ts.h0
+            ts.h0 = ts.list.height
+            ts.dy: ts.dy + ts.dh ~0ms
+        }
+        on still ts.list.height for 20ms while ts.armed and ts.me == focmon {
+            ts.dy: 0
+            ts.in: 1 after 95ms
+            ts.armed = false
+        }
+        on change ts.list.height while not ts.armed and not ts.pending and ts.me == focmon { ts.h0 = ts.list.height }
 
         column {
             at: ts.x, 12
@@ -45,18 +82,10 @@ part Toasts {
                     color: base
                     glass: 80%
                     lens: false
-                    tint: 0
-                    vivid: 140%
-                    smoke: 40%
-                    milk: 20%
-                    frost: 90%
-                    refraction: 0
-                    dispersion: 0
-                    dome: 60%
-                    ripple: 0
                     shadow: 0, 6, 24, 35%, crust
                     box { from: 0, 0; size: ts.w, 76; corner: 10 }
                 }
+                box { from: 0, 0; size: ts.w, 76; corner: 10; color: base; opacity: 0.8 }
                 box { from: 0.5, 0.5; size: ts.w - 1, 75; corner: 10; stroke: 1; color: if(ts.songz.hover > 0.5, surface2, surface1) }
                 box { from: 10, 10; size: 56, 56; corner: 28; color: surface0 }
                 group {
@@ -72,36 +101,36 @@ part Toasts {
             }
 
             // the notices
-            for n in ts.cards { ToastCard(n) }
+            column ts.list {
+                gap: 14
+                for n in ts.cards { ToastCard(n) }
+            }
         }
     }
 
     // A notice, as tall as what it says.
     component ToastCard(n: record) {
         size: ts.w, words.height + 28
-        prop shown = 0 ~200ms
+        // A copy is a place in the list, not a notice: a new one comes in at
+        // the top and the rest shift down a copy, so only the top one fades
+        // in (ts.in), and one that appears at the bottom is already shown.
+        prop shown = 1 ~200ms
         follow shown = if(n.gone, 0, 1)
-        prop slide = 14 ~quint
-        follow slide = 0
+        let top = n.index == 0
         group {
-            opacity: shown
-            move: -slide, 0
+            // (never quite 0: a column leaves no gap for what is not seen)
+            opacity: max(shown * if(top, ts.in, 1), 0.01)
+            move: -14 * (1 - ts.in) * top, -ts.dy * (not top)
+            // A window's glass with a terminal's background over it (rio:
+            // base at 80%); the frosting is the session's material default.
             body {
                 color: base
                 glass: 80%
                 lens: false
-                tint: 0
-                vivid: 140%
-                smoke: 40%
-                milk: 20%
-                frost: 90%
-                refraction: 0
-                dispersion: 0
-                dome: 60%
-                ripple: 0
                 shadow: 0, 6, 24, 35%, crust
                 box { from: 0, 0; size: ts.w, words.height + 28; corner: 10 }
             }
+            box { from: 0, 0; size: ts.w, words.height + 28; corner: 10; color: base; opacity: 0.8 }
             box { from: 0.5, 0.5; size: ts.w - 1, words.height + 27; corner: 10; stroke: 1; color: if(ts.hit.hover > 0.5, surface2, surface1) }
             // The accent bar on the rail's side: red critical, grey low.
             box { from: 0, 0; size: 4, words.height + 28; corner: 2; color: if(n.urgency > 1.5, red, if(n.urgency < 0.5, surface2, yellow)) }

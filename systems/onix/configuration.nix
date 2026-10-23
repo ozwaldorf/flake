@@ -50,6 +50,7 @@
       "dialout"
       "scanner"
       "lp"
+      "uinput"
     ];
     shell = pkgs.zsh;
     packages = with pkgs; [
@@ -158,6 +159,8 @@
 
   # enable keyboard management
   hardware.keyboard.qmk.enable = true;
+  # pleamar-wm remote's pointer and keyboard
+  hardware.uinput.enable = true;
   services.udev.packages = [ pkgs.via ];
 
   # Bind ddcci to every display i2c bus as it appears. The module cannot

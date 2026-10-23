@@ -32,6 +32,9 @@ part SettingsData {
 
     // What the logic writes and hears: also scene level, so it can see them.
     text cc.user = ""
+    // pleamar-wm remote running (logic/remote.luau)
+    event rm_toggle ->
+    fact rm.on = false
     text cc.wifi.status = "Off"
     text cc.btstatus = "Off"
     text cc.out.name = ""

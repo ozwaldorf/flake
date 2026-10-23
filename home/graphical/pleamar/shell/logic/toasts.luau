@@ -44,6 +44,7 @@ return function(S)
             if not seen[n.id] then
                 seen[n.id] = true
                 if not quiet() then
+                    fact["ts.pending"] = true
                     table.insert(cards, 1, {
                         id = n.id, app = n.app or "", title = n.title or "",
                         body = (n.body or ""):gsub("<[^>]*>", ""),
