@@ -563,7 +563,7 @@ scene Session {
             prop seen.$i = 0 ~250ms
             // Held back until it has its place (place_new) and the rest have
             // moved around it (nrev), then faded in there.
-            let waits = nw == i or nrev == i
+            let waits = nw == i or nrev == i or rtn
             follow seen.$i = if(win.$i.open and not waits, 1, 0)
             // Until it has faded in, it is where it goes at once, so it shows
             // without moving while the rest make room and the camera pans: the
@@ -572,6 +572,20 @@ scene Session {
             on change sg.y while win.$i.open and seen.$i < 0.99 { y.$i: sg.y ~0ms }
             on change sg.w while win.$i.open and seen.$i < 0.99 { w.$i: sg.w ~0ms }
             on change sg.h while win.$i.open and seen.$i < 0.99 { h.$i: sg.h ~0ms }
+            // Back from the phone: hidden at once, where it settles (above).
+            on change phone while phone < 0 and win.$i.open {
+                seen.$i: 0 ~0ms
+                x.$i: sg.x ~0ms
+                y.$i: sg.y ~0ms
+                w.$i: sg.w ~0ms
+                h.$i: sg.h ~0ms
+            }
+            // The camera on the one with the keyboard, on whichever monitor it lands.
+            on change sc while rtn and win.$i.focused and tiled {
+                cam.a[sc] = i
+                ofs.x[sc] = 0
+                ofs.y[sc] = 0
+            }
             // the window that had the keyboard before this one
             let obk = if(lf == i, lf.prev, lf)
             let ob = max(obk, 0)
@@ -1097,6 +1111,22 @@ scene Session {
     // From the shell's rail: monitor + 4 * workspace.
     event workspace_on
     on workspace_on(c) { workspace floor(c / 4) on mod(c, 4) }
+
+    // The phone's monitor (`pleamar-wm remote` from a phone; -1, none): the
+    // compositor carries every window there in its own workspace, behind an
+    // empty one. It shows the one with the keyboard instead, whichever of the
+    // two the compositor says first.
+    fact phone = -1
+    let ph.f = phone >= 0 and f.live and f.sc == phone
+    // Android keeps Super for itself: the Super bindings on Alt there.
+    include "../gen/phone-keys.plm"
+    on change phone while ph.f { workspace win[f].workspace on phone }
+    on change f.sc while ph.f { workspace win[f].workspace on phone }
+    // Back from the phone, the windows wait unseen (rtn) while the programs
+    // draw at their desk sizes, and fade in where they settled.
+    fact rtn = false
+    on change phone while phone < 0 { rtn = true }
+    on still phone for 300ms while rtn { rtn = false }
     on still nwt for 80ms while nw >= 0 { emit place_new }
     on change clt {
         repeat j in 0..win.max {

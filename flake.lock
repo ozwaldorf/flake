@@ -522,18 +522,18 @@
         ]
       },
       "locked": {
-        "lastModified": 1792717250,
-        "narHash": "sha256-1nm5FNX0AaM4iwowB8i+/sqxntvHlhp7QrCFtCogN7g=",
-        "ref": "agent-a11y",
-        "rev": "a92cd35c164e7f69dd9c07ce1f1e4d330852f788",
-        "revCount": 633,
-        "type": "git",
-        "url": "file:///home/oz/Code/pkg/pleamar"
+        "lastModified": 1792733659,
+        "narHash": "sha256-l84AOXpgGfKDCYGkBLDCYiXWzIagqyBeg+wMo+TpLxQ=",
+        "owner": "ozwaldorf",
+        "repo": "pleamar",
+        "rev": "8209bafe7e3ee46b154752a27ee4c8cab7c38bb2",
+        "type": "github"
       },
       "original": {
+        "owner": "ozwaldorf",
         "ref": "agent-a11y",
-        "type": "git",
-        "url": "file:///home/oz/Code/pkg/pleamar"
+        "repo": "pleamar",
+        "type": "github"
       }
     },
     "pleamar-wm": {
@@ -547,18 +547,18 @@
         ]
       },
       "locked": {
-        "lastModified": 1792729435,
-        "narHash": "sha256-DRQvOAFawXUDKD6a8O792yaAP6Dos7jO7DoL7fuzDyQ=",
-        "ref": "agent-a11y",
-        "rev": "d7789342d6e8338a16d69c848556933de5d8a04f",
-        "revCount": 536,
-        "type": "git",
-        "url": "file:///home/oz/Code/pkg/pleamar-wm"
+        "lastModified": 1792770796,
+        "narHash": "sha256-DPjPNnwb8a7HOH6Ib11qy+0IvJyQ7+Y9EXNzkZU33/o=",
+        "owner": "ozwaldorf",
+        "repo": "pleamar-wm",
+        "rev": "a3ca9e11b77173f975c5291b84262b77a0de8702",
+        "type": "github"
       },
       "original": {
-        "ref": "agent-a11y",
-        "type": "git",
-        "url": "file:///home/oz/Code/pkg/pleamar-wm"
+        "owner": "ozwaldorf",
+        "ref": "remote-phone",
+        "repo": "pleamar-wm",
+        "type": "github"
       }
     },
     "quickshell": {

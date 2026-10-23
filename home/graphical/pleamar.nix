@@ -9,8 +9,9 @@ let
   palette = (lib.importJSON "${inputs.carburetor}/whiskers.json").mocha;
 
   # Speaking to the shell (`desk`) and the window manager (`wm`) from a key.
-  desk = cmd: "pleamar-wm --say desk \"${cmd}\"";
-  wm = cmd: "pleamar-wm --say wm \"${cmd}\"";
+  # (Single quotes: a scene's strings take no escapes, see phoneKeys.)
+  desk = cmd: "pleamar-wm --say desk '${cmd}'";
+  wm = cmd: "pleamar-wm --say wm '${cmd}'";
 
   # The focused window, to the clipboard, through pleamar-wm's hyprctl answers.
   shotWindow = pkgs.writeShellApplication {
@@ -102,6 +103,43 @@ let
 
   keysConf = lib.concatMapStringsSep "\n" (b: "bind ${b.key} ${b.action}") binds + "\n";
 
+  # While a phone is connected Android keeps Super for itself: the Super
+  # bindings on Alt instead, as rules of the wm scene (wm/session.plm). A
+  # scene cannot name a digit key: the monitor ones stay out.
+  phoneKeys =
+    let
+      ported = b: lib.hasPrefix "Super+" b.key && builtins.match ".*\\+[0-9]" b.key == null;
+      rule =
+        b:
+        let
+          words = lib.splitString " " b.action;
+          verb = builtins.head words;
+          arg = lib.concatStringsSep " " (builtins.tail words);
+          effect =
+            if verb == "launch" then
+              ''launch "${arg}"''
+            else if arg == "" then
+              "emit ${verb}"
+            else
+              "emit ${verb}(${arg})";
+          # A scene names a letter by what it types: with Shift, `Q`.
+          parts = lib.splitString "+" (lib.removePrefix "Super+" b.key);
+          last = lib.last parts;
+          key = lib.concatStringsSep "+" (
+            lib.init parts
+            ++ [
+              (if lib.elem "Shift" parts && builtins.match "[a-z]" last != null then lib.toUpper last else last)
+            ]
+          );
+        in
+        "    on key Alt+${key} while phone >= 0 { ${effect} }";
+    in
+    ''
+      part PhoneKeys {
+      ${lib.concatMapStringsSep "\n" rule (lib.filter ported binds)}
+      }
+    '';
+
   # The Keys page's list.
   keybindsLuau =
     let
@@ -170,6 +208,7 @@ let
     "agent-cursor.png" = "${agentCursor}/agent-cursor.png";
     "theme.plm" = pkgs.writeText "theme.plm" (import ./pleamar/theme.nix { inherit lib palette; });
     "keybinds.luau" = pkgs.writeText "keybinds.luau" keybindsLuau;
+    "phone-keys.plm" = pkgs.writeText "phone-keys.plm" phoneKeys;
   };
   tree = "/etc/nixos/home/graphical/pleamar";
 

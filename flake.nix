@@ -48,11 +48,11 @@
       flake = false;
     };
     pleamar = {
-      url = "git+file:///home/oz/Code/pkg/pleamar?ref=agent-a11y";
+      url = "github:ozwaldorf/pleamar/agent-a11y";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     pleamar-wm = {
-      url = "git+file:///home/oz/Code/pkg/pleamar-wm?ref=agent-a11y";
+      url = "github:ozwaldorf/pleamar-wm/remote-phone";
       inputs.nixpkgs.follows = "nixpkgs";
       # Built against pleamar as a path dependency
       inputs.pleamar.follows = "pleamar";
