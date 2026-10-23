@@ -522,16 +522,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1792733659,
-        "narHash": "sha256-l84AOXpgGfKDCYGkBLDCYiXWzIagqyBeg+wMo+TpLxQ=",
-        "owner": "ozwaldorf",
+        "lastModified": 1792791347,
+        "narHash": "sha256-1F1I68YRKuw/DozMz/AYcZnvKePWrxlOpo99jjD/XQA=",
+        "owner": "k4ditano",
         "repo": "pleamar",
-        "rev": "8209bafe7e3ee46b154752a27ee4c8cab7c38bb2",
+        "rev": "2689816ff1206a3e1b0f82217305d3d0d0016ca0",
         "type": "github"
       },
       "original": {
-        "owner": "ozwaldorf",
-        "ref": "agent-a11y",
+        "owner": "k4ditano",
         "repo": "pleamar",
         "type": "github"
       }
@@ -547,16 +546,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1792780184,
-        "narHash": "sha256-ZnLR068EaNKnB4wf2Jly4y9z+JIq5owfynjqQTegad8=",
-        "owner": "ozwaldorf",
+        "lastModified": 1792791337,
+        "narHash": "sha256-gdCyWEgzfhIIDYt2mKCQ34YIKiH8CFLD98IzZJj/R9U=",
+        "owner": "k4ditano",
         "repo": "pleamar-wm",
-        "rev": "4829f74be90dd7747a6395e57180b94ce2cfa9df",
+        "rev": "fd7e86bc614167f08a567c86d81f445a4ffcc92c",
         "type": "github"
       },
       "original": {
-        "owner": "ozwaldorf",
-        "ref": "remote-phone",
+        "owner": "k4ditano",
         "repo": "pleamar-wm",
         "type": "github"
       }

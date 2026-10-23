@@ -172,6 +172,8 @@ let
 
     # pleamar-wm agent: a second pointer and keyboard for AI agents
     agent on
+    # Accessibility bus, read by the agent's element tools
+    a11y on
 
     keyboard layout us
     touchpad tap on dwt on
