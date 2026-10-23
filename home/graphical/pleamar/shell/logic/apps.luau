@@ -147,7 +147,7 @@ return function(S)
             table.insert(rows, {
                 kind = failed and KIND.nixfail or KIND.nix, glyph = text["ic.app"],
                 title = h.bin .. "  (nixpkgs." .. h.attr .. ")",
-                detail = busy and nix.fetching.status or failed or "Not installed: fetch and run",
+                detail = busy and nix.fetching.status or failed or (h.desc ~= "" and h.desc) or "Not installed: fetch and run",
                 hint = busy and "cancel" or failed and "retry" or "fetch",
                 progress = busy and nix.fetching.progress or -1, nixhit = h,
             })
@@ -162,6 +162,26 @@ return function(S)
         end
         model.aprows = rows
         fact["ap.n"] = #rows
+        fact["ap.searching"] = nix.searching
+    end
+
+    -- Each hit's meta.description, in one evaluation.
+    local function describe(mine)
+        if #nix.hits == 0 then return end
+        local attrs = {}
+        for _, h in ipairs(nix.hits) do table.insert(attrs, '"' .. h.attr .. '"') end
+        run("nix", { "eval", "--json", "--impure", "--expr",
+            'let p = (builtins.getFlake "nixpkgs").legacyPackages.${builtins.currentSystem}; l = p.lib; in '
+                .. 'map (a: (l.attrByPath (l.splitString "." a) {} p).meta.description or "") [ ' .. table.concat(attrs, " ") .. ' ]',
+        }, function(out)
+            if mine ~= gen then return end
+            local ok, descs = pcall(json.decode, out)
+            if not ok or type(descs) ~= "table" then return end
+            for i, h in ipairs(nix.hits) do
+                h.desc = type(descs[i]) == "string" and descs[i]:gsub("%s+", " ") or ""
+            end
+            paint()
+        end, { env = { NIXPKGS_ALLOW_UNFREE = "1" } })
     end
 
     -- nix-locate, a moment after typing stops
@@ -170,9 +190,11 @@ return function(S)
         local mine = gen
         local q = S.trim(text["ap.q"] or "")
         local prefix = q:match("^([%w%._%+%-]+)$")
-        nix.hits = {}
-        if not prefix or #prefix < 2 or #rows > 3 then nix.searching = false; return end
+        nix.hits, nix.searching = {}, false
+        paint()
+        if not prefix or #prefix < 2 or #rows > 3 then return end
         nix.searching = true
+        paint()
         after(150, function()
             if mine ~= gen then return end
             run("sh", { "-c", 'nix-locate --at-root --type x --type s --regex "/bin/$1[^/]*$" 2>/dev/null | head -200', "sh", prefix }, function(out)
@@ -200,6 +222,7 @@ return function(S)
                     if per[h.bin] <= 2 and #nix.hits < 6 then table.insert(nix.hits, h) end
                 end
                 paint()
+                describe(mine)
             end)
         end)
     end
@@ -285,7 +308,7 @@ return function(S)
         if g ~= "" then text["ap.q"] = g; paint() end
     end)
 
-    on("text:ap.q", function() paint(); locate() end)
+    on("text:ap.q", locate)
 
     -- Every command a shell would know, gathered each time the launcher opens.
     local function scan()

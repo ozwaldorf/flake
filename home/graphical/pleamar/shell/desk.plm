@@ -507,10 +507,15 @@ scene Desk {
         open: veilp > 0.001
         body {
             color: crust
-            glass: 80%
+            glass: 100%
+            tint: 0
+            vivid: 100%
+            highlight: 0
+            mirror: 0
             lens: false
             opacity: veilp
-            box { from: 0, 0; size: vs.W, vs.H }
+            // past the screen's edges, so the glass's lit rim is not seen
+            box { from: -64, -64; size: vs.W + 128, vs.H + 128 }
         }
         zone box veilz { from: 0, 0; size: vs.W, vs.H }
         on press veilz { veil = true }

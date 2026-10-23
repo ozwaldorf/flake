@@ -9,6 +9,7 @@ part Search {
     model aprows max 40 { title: text; detail: text; hint: text; kind: number; icon: image 28, 28; glyph: text; progress: number = -1 }
     fact ap.n = 0
     fact ap.sel = 0
+    fact ap.searching = false
     event ap_go ->
     event ap_accept ->
 
