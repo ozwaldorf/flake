@@ -939,11 +939,11 @@ scene Session {
             on press wmax.$i { emit maxi(i) }
             // Its own maximize button, as that one.
             on window_maximize(v) while v == i and here { emit maxi(i) }
-            // Super+f: maximized, then fullscreen, then back to its size.
-            on cycle_max while win.focus == i and not full and not maxed { emit maxi(i) }
-            on cycle_max while win.focus == i and not full and maxed { fullscreen win.$i }
-            on cycle_max while win.focus == i and full { fullscreen win.$i }
-            on cycle_max while win.focus == i and full and maxed { emit maxi(i) }
+            // Super+f: tapped, maximized or back to its size (out of fullscreen
+            // first); held, fullscreen and back.
+            on max_tap while win.focus == i and not full { emit maxi(i) }
+            on max_tap while win.focus == i and full { fullscreen win.$i }
+            on max_hold while win.focus == i { fullscreen win.$i }
             // Its own minimize button floats it, 800 by 500 in the middle, and back.
             on window_minimize(v) while v == i and here and not win.$i.floating {
                 fw.$i = 800
@@ -1088,7 +1088,10 @@ scene Session {
     // actions, bound in keys.conf
     event close
     event fullscreen
-    event cycle_max
+    event max_down
+    event max_up
+    event max_tap
+    event max_hold
     // a window to maximize, or put back, by its slot
     event maxi
     event toggle_float
@@ -1127,6 +1130,22 @@ scene Session {
     }
     on close while win.focus >= 0 { close win(win.focus) }
     on fullscreen while win.focus >= 0 { fullscreen win(win.focus) }
+    // Super+f held 300 ms is a hold, let go sooner a tap. mxn counts presses,
+    // so each restarts the wait.
+    fact mxh = false
+    fact mxn = 0
+    on max_down {
+        mxh = true
+        mxn = mxn + 1
+    }
+    on still mxn for 300ms while mxh {
+        mxh = false
+        emit max_hold
+    }
+    on max_up while mxh {
+        mxh = false
+        emit max_tap
+    }
     on toggle_float while win.focus >= 0 and not f.on and win[f].floating > 0.5 { tile win(win.focus) }
     on toggle_float while win.focus >= 0 and f.on { float win(win.focus) }
     // From the shell's rail: monitor + 4 * workspace.

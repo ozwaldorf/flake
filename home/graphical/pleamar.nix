@@ -79,7 +79,15 @@ let
     (bind "Shell" "Super+w" "Next wallpaper" "launch ${wm "emit wall_next"}")
     (bind "Windows" "Super+Shift+q" "Close window" "close")
     (bind "Windows" "Super+Shift+space" "Toggle floating" "toggle_float")
-    (bind "Windows" "Super+f" "Maximize, fullscreen, restore" "cycle_max")
+    # Tapped and held told apart by the scene, from the key going down and up.
+    # The phone's Alt+f has no release: a tap.
+    (
+      bind "Windows" "Super+f" "Maximize or restore; hold to fullscreen" "max_down"
+      // {
+        release = "max_up";
+        phone = "max_tap";
+      }
+    )
     (bind "Windows" "Super+r" "Cycle window width" "cycle_width")
     (bind "Windows" "Super+Shift+r" "Cycle row height" "cycle_height")
     (bind "Focus" "Super+Left" "Focus window or monitor left" "focus_left")
@@ -101,7 +109,11 @@ let
     (bind "Session" "Super+Shift+e" "Quit" "launch ${wm "quit"}")
   ];
 
-  keysConf = lib.concatMapStringsSep "\n" (b: "bind ${b.key} ${b.action}") binds + "\n";
+  keysConf =
+    lib.concatMapStringsSep "\n" (
+      b: "bind ${b.key} ${b.action}" + lib.optionalString (b ? release) "\nbind ${b.key} release ${b.release}"
+    ) binds
+    + "\n";
 
   # While a phone is connected Android keeps Super for itself: the Super
   # bindings on Alt instead, as rules of the wm scene (wm/session.plm). A
@@ -112,7 +124,7 @@ let
       rule =
         b:
         let
-          words = lib.splitString " " b.action;
+          words = lib.splitString " " (b.phone or b.action);
           verb = builtins.head words;
           arg = lib.concatStringsSep " " (builtins.tail words);
           effect =
