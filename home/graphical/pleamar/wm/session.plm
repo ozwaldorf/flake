@@ -899,8 +899,10 @@ scene Session {
             }
             // Maximized, or back to the size it had before: a floating one keeps
             // its own, a tiled one its width and its row's height, saved here.
-            fact pw.$i = 0.6667
-            fact ph.$i = 0.6667
+            // With none saved (it was maximized from the start): half wide, the
+            // full height.
+            fact pw.$i = 0.5
+            fact ph.$i = 1
             on maxi(v) while v == i {
                 focus win.$i
                 pan = 1
@@ -909,8 +911,8 @@ scene Session {
             // (decided in the guards, which read the frame as it began: the
             // sizes change as these run)
             on maxi(v) while v == i and tiled and not maxed {
-                pw.$i = if(wp.$i > 0.99 and r.hp.$i > 0.99, 0.6667, wp.$i)
-                ph.$i = if(wp.$i > 0.99 and r.hp.$i > 0.99, 0.6667, r.hp.$i)
+                pw.$i = if(wp.$i > 0.99 and r.hp.$i > 0.99, 0.5, wp.$i)
+                ph.$i = if(wp.$i > 0.99 and r.hp.$i > 0.99, 1, r.hp.$i)
                 wp.$i = 1
                 repeat j in 0..win.max {
                     hp.$j = if(win.$j.place >= 0 and win.$j.screen == sc and win.$j.pool == win.$i.pool and rpos.$j == rpos.$i, 1, hp.$j)
