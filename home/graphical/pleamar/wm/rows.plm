@@ -174,7 +174,7 @@ part Rows {
     repeat s in 0..4 {
         W[s] = screen[s].width
         H[s] = screen[s].height
-        Ax[s] = strut + win.reserved[s].left - win.reserved[s].right + room[s] + max(edge[s], 0)
+        Ax[s] = strut + win.reserved[s].left - win.reserved[s].right + room[s] + if(rgt[s], 0, abs(edge[s]))
         Wa[s] = W[s] - 2 * strut - abs(edge[s])
         Ay[s] = win.reserved[s].top + strut + gap
         Ha[s] = H[s] - win.reserved[s].top - win.reserved[s].bottom - 2 * strut - 2 * gap

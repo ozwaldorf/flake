@@ -72,6 +72,8 @@ scene Desk {
         }
     }
     fact focmon = 0
+    // the phone's monitor (-1, none): its rail on the left, as the first's
+    fact phone = -1
     // the monitor the pointer is on, and whether a window is being dragged,
     // as the window manager says: the cursor position alone does not tell
     // the monitors apart
@@ -483,12 +485,12 @@ scene Desk {
 
     // The room the window manager slides aside on each monitor: the
     // drawer's while it is open. On the left of the first monitor and
-    // (negative) the right of the others, where the rail is. Told to the
+    // the phone's, (negative) the right of the others, where the rail is. Told to the
     // window manager rather than reserved by surfaces, whose reserve cannot
     // differ per monitor. The rail itself is kept clear apart (desk.luau).
     event room_report ->
     repeat s in 0..4 {
-        let room.$s = if(ovgo and dmon == s, 0, drawerw * if(open and dmon == s, 1, 0) * if(s > 0.5, -1, 1))
+        let room.$s = if(ovgo and dmon == s, 0, drawerw * if(open and dmon == s, 1, 0) * if(s > 0.5 and s != phone, -1, 1))
         on change room.$s { emit room_report(s + 4 * (room.$s + 4096)) }
     }
 

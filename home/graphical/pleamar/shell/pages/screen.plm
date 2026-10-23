@@ -12,10 +12,10 @@ part Screen {
     let here = dmon == me
     let railw = sliver + (rail - sliver) * reveal
     let push = railw + if(here, dw, 0)
-    // Monitors past the first carry the rail on their right edge, the drawer
+    // Monitors past the first (not the phone's) carry the rail on their right edge, the drawer
     // opening leftwards from it: rox is where the rail and drawer start on
     // the surface, rx where the rail sits among them.
-    let right = me > 0
+    let right = me > 0 and me != phone
     let rox = if(right, Ws - push, 0)
     let rx = if(right, push - railw, 0)
     // How dark the edge shadows are: darker as the drawer opens.

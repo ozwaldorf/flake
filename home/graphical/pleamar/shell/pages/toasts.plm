@@ -35,7 +35,7 @@ part Toasts {
         let ts.W = mw[ts.me]
         let ts.railw = sliver + (rail - sliver) * rv[ts.me]
         // beside the rail, whichever side it is on
-        let ts.x = if(ts.me > 0, ts.W - ts.railw - 8 - ts.w, ts.railw + 8)
+        let ts.x = if(ts.me > 0 and ts.me != phone, ts.W - ts.railw - 8 - ts.w, ts.railw + 8)
         // the whole monitor, so the toasts can sit on either side
         size: full, full
         anchor: left

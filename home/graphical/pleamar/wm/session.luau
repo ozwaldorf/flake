@@ -57,6 +57,7 @@ on("ws_report", function(code)
     )
 end)
 on("focus_report", function(s) tell("fact focmon " .. s) end)
+on("phone_report", function(p) tell("fact phone " .. (p - 1)) end)
 
 -- where each monitor sits on the desktop, by its number, as the compositor
 -- has it; asked again whenever a monitor or the pointer's changes

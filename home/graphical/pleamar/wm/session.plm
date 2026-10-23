@@ -88,11 +88,15 @@ scene Session {
         // moves them instead of jumping.
         prop rs.$s = 0 ~niri
     }
+    // The rail on the right of monitors past the first, but the phone's,
+    // which has no other beside it.
+    let rgt[4]
+    repeat s in 0..4 { rgt[s] = s > 0.5 and s != phone }
     let rfree = abs(room.0) < 400 and abs(room.1) < 400 and abs(room.2) < 400 and abs(room.3) < 400
     repeat s in 0..4 {
         follow rs.$s = room.$s
         on change ov.$s while ov.$s and rfree {
-            room.$s = if(s > 0.5, -ovroom, ovroom)
+            room.$s = if(rgt[s], -ovroom, ovroom)
             ovdr.$s = true
         }
         on change ov.$s while not ov.$s and ovdr.$s and not ovkeep.$s { room.$s = 0 }
@@ -112,7 +116,7 @@ scene Session {
     // does not move twice.
     let rmt[4]
     repeat s in 0..4 {
-        rmt[s] = if(ov.$s and not ovdr.$s and rfree, if(s > 0.5, -ovroom, ovroom), if(not ov.$s and (ovdr.$s or ovsh.$s) and not ovkeep.$s, 0, room.$s))
+        rmt[s] = if(ov.$s and not ovdr.$s and rfree, if(rgt[s], -ovroom, ovroom), if(not ov.$s and (ovdr.$s or ovsh.$s) and not ovkeep.$s, 0, room.$s))
     }
     on change f.sc while win.focus >= 0 { kmon = f.sc }
     on change win.focus while win.focus >= 0 { kmon = f.sc }
@@ -375,9 +379,13 @@ scene Session {
         on change ov.$s { emit ov_report(s + 4 * if(ov.$s, 1, 0)) }
         on shell_hello { emit ov_report(s + 4 * if(ov.$s, 1, 0)) }
     }
+    // the phone's monitor, plus one (none: 0)
+    event phone_report ->
+    on change phone { emit phone_report(phone + 1) }
     event shell_hello
     on shell_hello {
         emit focus_report(kmon)
+        emit phone_report(phone + 1)
         emit ptr_report(ptr.code)
     }
 
