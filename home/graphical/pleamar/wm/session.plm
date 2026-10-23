@@ -850,6 +850,12 @@ scene Session {
             let ey0 = y - edge / 2
             let ex1 = x + w - edge / 2
             let ey1 = y + h - edge / 2
+            // The corners, declared after the sides so they win where they
+            // cross, reach further along both edges, as an L: easier to catch
+            // without taking the program's own corner.
+            let corner = min(36, min(w, h) / 2)
+            let cx1 = x + w + edge / 2 - corner
+            let cy1 = y + h + edge / 2 - corner
             // With Super held they give way: the whole window carries it.
             // Held while a drag of it lasts, wherever the pointer went.
             let handle = ((keys.super > 0.5 and here) or (dmode == 1 and dslot == i)) and win.$i.open and not full
@@ -866,15 +872,20 @@ scene Session {
                 zone box pickw.$i { from: x, y; size: w, h; cursor: pointer; active: ov and here and win.$i.open }
                 zone box grab.$i { from: x, y; size: w, if(handle or held, h, bh); cursor: if(dmode == 1 and dslot == i, grabbing, grab); active: handle or bargrab or held; handle: i }
                 // the edges, then the corners over them: left, right, top,
-                // bottom, top left, top right, bottom left, bottom right
+                // bottom, then top left, top right, bottom left, bottom right
+                // along the top and bottom, and again along the sides
                 zone box rsz.0.$i { from: ex0, ey0; size: edge, h + edge; cursor: ew_resize; active: sizing or held; handle: i, left }
                 zone box rsz.1.$i { from: ex1, ey0; size: edge, h + edge; cursor: ew_resize; active: sizing or held; handle: i, right }
                 zone box rsz.2.$i { from: ex0, ey0; size: w + edge, edge; cursor: ns_resize; active: sizing or held; handle: i, top }
                 zone box rsz.3.$i { from: ex0, ey1; size: w + edge, edge; cursor: ns_resize; active: sizing or held; handle: i, bottom }
-                zone box rsz.4.$i { from: ex0, ey0; size: edge, edge; cursor: nwse_resize; active: sizing or held; handle: i, top_left }
-                zone box rsz.5.$i { from: ex1, ey0; size: edge, edge; cursor: nesw_resize; active: sizing or held; handle: i, top_right }
-                zone box rsz.6.$i { from: ex0, ey1; size: edge, edge; cursor: nesw_resize; active: sizing or held; handle: i, bottom_left }
-                zone box rsz.7.$i { from: ex1, ey1; size: edge, edge; cursor: nwse_resize; active: sizing or held; handle: i, bottom_right }
+                zone box rsz.4.$i { from: ex0, ey0; size: corner, edge; cursor: nwse_resize; active: sizing or held; handle: i, top_left }
+                zone box rsz.5.$i { from: cx1, ey0; size: corner, edge; cursor: nesw_resize; active: sizing or held; handle: i, top_right }
+                zone box rsz.6.$i { from: ex0, ey1; size: corner, edge; cursor: nesw_resize; active: sizing or held; handle: i, bottom_left }
+                zone box rsz.7.$i { from: cx1, ey1; size: corner, edge; cursor: nwse_resize; active: sizing or held; handle: i, bottom_right }
+                zone box rsz.8.$i { from: ex0, ey0; size: edge, corner; cursor: nwse_resize; active: sizing or held; handle: i, top_left }
+                zone box rsz.9.$i { from: ex1, ey0; size: edge, corner; cursor: nesw_resize; active: sizing or held; handle: i, top_right }
+                zone box rsz.10.$i { from: ex0, cy1; size: edge, corner; cursor: nesw_resize; active: sizing or held; handle: i, bottom_left }
+                zone box rsz.11.$i { from: ex1, cy1; size: edge, corner; cursor: nwse_resize; active: sizing or held; handle: i, bottom_right }
                 zone box wmax.$i { at: x + w - 40, y + th / 2; size: 20, th; cursor: pointer; label: "Maximize"; active: btns and here and dmode < 0.5 and not win.$i.dialog }
                 zone box wclose.$i { at: x + w - 18, y + th / 2; size: 20, th; cursor: pointer; label: "Close"; active: btns and here and dmode < 0.5 }
                 // maximize (restore once maximized) and close, at the title
@@ -1036,14 +1047,14 @@ scene Session {
             // The y is checked too, since the move that crosses arrives before
             // the monitor under the pointer changes.
             let rs.ok = dmode == 3 and dslot == i and mon == sc and pointer.y >= 0 and pointer.y <= Hs
-            repeat e in 0..8 {
+            repeat e in 0..12 {
                 on press rsz.$e.$i {
                     focus win.$i
                     dslot = i
                     dmode = 3
                     g.z = zw
-                    g.ex = pick(e, -1, 1, 0, 0, -1, 1, -1, 1)
-                    g.ey = pick(e, 0, 0, -1, 1, -1, -1, 1, 1)
+                    g.ex = pick(e, -1, 1, 0, 0, -1, 1, -1, 1, -1, 1, -1, 1)
+                    g.ey = pick(e, 0, 0, -1, 1, -1, -1, 1, 1, -1, -1, 1, 1)
                     g.x = fgx
                     g.y = fgy
                     g.w = if(flo, fgw, wp.$i)
