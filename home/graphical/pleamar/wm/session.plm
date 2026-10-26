@@ -16,10 +16,6 @@ scene Session {
     let gap = 18
     // the title bar each window gets above what its program draws
     let tbar = 28
-    // its buttons, from the icon theme as a GTK header bar would
-    image btn.close = icon "window-close-symbolic", 16, 16
-    image btn.max = icon "window-maximize-symbolic", 16, 16
-    image btn.restore = icon "window-restore-symbolic", 16, 16
     let strut = 14
     let radius = 10
     // niri's own spring: stiffness 800, critically damped.
@@ -211,6 +207,7 @@ scene Session {
     on still wcool for 150ms while wcool > 0.5 { wcool = 0 }
 
     include "rows.plm"
+    include "ai.plm"
 
     // each monitor's left edge on the desktop, the monitors side by side in
     // their order: a carried window is drawn on all of them, shifted by this
@@ -268,7 +265,7 @@ scene Session {
     // the wallpaper: two slots crossfading, already graded to the palette by
     // the logic, at the file's own pixels and cut to cover each monitor. It
     // drifts with the camera (parallax), and slides with the shell's drawer.
-    permissions { run: "sh", "ls", "test", "magick", "lutgen", "rm", "tee", "cat" }
+    permissions { run: "sh", "nix", "pleamar-wm", "ls", "test", "magick", "lutgen", "rm", "tee", "cat" }
     text wall.a = ""
     text wall.b = ""
     // A path the shell asks for (`text wall.req ...`, then `emit wall_set`).
@@ -696,6 +693,18 @@ scene Session {
             // keeps its title bar.
             let zc = if(ovp[sc] > 0.001, clamp(w.$i / max(goal.w, 1), 0.05, 1), 1)
             let r = if(full, 0, radius * max(zc, 0.2))
+            // the AI sidebar's room at the frame's right (ai.plm): as drawn, and
+            // where it is going, which the program is asked to leave
+            let sbo = sbp.$i * sbw * zc * (1 - full)
+            let sbon = sbk.$i >= 0 and not sbh.$i
+            let sbg = sbw * sbgo.$i * (1 - full)
+            // while it slides, the program is drawn at the size it is asked:
+            // the tile and the sidebar move on springs of their own, and the
+            // program would be scaled by whatever is between them
+            let sbmv = sbp.$i > 0.001 and sbp.$i < 0.999
+            // where the sidebar starts: under the program's edge rather than
+            // short of it, so no glass shows between them while they slide
+            let sbx = if(sbmv, min((goal.w - sbg) * zc, w - sbo), w - sbo)
             // its title bar, zoomed with it; the title over it at the view's own
             // size, its band growing over the program in the overview to fit it.
             // None for a program that draws its own.
@@ -705,6 +714,8 @@ scene Session {
             let th = bh + (30 - bh) * tov * (1 - full)
             // its buttons: on a title bar big enough to read, the overview's too
             let btns = win.$i.open and not full and th > 13
+            // and the AI sidebar's, on any window but a dialog
+            let aibtn = btns and not win.$i.dialog
             // Carried, or crossing to another monitor, it is drawn on every
             // monitor, shifted by where each sits from its own, so it shows
             // across the boundary. Lifted, it shrinks around where it is held,
@@ -759,12 +770,13 @@ scene Session {
                     // has leaves the box's far side bare. Closed, its last image
                     // fades at the box.
                     let atbox = (win.$i.dialog and fw.$i < 1) or not win.$i.open
-                    window win.$i { at: x, y + bh; size: if(atbox, w, max(w, goal.w * zc)), if(atbox, h - bh, max(h - bh, (goal.h - bar) * zc)); ask: if(win.$i.dialog and fw.$i < 1, 0, goal.w), if(win.$i.dialog and fw.$i < 1, 0, goal.h - bar) }
+                    window win.$i { at: x, y + bh; size: if(atbox, w - sbo, if(sbmv, (goal.w - sbg) * zc, max(w - sbo, (goal.w - sbg) * zc))), if(atbox, h - bh, max(h - bh, (goal.h - bar) * zc)); ask: if(win.$i.dialog and fw.$i < 1, 0, goal.w - sbg), if(win.$i.dialog and fw.$i < 1, 0, goal.h - bar) }
                     box { from: x, y; size: w, th; color: crust; opacity: 0.88 * (1 - full) }
                     // its program's icon, scaled with the title bar
                     let isz = clamp(th - 10, 0, 16)
                     image ico.$i { at: x + 10, y + (th - isz) / 2; size: isz, isz; opacity: (1 - full) * if(bh > 13 or tov > 0.5, 1, tov * 2) * mix(0.7, 1, litp.$i) }
-                    text win.$i.title { at: x + 16 + isz, y + th / 2; anchor: left center; size: 12; color: mix(subtext0, text, litp.$i); family: "Berkeley Mono"; width: w - 26 - isz - btns * 44; lines: 1; opacity: (1 - full) * if(bh > 13 or tov > 0.5, 1, tov * 2) }
+                    text win.$i.title { at: x + 16 + isz, y + th / 2; anchor: left center; size: 12; color: mix(subtext0, text, litp.$i); family: "Berkeley Mono"; width: w - 26 - isz - btns * 44 - aibtn * 22; lines: 1; opacity: (1 - full) * if(bh > 13 or tov > 0.5, 1, tov * 2) }
+                    include "ai-draw.plm"
                 }
                 box { from: x, y; size: w, h; corner: r; stroke: 1; color: mix(base, text, litp.$i); opacity: 1 - full }
                 // where a carried window would land: this one, marked
@@ -809,6 +821,12 @@ scene Session {
             // the button is up: a window sliding under a held button is a drag.
             on press win.$i while dmode < 0.5 and not ov and keys.super < 0.5 and not win.$i.focused {
                 mon = screen.index
+                focus win.$i
+            }
+            // With a sidebar, its field may have the keyboard while this is still
+            // the focused window: a click on the program takes it back.
+            on press win.$i while sbon and win.$i.focused {
+                blur
                 focus win.$i
             }
             on release win.$i while dmode < 0.5 and not ov and keys.super < 0.5 and tiled and not full {
@@ -886,26 +904,64 @@ scene Session {
                 zone box rsz.9.$i { from: ex1, ey0; size: edge, corner; cursor: nesw_resize; active: sizing or held; handle: i, top_right }
                 zone box rsz.10.$i { from: ex0, cy1; size: edge, corner; cursor: nesw_resize; active: sizing or held; handle: i, bottom_left }
                 zone box rsz.11.$i { from: ex1, cy1; size: edge, corner; cursor: nwse_resize; active: sizing or held; handle: i, bottom_right }
-                zone box wmax.$i { at: x + w - 40, y + th / 2; size: 20, th; cursor: pointer; label: "Maximize"; active: btns and here and dmode < 0.5 and not win.$i.dialog }
-                zone box wclose.$i { at: x + w - 18, y + th / 2; size: 20, th; cursor: pointer; label: "Close"; active: btns and here and dmode < 0.5 }
+                // (side by side, with no gap between them: the pointer stays one)
+                zone box wmax.$i { at: x + w - 40, y + th / 2; size: 22, th; cursor: pointer; label: "Maximize"; active: btns and here and dmode < 0.5 and not win.$i.dialog }
+                zone box wclose.$i { at: x + w - 18, y + th / 2; size: 22, th; cursor: pointer; label: "Close"; active: btns and here and dmode < 0.5 }
+                zone box aib.$i { at: x + w - 62, y + th / 2; size: 22, th; cursor: pointer; label: "AI sidebar"; active: aibtn and here and dmode < 0.5 }
                 // maximize (restore once maximized) and close, at the title
                 // bar's right end, moving and shrinking with the window
                 let bs = clamp(th - 8, 0, 20)
                 let bi = clamp(th - 14, 0, 16)
+                // the buttons' marks, drawn as the spark is: half a square, the
+                // two of restore and their offset, half a cross
+                // (squares on whole pixels, their lines crisp)
+                let bm = floor(bi * 0.3) + 0.5
+                let br = floor(bi * 0.24) + 0.5
+                let bo = round(bi * 0.1)
+                let bc = bi * 0.28
+                // their hover, eased: a disc that grows in behind the mark
+                prop hv.a.$i = 0 ~140ms
+                prop hv.m.$i = 0 ~140ms
+                prop hv.c.$i = 0 ~140ms
+                follow hv.a.$i = aib.$i.hover
+                follow hv.m.$i = wmax.$i.hover
+                follow hv.c.$i = wclose.$i.hover
                 group {
                     show: btns and wshow
                     move: wmx, wmy
-                    opacity: seen.$i * mix(0.6, 1, max(litp.$i, max(wmax.$i.hover, wclose.$i.hover)))
+                    opacity: seen.$i * mix(0.6, 1, max(litp.$i, max(max(hv.m.$i, hv.c.$i), hv.a.$i)))
                     pivot: wpx, wpy
                     scale: 1 - 0.05 * liftp.$i
                     group {
                         show: not win.$i.dialog
-                        box { at: x + w - 40, y + th / 2; size: bs, bs; corner: bs / 2; color: surface1; opacity: wmax.$i.hover }
-                        image btn.max { at: x + w - 40 - bi / 2, y + (th - bi) / 2; size: bi, bi; tint: text; opacity: if(maxed, 0, 1) }
-                        image btn.restore { at: x + w - 40 - bi / 2, y + (th - bi) / 2; size: bi, bi; tint: text; opacity: if(maxed, 1, 0) }
+                        box { at: x + w - 40, y + th / 2; size: bs * (0.6 + 0.4 * hv.m.$i), bs * (0.6 + 0.4 * hv.m.$i); corner: bs / 2; color: surface1; opacity: hv.m.$i }
+                        // maximize: a square; restore: one square behind another
+                        path { at: round(x + w - 40), round(y + th / 2); color: text; stroke: 1; show: not maxed
+                               move -bm, -bm; line bm, -bm; line bm, bm; line -bm, bm; close }
+                        path { at: round(x + w - 40) - bo, round(y + th / 2) + bo; color: text; stroke: 1; show: maxed
+                               move -br, -br; line br, -br; line br, br; line -br, br; close }
+                        path { at: round(x + w - 40) + bo, round(y + th / 2) - bo; color: text; stroke: 1; show: maxed
+                               move -br, -br + 2 * bo; line -br, -br; line br, -br; line br, br; line br - 2 * bo, br }
                     }
-                    box { at: x + w - 18, y + th / 2; size: bs, bs; corner: bs / 2; color: red; opacity: wclose.$i.hover }
-                    image btn.close { at: x + w - 18 - bi / 2, y + (th - bi) / 2; size: bi, bi; tint: text }
+                    box { at: x + w - 18, y + th / 2; size: bs * (0.6 + 0.4 * hv.c.$i), bs * (0.6 + 0.4 * hv.c.$i); corner: bs / 2; color: red; opacity: hv.c.$i }
+                    // close: a cross
+                    path { at: x + w - 18, y + th / 2; color: text; stroke: 1.2
+                           move -bc, -bc; line bc, bc }
+                    path { at: x + w - 18, y + th / 2; color: text; stroke: 1.2
+                           move bc, -bc; line -bc, bc }
+                    // the AI sidebar's: a four-pointed spark, filled while it is open,
+                    // an outline while one is put away, and otherwise only under
+                    // the pointer
+                    let sp = bi * 0.42
+                    let sk = sp * 0.16
+                    group {
+                        show: aibtn
+                        box { at: x + w - 62, y + th / 2; size: bs * (0.6 + 0.4 * hv.a.$i), bs * (0.6 + 0.4 * hv.a.$i); corner: bs / 2; color: surface1; opacity: hv.a.$i }
+                        path { at: x + w - 62, y + th / 2; color: text; show: sbon
+                               move 0, -sp; curve sp, 0 via sk, -sk; curve 0, sp via sk, sk; curve -sp, 0 via -sk, sk; curve 0, -sp via -sk, -sk; close }
+                        path { at: x + w - 62, y + th / 2; color: text; stroke: 1.2; show: not sbon; opacity: max(if(sbk.$i >= 0 and sbh.$i, 1, 0), hv.a.$i)
+                               move 0, -sp; curve sp, 0 via sk, -sk; curve 0, sp via sk, sk; curve -sp, 0 via -sk, sk; curve 0, -sp via -sk, -sk; close }
+                    }
                 }
             }
             // Maximized, or back to the size it had before: a floating one keeps
@@ -954,6 +1010,47 @@ scene Session {
             }
             on window_minimize(v) while v == i and here and win.$i.floating { tile win.$i }
             on press wclose.$i { close win(i) }
+            // The AI sidebar (ai.plm): its button, or Super+a on the window with
+            // the keyboard, opens one in a free channel with the provider used
+            // last, or puts away the one it has and brings it back (its
+            // conversation goes on until the window closes; an empty one
+            // ends). Its tile grows by
+            // the sidebar's width (a float, its own width), and shrinks back as
+            // it is put away.
+            on press aib.$i { emit sb_toggle(i) }
+            on ai_toggle while win.focus == i and not win.$i.dialog { emit sb_toggle(i) }
+            on sb_toggle(v) while v == i and sbk.$i < 0 and sbfree >= 0 {
+                sb.req = win.$i.title
+                sb.reqapp = win.$i.app
+                sb.prov[sbfree] = sb.last
+                sb.win[sbfree] = i
+                sbk.$i = sbfree
+                emit sb_start(sbfree)
+            }
+            // (put away with nothing said yet, it ends instead)
+            on sb_toggle(v) while v == i and sbk.$i >= 0 and not sbh.$i and sb.n[sbk.$i] > 0 { sbh.$i = true }
+            on sb_toggle(v) while v == i and sbk.$i >= 0 and not sbh.$i and sb.n[sbk.$i] < 1 { emit sb_close(sbk.$i) }
+            on sb_toggle(v) while v == i and sbk.$i >= 0 and sbh.$i { sbh.$i = false }
+            on sb_close(v) while sbk.$i == v {
+                sbk.$i = -1
+                sbh.$i = false
+            }
+            on change win.$i.open while not win.$i.open and sbk.$i >= 0 and sc == me { emit sb_close(sbk.$i) }
+            on change sbon while sc == me { sbgo.$i = sbon }
+            on change sbon while sbon and tiled and sc == me {
+                // (a share of 1 is uw wide, a gap with it: rows.plm)
+                sba.$i = min(1, wp.$i + sbw / uw.$i) - wp.$i
+                wp.$i = min(1, wp.$i + sbw / uw.$i)
+                auto[sc] = false
+            }
+            on change sbon while sbon and flo and sc == me {
+                fx.$i = fgx
+                fy.$i = fgy
+                fh.$i = fgh
+                fw.$i = fgw + sbw
+            }
+            on change sbon while not sbon and tiled and sc == me { wp.$i = max(0.1, wp.$i - sba.$i) }
+            on change sbon while not sbon and flo and sc == me { fw.$i = max(200, fw.$i - sbw) }
             on change win.$i.open while not win.$i.open { big.$i = false }
             // Carried by its title bar, or anywhere with Super held: the edge
             // bands are on top and take their own presses.
@@ -1085,8 +1182,17 @@ scene Session {
     repeat i in 0..win.max { hzm = max(hzm, hz.$i) }
     follow hztop = hzm
 
+    // A sidebar's field keeps the keyboard until told otherwise: another
+    // window taking it (a click, the pointer, a key) has it, not the field.
+    on change win.focus while win.focus >= 0 {
+        blur
+        focus win(win.focus)
+    }
+
     // actions, bound in keys.conf
     event close
+    // the AI sidebar of the window with the keyboard, opened or put away
+    event ai_toggle
     event fullscreen
     event max_down
     event max_up

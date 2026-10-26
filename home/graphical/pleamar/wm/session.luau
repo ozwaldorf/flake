@@ -230,3 +230,7 @@ every(AGC_STEP, function()
         fact["agc.clock"] = (fact["agc.clock"] or 0) + AGC_STEP
     end
 end)
+
+-- The AI sidebar (ai.plm).
+local ok, err = pcall(require, "ai")
+if not ok then log("ai: " .. tostring(err)) end

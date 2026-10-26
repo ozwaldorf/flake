@@ -1,0 +1,122 @@
+// The AI sidebar: a chat with Claude Code or Codex inside a window's own
+// frame, at its right, given that window through pleamar-wm's agent hands
+// (the pleamar-desktop MCP server). The title bar's spark opens it
+// (session.plm), ai-draw.plm draws it, and ai.luau drives the provider.
+//
+// Up to four at once: each is a channel k, on window sb.win.$k.
+part Ai {
+    let sbw = 380
+    let sbpad = 14
+    let sbrw = sbw - 2 * sbpad
+
+    repeat i in 0..win.max {
+        // its channel (-1: none); put away (its spark pressed: the
+        // conversation stays, and the spark brings it back); how open it is;
+        // and the share of the working area its tile grew by to make room
+        fact sbk.$i = -1
+        fact sbh.$i = false
+        // the channel it last had, drawn while it slides away after ending
+        fact sbd.$i = 0
+        on change sbk.$i while sbk.$i >= 0 { sbd.$i = sbk.$i }
+        prop sbp.$i = 0 ~niri
+        follow sbp.$i = if(sbk.$i >= 0 and not sbh.$i and win.$i.open, 1, 0)
+        fact sba.$i = 0
+        // the room its program is asked to leave: set with its tile's width,
+        // so the two change in the same frame and it is never asked for a
+        // size in between
+        fact sbgo.$i = false
+        // what is being written to its sidebar
+        text sbin.$i = ""
+    }
+    repeat k in 0..4 {
+        fact sb.win.$k = -1
+        // 0 Claude, 1 Codex
+        fact sb.prov.$k = 0
+        // idle · starting · working (a turn going) · offline (why in status)
+        fact sb.state.$k: idle | starting | working | offline = idle
+        text sb.target.$k = ""
+        text sb.status.$k = ""
+        // The thread, row by row: facts and texts, which every monitor's
+        // copy shares (a model filled by the logic only reaches the first).
+        // kind: 1 you, 2 the agent, 3 a tool it used (state 0 going, 1 done,
+        // 2 failed), 4 a note; sb.n, how many there are.
+        fact sb.n.$k = 0
+        repeat n in 0..32 {
+            fact sbr.$k.$n.kind = 0
+            fact sbr.$k.$n.state = 0
+            text sbr.$k.$n.text = ""
+            text sbr.$k.$n.detail = ""
+        }
+        // bumped by each message sent: the thread goes back to its end
+        fact sb.sent.$k = 0
+    }
+    let sbfree = if(sb.win.0 < 0, 0, if(sb.win.1 < 0, 1, if(sb.win.2 < 0, 2, if(sb.win.3 < 0, 3, -1))))
+    // The window asked for, for the logic to find its PID by.
+    text sb.req = ""
+    text sb.reqapp = ""
+
+    // to the logic, each with its channel
+    event sb_start ->
+    event sb_send ->
+    event sb_stop ->
+    event sb_new ->
+    event sb_close ->
+    // a window's sidebar opened, or put away and brought back (its slot)
+    event sb_toggle
+    // the provider of a sidebar not yet talked to (its channel)
+    event sb_switch ->
+    // the provider last chosen, the next sidebar's (kept by the logic)
+    fact sb.last = 0
+    on sb_close(v) { sb.win[v] = -1 }
+
+    // the spinners' clock, kept by the logic
+    fact sb.t = 0
+
+    // A thread: it scrolls with the wheel and by dragging, and follows what
+    // arrives while it is at its end; the wheel up or a drag lets go, coming
+    // back to the end follows again, and so does sending (sent).
+    component SbThread(tx: number, ty: number, th: number, sent: number, on: bool) {
+        fact stuck = true
+        prop len = 0
+        column lst { at: tx, ty; view: sbrw, th; children }
+        zone box area { from: tx, ty; size: sbrw, th; active: on }
+        follow len = lst.content
+        on scroll area while wheel > 0 { stuck = false }
+        on drag area while drag.dy > 12 { stuck = false }
+        on change lst.scroll while lst.content - lst.scroll < th + 16 { stuck = true }
+        on change len while stuck { lst.scroll: max(0, len - th) ~0ms }
+        on change sent { stuck = true }
+    }
+
+    component SbRow(kind: number, st: number, words: text, detail: text, ac: color) {
+        measure said
+        measure reply
+        measure note
+        // the width of what you said on one line, for its bubble: a wrapped
+        // text measures as wide as its wrap
+        measure line
+        let bw = min(line.width, sbrw - 60)
+        // (the gap below it included: an empty row takes no room)
+        size: sbrw, if(kind < 0.5, 0, 10 + if(kind == 1, said.height + 16, if(kind == 2, reply.height + 4, if(kind == 4, note.height + 4, 22))))
+        // 1 · yours, a bubble on the right as wide as it says
+        group {
+            show: kind == 1
+            text words { at: 0, 0; anchor: left top; size: 13; lines: 1; measure: line; opacity: 0 }
+            box { from: sbrw - bw - 24, 0; size: bw + 24, said.height + 12; corner: 12; color: surface0 }
+            text words { at: sbrw - 12, 6; anchor: right top; width: sbrw - 60; size: 13; color: text; align: right; measure: said; selectable: true }
+        }
+        // 2 · the agent's, loose
+        text words { at: 2, 2; anchor: left top; width: sbrw - 8; size: 13; line_height: 1.4; color: text; measure: reply; markdown: true; selectable: true; show: kind == 2 }
+        // 3 · a tool: a ring that turns while it goes, a dot when done, red when it failed
+        group {
+            show: kind == 3
+            ellipse { at: 8, 11; radius: 5; stroke: 1.4; color: if(st == 2, red, ac); opacity: 80% }
+            arc { at: 8, 11; radius: 5; span: 110deg; width: 1.6; rotate: sb.t * 360deg; color: ac; show: st == 0 }
+            ellipse { at: 8, 11; radius: 2.5; color: ac; show: st == 1 }
+            text words { at: 22, 11; anchor: left center; size: 11.5; color: subtext0; family: "Berkeley Mono"; width: sbrw * 0.4; lines: 1 }
+            text detail { at: sbrw - 2, 11; anchor: right center; size: 11; color: overlay1; family: "Berkeley Mono"; width: sbrw * 0.55 - 30; lines: 1; align: right }
+        }
+        // 4 · a note
+        text words { at: 2, 2; anchor: left top; size: 11.5; color: red; width: sbrw - 8; lines: 4; measure: note; selectable: true; show: kind == 4 }
+    }
+}

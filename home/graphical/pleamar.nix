@@ -90,6 +90,7 @@ let
     )
     (bind "Windows" "Super+r" "Cycle window width" "cycle_width")
     (bind "Windows" "Super+Shift+r" "Cycle row height" "cycle_height")
+    (bind "Windows" "Super+a" "Open or hide the AI sidebar" "ai_toggle")
     (bind "Focus" "Super+Left" "Focus window or monitor left" "focus_left")
     (bind "Focus" "Super+Right" "Focus window or monitor right" "focus_right")
     (bind "Focus" "Super+Up" "Focus row above" "focus_up")

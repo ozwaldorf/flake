@@ -1,0 +1,148 @@
+// The AI sidebar (ai.plm), drawn as part of window i: inside its frame's
+// clip, at its right, so it moves, fades, shrinks and zooms with the window.
+// A tint over the window's own glass, which frosts what is behind. Its
+// channel's facts and texts are read by place (kk); the thread's texts by
+// pick, which a component takes.
+part AiDraw {
+    let kk = if(sbk.$i >= 0, sbk.$i, sbd.$i)
+    let px = x + sbx
+    let pw = w - sbx
+    let py = y + bh
+    let ph = h - bh
+    // the content at its own size, scaled with the window around its corner
+    let czc = max(zc, 0.05)
+    let cph = ph / czc
+    let cx = px + sbpad
+    let listy = py + 50
+    let listh = cph - 50 - 76
+    let footy = py + cph - 64
+    let ac = mix(peach, teal, sb.prov[kk])
+    let busy = sb.state[kk] == working or sb.state[kk] == starting
+    // its buttons' hover, eased
+    prop hv.n.$i = 0 ~140ms
+    prop hv.s.$i = 0 ~140ms
+    prop hv.pc.$i = 0 ~140ms
+    prop hv.px.$i = 0 ~140ms
+    // its zones, only once it is open, out of the overview and not carried
+    let act = sbk.$i >= 0 and sbp.$i > 0.9 and tov < 0.001 and here and dmode < 0.5
+    group {
+        show: pw > 0.5 and sbp.$i > 0.001
+        box { from: px, py; size: pw, ph; color: crust; opacity: 75% }
+        line { from: px, py; to: px, py + ph; width: 1; color: surface1 }
+        // The program and the title bar over the conversation, as the windows
+        // over the desk's shelf: their edges' shadows falling on it, each two
+        // ramps (a short dense one and a long faint one) so it fades out
+        // instead of ending on a line.
+        let shn = 12 * czc
+        let shf = 48 * czc
+        group {
+            mask: px, 0 to px + shn, 0
+            opacity: 0.35
+            box { from: px, py; size: shn, ph; color: crust }
+        }
+        group {
+            mask: px, 0 to px + shf, 0
+            opacity: 0.35
+            box { from: px, py; size: shf, ph; color: crust }
+        }
+        group {
+            mask: 0, py to 0, py + shn
+            opacity: 0.35
+            box { from: px, py; size: pw, shn; color: crust }
+        }
+        group {
+            mask: 0, py to 0, py + shf
+            opacity: 0.35
+            box { from: px, py; size: pw, shf; color: crust }
+        }
+        group {
+            pivot: px, py
+            scale: czc
+            // the head: who (what it works on is the title bar's); while
+            // nothing is said yet, both, the other one to switch to
+            let fresh = sb.n[kk] < 1
+            group {
+                show: not fresh
+                ellipse { at: cx + 6, py + 20; radius: 5; color: ac; opacity: if(busy, 0.5 + 0.5 * sin(sb.t * 240), 1) }
+                text pick(sb.prov[kk], "Claude", "Codex") { at: cx + 18, py + 20; anchor: left center; size: 13; weight: 600; color: text }
+            }
+            group {
+                show: fresh
+                box { at: cx + 40, py + 20; size: 84, 28; corner: 8; color: surface1; opacity: hv.pc.$i * (sb.prov[kk] != 0) }
+                box { at: cx + 124, py + 20; size: 84, 28; corner: 8; color: surface1; opacity: hv.px.$i * (sb.prov[kk] != 1) }
+                ellipse { at: cx + 6, py + 20; radius: 5; color: peach; opacity: if(sb.prov[kk] == 0, 1, 0.35) }
+                text "Claude" { at: cx + 18, py + 20; anchor: left center; size: 13; weight: 600; color: text; opacity: if(sb.prov[kk] == 0, 1, 0.45) }
+                ellipse { at: cx + 90, py + 20; radius: 5; color: teal; opacity: if(sb.prov[kk] == 1, 1, 0.35) }
+                text "Codex" { at: cx + 102, py + 20; anchor: left center; size: 13; weight: 600; color: text; opacity: if(sb.prov[kk] == 1, 1, 0.45) }
+            }
+            // a new conversation, once there is one to leave
+            group {
+                show: sb.n[kk] > 0
+                box { at: cx + sbrw - 14, py + 20; size: 28, 28; corner: 8; color: surface1; opacity: hv.n.$i }
+                line { from: cx + sbrw - 20, py + 20; to: cx + sbrw - 8, py + 20; width: 1.6; color: text; opacity: 60% + 40% * hv.n.$i }
+                line { from: cx + sbrw - 14, py + 14; to: cx + sbrw - 14, py + 26; width: 1.6; color: text; opacity: 60% + 40% * hv.n.$i }
+            }
+            line { from: px, py + 40; to: px + sbw, py + 40; width: 1; color: surface1 }
+
+            SbThread(cx, listy, listh, sb.sent[kk], act) {
+                repeat n in 0..32 {
+                    SbRow(sbr[kk].$n.kind * (n < sb.n[kk]), sbr[kk].$n.state,
+                          pick(kk, sbr.0.$n.text, sbr.1.$n.text, sbr.2.$n.text, sbr.3.$n.text),
+                          pick(kk, sbr.0.$n.detail, sbr.1.$n.detail, sbr.2.$n.detail, sbr.3.$n.detail), ac)
+                }
+            }
+            group {
+                show: sb.n[kk] < 1
+                text "Ask about this window" { at: cx + sbrw / 2, listy + listh / 2 - 14; anchor: center; size: 16; weight: 600; color: text; opacity: 85% }
+                text "It can read it, look at it and act in it with its own pointer and keyboard." { at: cx + sbrw / 2, listy + listh / 2 + 16; anchor: center; size: 11.5; color: overlay1; width: sbrw - 40; lines: 3; align: center }
+            }
+
+            // the foot: what it is doing, and what you write
+            text sb.status[kk] { at: cx + 2, footy - 4; anchor: left center; size: 10.5; color: if(sb.state[kk] == offline, red, overlay1); width: sbrw; lines: 1 }
+            box { from: cx, footy + 8; size: sbrw, 42; corner: 12; color: crust; opacity: 50% }
+            box { from: cx, footy + 8; size: sbrw, 42; corner: 12; stroke: 1; color: ac; opacity: 30% }
+            input sbin.$i { at: cx + 14, footy + 20; width: sbrw - 64; size: 13.5; color: text; placeholder: "Ask about this window..."; selection: surface2 }
+            ellipse { at: cx + sbrw - 22, footy + 29; radius: 14; color: if(busy, red, ac); opacity: 80% + 20% * hv.s.$i }
+            path { at: cx + sbrw - 28, footy + 22; color: crust; stroke: 2; show: not busy
+                   move 6, 13; line 6, 1 }
+            path { at: cx + sbrw - 28, footy + 22; color: crust; stroke: 2; show: not busy
+                   move 1, 6; line 6, 1; line 11, 6 }
+            box { at: cx + sbrw - 22, footy + 29; size: 9, 9; corner: 2; color: crust; show: busy }
+
+            zone box sbpc.$i { at: cx + 40, py + 20; size: 84, 28; corner: 8; cursor: pointer; label: "Claude"; active: act and fresh and sb.prov[kk] != 0 }
+            zone box sbpx.$i { at: cx + 124, py + 20; size: 84, 28; corner: 8; cursor: pointer; label: "Codex"; active: act and fresh and sb.prov[kk] != 1 }
+            zone box sbinz.$i { from: cx, footy + 8; size: sbrw - 44, 42; cursor: text; label: "Message"; active: act }
+            zone box sbnew.$i { at: cx + sbrw - 14, py + 20; size: 28, 28; corner: 8; cursor: pointer; label: "New conversation"; active: act and sb.n[kk] > 0 }
+            zone ellipse sbsend.$i { at: cx + sbrw - 22, footy + 29; radius: 16; cursor: pointer; label: pick(if(busy, 1, 0), "Send", "Stop"); active: act }
+            // (a zone's hover is only known in its group)
+            follow hv.n.$i = sbnew.$i.hover
+            follow hv.s.$i = sbsend.$i.hover
+            follow hv.pc.$i = sbpc.$i.hover
+            follow hv.px.$i = sbpx.$i.hover
+        }
+    }
+
+    on press sbinz.$i { focus sbin.$i }
+    on press sbpc.$i {
+        sb.prov[kk] = 0
+        sb.last = 0
+        emit sb_switch(kk)
+    }
+    on press sbpx.$i {
+        sb.prov[kk] = 1
+        sb.last = 1
+        emit sb_switch(kk)
+    }
+    on press sbnew.$i { emit sb_new(kk) }
+    on press sbsend.$i while busy { emit sb_stop(kk) }
+    on press sbsend.$i while not busy {
+        sb.sent[kk] = sb.sent[kk] + 1
+        emit sb_send(kk)
+    }
+    on submit sbin.$i {
+        sb.sent[kk] = sb.sent[kk] + 1
+        emit sb_send(kk)
+    }
+    // Opened: its field takes the keyboard.
+    on change sbon while sbon and sc == me { focus sbin.$i }
+}
