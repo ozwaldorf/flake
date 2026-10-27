@@ -197,7 +197,8 @@ let
   # What the scenes need that is generated: linked into the working tree as
   # pleamar/gen (ignored by git), where the scenes include it from.
   # The agent's cursor: the user's own (the theme's `default`, every frame),
-  # tinted blue, as a sheet the window manager scene draws.
+  # tinted blue for the first and peach for the second, as sheets the window
+  # manager scene draws.
   agentCursor =
     let
       cursor = config.home.pointerCursor;
@@ -215,12 +216,15 @@ let
           ${toString (cursor.size * 3 / 2)} ${toString cursor.size} $out
         magick -size $(cat $out/agent-cursor.size) -depth 8 rgba:$out/agent-cursor.rgba \
           -fill '#${palette.blue}' -colorize 40% $out/agent-cursor.png
+        magick -size $(cat $out/agent-cursor.size) -depth 8 rgba:$out/agent-cursor.rgba \
+          -fill '#${palette.peach}' -colorize 40% $out/agent-cursor-1.png
         rm $out/agent-cursor.rgba $out/agent-cursor.size
       '';
 
   generated = pkgs.linkFarm "pleamar-generated" {
     "agent-cursor.plm" = "${agentCursor}/agent-cursor.plm";
     "agent-cursor.png" = "${agentCursor}/agent-cursor.png";
+    "agent-cursor-1.png" = "${agentCursor}/agent-cursor-1.png";
     "theme.plm" = pkgs.writeText "theme.plm" (import ./pleamar/theme.nix { inherit lib palette; });
     "keybinds.luau" = pkgs.writeText "keybinds.luau" keybindsLuau;
     "phone-keys.plm" = pkgs.writeText "phone-keys.plm" phoneKeys;

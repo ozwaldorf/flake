@@ -1311,6 +1311,8 @@ scene Session {
     // on a monitor rather than a window (agent.win -1) leaves it.
     fact ag.win = -1
     on change agent.win while agent.win >= 0 { ag.win = agent.win }
+    let agdx[2]
+    let agdy[2]
     repeat k in 0..2 {
         fact agent.$k.x = 0
         fact agent.$k.y = 0
@@ -1318,6 +1320,28 @@ scene Session {
         fact agent.$k.down = 0
         fact agent.$k.seen = 0
         on change agent.$k.seen { ag.recent = true }
+        // The window it acted on and where that was then (across monitors):
+        // a pan of the canvas since carries the cursor with it. A new anchor
+        // takes over what the old one had moved (agk), which fades as the
+        // cursor goes to its new point, so it does not jump.
+        fact agw.$k = -1
+        fact agox.$k = 0
+        fact agoy.$k = 0
+        let agi = max(agw.$k, 0)
+        let agt = agw.$k >= 0 and win[agi].open
+        agdx[k] = if(agt, x[agi] + mx[win[agi].screen] - agox.$k, 0)
+        agdy[k] = if(agt, y[agi] + my[win[agi].screen] - agoy.$k, 0)
+        prop agk.$k.x = 0 ~140ms
+        prop agk.$k.y = 0 ~140ms
+        on change agent.$k.seen {
+            agk.$k.x: agk.$k.x + agdx[k] ~0ms
+            agk.$k.y: agk.$k.y + agdy[k] ~0ms
+            agk.$k.x: 0 after 16ms
+            agk.$k.y: 0 after 16ms
+            agw.$k = agent.win
+            agox.$k = x[max(agent.win, 0)] + mx[win[max(agent.win, 0)].screen]
+            agoy.$k = y[max(agent.win, 0)] + my[win[max(agent.win, 0)].screen]
+        }
     }
     on still agent.0.seen for 90000ms while ag.recent and not agent.active { ag.recent = false }
     surface agent_hands {
@@ -1341,10 +1365,14 @@ scene Session {
             on change agent.$k.seen while ag.$k.on < 0.05 {
                 ag.$k.x: agent.$k.x ~0ms
                 ag.$k.y: agent.$k.y ~0ms
+                agk.$k.x: 0 ~0ms
+                agk.$k.y: 0 ~0ms
             }
             on change agent.$k.screen {
                 ag.$k.x: agent.$k.x ~0ms
                 ag.$k.y: agent.$k.y ~0ms
+                agk.$k.x: 0 ~0ms
+                agk.$k.y: 0 ~0ms
             }
             on change agent.$k.seen { ag.$k.on: 1 }
             on change ag.live while not ag.live { ag.$k.on: 0 ~900ms }
@@ -1352,24 +1380,44 @@ scene Session {
                 ag.$k.ring: 0 ~0ms
                 ag.$k.ring: 1 after 16ms
             }
-            let ax = ag.$k.x
-            let ay = ag.$k.y
+            // carried with the window it acted on
+            let ax = ag.$k.x + agk.$k.x + agdx[k]
+            let ay = ag.$k.y + agk.$k.y + agdy[k]
             measure tag.$k
             group {
                 show: ag.$k.on > 0.01 and agent.$k.screen == screen.index
                 opacity: ag.$k.on
-                ellipse { at: ax, ay; radius: 4 + 22 * ag.$k.ring; stroke: 2.2 * (1 - ag.$k.ring) + 0.4; color: if(k == 0, teal, lavender); opacity: 80% * (1 - ag.$k.ring) }
+                ellipse { at: ax, ay; radius: 4 + 22 * ag.$k.ring; stroke: 2.2 * (1 - ag.$k.ring) + 0.4; color: if(k == 0, blue, peach); opacity: 80% * (1 - ag.$k.ring) }
                 group {
                     pivot: ax, ay
                     scale: 1 - 0.12 * ag.$k.press, 1 - 0.12 * ag.$k.press
-                    // the user's own cursor, tinted blue, its tip on the point
-                    image agc.sheet { at: ax - agc.hx, ay - agc.hy; size: agc.cell, agc.cell; cell: agc.frame, agc.cols, agc.rows }
+                    // the user's own cursor, tinted its colour, its tip on the point
+                    image agc.sheet { at: ax - agc.hx, ay - agc.hy; size: agc.cell, agc.cell; cell: agc.frame, agc.cols, agc.rows; show: k == 0 }
+                    image agc.sheet1 { at: ax - agc.hx, ay - agc.hy; size: agc.cell, agc.cell; cell: agc.frame, agc.cols, agc.rows; show: k == 1 }
                 }
-                // Its name underneath, centred on the hand.
-                let tx = ax - agc.hx + agc.cell / 2
-                let ty = ay - agc.hy + agc.cell + 2
-                box { from: tx - tag.$k.width / 2 - 8, ty; size: tag.$k.width + 16, 18; corner: 9; color: crust; opacity: 85% }
-                text agent.name { at: tx, ty + 9.5; anchor: center; size: 10; weight: 600; color: mix(#ffffff, blue, 0.4); family: "Berkeley Mono"; measure: tag.$k }
+                // Its name underneath, centred on the hand; carried off the
+                // monitor, at the edge nearest it, with an arrow pointing there.
+                let pw = tag.$k.width / 2 + 8
+                let off = ax < 0 or ax > screen.width or ay < 0 or ay > screen.height
+                // (inside what the shell leaves: its rail and drawer, signed from
+                // the left or right, and what its bars reserve)
+                let si = screen.index
+                let rl = win.reserved[si].left + max(edge[si], 0) + max(room[si], 0)
+                let rr = win.reserved[si].right + max(-edge[si], 0) + max(-room[si], 0)
+                let lx = if(off, clamp(ax, rl + pw + 24, screen.width - rr - pw - 24), ax - agc.hx + agc.cell / 2)
+                let ly = if(off, clamp(ay, win.reserved[si].top + 33, screen.height - win.reserved[si].bottom - 33), ay - agc.hy + agc.cell + 11)
+                let ang = atan2(ay - ly, ax - lx)
+                box { from: lx - pw, ly - 9; size: 2 * pw, 18; corner: 9; color: crust; opacity: 85% }
+                text agent.name { at: lx, ly + 0.5; anchor: center; size: 10; weight: 600; color: mix(#ffffff, if(k == 0, blue, peach), 0.4); family: "Berkeley Mono"; measure: tag.$k }
+                let rx = lx + cos(ang) * (pw + 9)
+                let ry = ly + sin(ang) * 18
+                group {
+                    show: off
+                    pivot: rx, ry
+                    rotate: ang * 1deg
+                    path { at: rx - 4, ry - 6; color: if(k == 0, blue, peach)
+                           move 0, 0; line 10, 6; line 0, 12; close }
+                }
             }
         }
     }
