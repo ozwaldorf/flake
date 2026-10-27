@@ -729,10 +729,12 @@ scene Session {
             // A closed one fading out goes under the rest.
             let wz = if(not win.$i.open, -1, if(full, 100000, if(win.$i.dialog, 60000, if(lifted or xing.$i > 0.5, 90000, if(mxd, 50000, if(win.$i.floating, 1000 + stamp.$i, 0))))))
             // how it stacks while the pointer is over it, title bar included,
-            // to tell the top one
+            // to tell the top one. One for all monitors, so it cannot read
+            // which copy draws it (here, wshow).
             fact under.$i = false
             fact onbar.$i = false
-            follow hz.$i = if((under.$i or onbar.$i) and wshow, wz, -1)
+            let wseen = if((dmode == 1 and dslot == i) or xing.$i > 0.5, true, win.$i.pool == win.pool[sc]) and seen.$i > 0.005
+            follow hz.$i = if((under.$i or onbar.$i) and wseen, wz, -1)
             group {
                 z: wz
                 show: wshow
@@ -807,12 +809,14 @@ scene Session {
             on enter win.$i { under.$i = true }
             on leave grab.$i { onbar.$i = false }
             on enter grab.$i { onbar.$i = true }
-            on change cursor.x while hoverok and hz.$i >= 0 and hz.$i == hztop {
-                mon = screen.index
+            // The mouse moves in every monitor's copy: only the window's own
+            // copy hands it the keyboard.
+            on change cursor.x while hoverok and sc == me and hz.$i >= 0 and hz.$i == hztop {
+                mon = sc
                 focus win.$i
             }
-            on change cursor.y while hoverok and hz.$i >= 0 and hz.$i == hztop {
-                mon = screen.index
+            on change cursor.y while hoverok and sc == me and hz.$i >= 0 and hz.$i == hztop {
+                mon = sc
                 focus win.$i
             }
             // A click is meant: it takes the keyboard even mid-slide, and the
