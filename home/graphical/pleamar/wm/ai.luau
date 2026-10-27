@@ -54,9 +54,14 @@ local function add(c, kind, words, detail, state)
     return r
 end
 
+-- What was written while it worked, sent when the turn ends (below).
+local flush
 local function set_state(c, s, words)
     fact["sb.state." .. c.k] = s
     text["sb.status." .. c.k] = words or ""
+    if s == "idle" and c.queue and #c.queue > 0 then
+        after(10, function() if ch[c.k] == c then flush(c) end end)
+    end
 end
 
 -- A tool, as the thread shows it: its name, and what it was pointed at.
@@ -70,11 +75,29 @@ local function tool_row(c, name, args)
     return add(c, 3, short, (detail:gsub("%s+", " ")), 0)
 end
 
+-- Which program each conversation was about (provider, its session or
+-- thread id, app), a line each, for the list of conversations and /resume.
+local STATE = '"${XDG_STATE_HOME:-$HOME/.local/state}/pleamar-wm"'
+local function record(c, id)
+    run("sh", { "-c", "mkdir -p " .. STATE .. ' && printf "%s\\t%s\\t%s\\n" "$1" "$2" "$3" >> ' .. STATE .. "/ai-sessions", "sh", tostring(c.prov), id, c.app }, function() end)
+end
+
+-- What the user said, without what went with it: the window's tree before
+-- the first message, and Codex's instructions before that.
+local function said(t)
+    t = tostring(t or "")
+    if t:sub(1, 33) == "You are an assistant in a sidebar" then t = t:match("^.-\n\n(.*)$") or t end
+    return t:match("^The window as it is now %(`tree.-\n```\n\n(.*)$") or t
+end
+
 -- ── Claude Code ──
 
 local function claude_event(c, m)
     local p = c.claude
-    if m.type == "stream_event" and type(m.event) == "table" then
+    if m.type == "system" and m.subtype == "init" and m.session_id and m.session_id ~= p.session then
+        p.session = m.session_id
+        record(c, p.session)
+    elseif m.type == "stream_event" and type(m.event) == "table" then
         local e = m.event
         if e.type == "content_block_start" and e.content_block and e.content_block.type == "text" then
             p.live = add(c, 2, "")
@@ -119,6 +142,10 @@ local function claude_start(c)
         "--append-system-prompt", scope(c),
     }) do table.insert(args, a) end
     local p = c.claude
+    if p.session then
+        table.insert(args, "--resume")
+        table.insert(args, p.session)
+    end
     local ok, id = pcall(spawn, "nix", args, function(line)
         if line:sub(1, 1) ~= "{" then return end
         local good, m = pcall(json.decode, line)
@@ -155,6 +182,7 @@ local claude = {
     reset = function(c)
         if c.claude.id then kill(c.claude.id) end
         c.claude = { tools = {} }
+        c.queue, c.waiting = {}, {}
     end,
 }
 
@@ -164,6 +192,7 @@ local function codex_event(c, m)
     local p = c.codex
     if m.type == "thread.started" then
         p.thread = m.thread_id
+        record(c, p.thread)
         return
     end
     local it = m.item
@@ -237,6 +266,7 @@ local codex = {
     reset = function(c)
         if c.codex.id then kill(c.codex.id) end
         c.codex = { tools = {} }
+        c.queue, c.waiting = {}, {}
     end,
 }
 
@@ -286,6 +316,8 @@ local function open(k, app, title)
         shown = {},
         claude = { tools = {} },
         codex = { tools = {} },
+        queue = {},
+        waiting = {},
     }
     ch[k] = c
     text["sbin." .. (fact["sb.win." .. k] or 0)] = ""
@@ -308,15 +340,175 @@ for k = 0, CHANNELS - 1 do
     end
 end
 
+-- A conversation's rows from its file: Claude Code's session, or Codex's
+-- rollout of that thread.
+local function history(c, out)
+    c.rows = {}
+    for line in tostring(out or ""):gmatch("[^\n]+") do
+        local good, m = pcall(json.decode, line)
+        if not good or type(m) ~= "table" then continue end
+        local msg, role = m.message, m.type
+        if role == "response_item" and type(m.payload) == "table" then
+            msg, role = m.payload, m.payload.role
+            if m.payload.type == "function_call" then
+                local ok, a = pcall(json.decode, m.payload.arguments or "")
+                tool_row(c, m.payload.name, ok and a or nil).state = 1
+            end
+        end
+        if m.isMeta or type(msg) ~= "table" then continue end
+        local content = msg.content
+        if type(content) == "string" then content = { { type = "text", text = content } } end
+        if type(content) ~= "table" then continue end
+        for _, b in ipairs(content) do
+            local words = (b.type == "text" or b.type == "input_text" or b.type == "output_text") and tostring(b.text or "")
+            if words and role == "user" and not words:match("^%s*<") then
+                add(c, 1, said(words))
+            elseif words and role == "assistant" and words ~= "" then
+                add(c, 2, words)
+            elseif b.type == "tool_use" and role == "assistant" then
+                tool_row(c, b.name, b.input).state = 1
+            end
+        end
+    end
+    paint(c)
+end
+
+-- The provider's sidebar conversations, newest first, about this window's
+-- program: each its id, when, and the first thing said in it. The program is
+-- the one recorded; for one from before that was, Codex's first message
+-- names it, and Claude Code's names the window's process, which is matched
+-- while that still runs.
+local SHOWN = 8
+local MARK = {
+    [0] = [["text":"The window as it is now (`tree]],
+    [1] = [["text":"You are an assistant in a sidebar]],
+}
+local LIST = {
+    [0] = [[grep -lF "$1" "$HOME"/.claude/projects/*/*.jsonl 2>/dev/null | xargs -r ls -t | head -n 60 | while read -r f; do printf 'S\t%s\t%s\t' "$(basename "$f" .jsonl)" "$(stat -c %Y "$f")"; grep -m 1 -F "$1" "$f"; done]],
+    [1] = [[grep -rlF "$1" "$HOME/.codex/sessions" 2>/dev/null | xargs -r ls -t | head -n 60 | while read -r f; do printf 'S\t%s\t%s\t' "$(basename "$f" .jsonl | grep -o '[0-9a-f-]\{36\}$')" "$(stat -c %Y "$f")"; grep -m 1 -F "$1" "$f"; done]],
+}
+local AROUND = [[printf 'N\t%s\n' "$(date +%s)"; sed 's/^/I\t/' ]] .. STATE .. [[/ai-sessions 2>/dev/null; pleamar-wm agent windows 2>/dev/null | awk '{ print "W\t" $1 "\t" $2 }'; ]]
+local function ago(s)
+    if s < 3600 then return math.max(1, s // 60) .. "m" end
+    if s < 86400 then return s // 3600 .. "h" end
+    return s // 86400 .. "d"
+end
+local function first_text(m)
+    local msg = type(m.payload) == "table" and m.payload or m.message
+    local content = type(msg) == "table" and msg.content
+    if type(content) == "string" then return content end
+    for _, b in ipairs(type(content) == "table" and content or {}) do
+        if type(b.text) == "string" then return b.text end
+    end
+    return ""
+end
+local function list(c, done)
+    run("sh", { "-c", AROUND .. LIST[c.prov], "sh", MARK[c.prov] }, function(out)
+        if ch[c.k] ~= c then return end
+        local now, apps, procs = 0, {}, {}
+        local current = c.prov == 1 and c.codex.thread or c.claude.session
+        c.sessions = {}
+        fact["sb.scur." .. c.k] = -1
+        for line in tostring(out or ""):gmatch("[^\n]+") do
+            local kind, rest = line:match("^(%u)\t(.*)$")
+            if kind == "N" then
+                now = tonumber(rest) or 0
+            elseif kind == "I" then
+                local prov, id, app = rest:match("^(%d)\t([%w%-]+)\t(.*)$")
+                if tonumber(prov) == c.prov then apps[id] = app end
+            elseif kind == "W" then
+                local pid, app = rest:match("^(%S+)\t(%S+)$")
+                if pid then procs[pid] = app end
+            elseif kind == "S" and #c.sessions < SHOWN then
+                local id, t, js = rest:match("^([%w%-]+)\t(%d+)\t(.*)$")
+                local good, m = pcall(json.decode, js or "")
+                local words = (good and type(m) == "table") and first_text(m) or ""
+                local app = id and (apps[id] or words:match("^You are an assistant.-window %S+ %(([^,]+), titled") or procs[words:match("`tree (%d+)`") or ""])
+                if app == c.app then
+                    local j = #c.sessions
+                    table.insert(c.sessions, id)
+                    text["sbs." .. c.k .. "." .. j .. ".title"] = said(words):match("^%s*([^\n]*)") or id
+                    text["sbs." .. c.k .. "." .. j .. ".when"] = ago(math.max(0, now - tonumber(t)))
+                    if id == current then fact["sb.scur." .. c.k] = j end
+                end
+            end
+        end
+        fact["sb.sn." .. c.k] = #c.sessions
+        if done then done() end
+    end)
+end
+
+-- /resume [id]: back to that conversation, or the last one about this
+-- program, its thread shown again.
+local FILES = {
+    [0] = 'cat "$HOME"/.claude/projects/*/"$1".jsonl 2>/dev/null',
+    [1] = 'f=$(find "$HOME/.codex/sessions" -name "*$1.jsonl" 2>/dev/null | head -n 1); [ -n "$f" ] && cat "$f"',
+}
+local function resume(c, id)
+    if not id then
+        return list(c, function()
+            local current = c.prov == 1 and c.codex.thread or c.claude.session
+            local last = c.sessions[1] == current and c.sessions[2] or c.sessions[1]
+            if last then return resume(c, last) end
+            add(c, 4, "Nothing to resume for " .. c.app)
+        end)
+    end
+    c.p.reset(c)
+    c.primed = false
+    if c.prov == 1 then c.codex.thread = id else c.claude.session = id end
+    set_state(c, "starting", "Resuming")
+    run("sh", { "-c", FILES[c.prov], "sh", id }, function(out)
+        if ch[c.k] ~= c then return end
+        history(c, out)
+        if #c.rows == 0 then add(c, 4, "No conversation " .. id .. " found: it starts from there anyway") end
+        set_state(c, "idle", "Resumed " .. id:sub(1, 8))
+        if c.prov == 0 then claude_start(c) end
+    end)
+end
+
+local deliver
+
+on("sb_list", function(k)
+    local c = ch[math.floor(k or 0)]
+    if c then list(c) end
+end)
+
+on("sb_pick", function(v)
+    v = math.floor(v or 0)
+    local c = ch[v // SHOWN]
+    local id = c and c.sessions and c.sessions[v % SHOWN + 1]
+    if id then resume(c, id) end
+end)
+
 on("sb_send", function(k)
     local c = ch[math.floor(k or 0)]
     if not c or c.pid == "" then return end
     local s = fact["sb.state." .. c.k]
     local field = "sbin." .. (fact["sb.win." .. c.k] or 0)
     local words = (text[field] or ""):gsub("^%s+", ""):gsub("%s+$", "")
-    if words == "" or s == "working" or s == "starting" then return end
+    local now = held("Control_L") or held("Control_R")
+    local busy = s == "working" or s == "starting"
+    -- While it works, what is written waits for the turn to end; Ctrl+Enter
+    -- ends the turn so it goes now (an empty one, what is already waiting).
+    if busy then
+        if words ~= "" then
+            text[field] = ""
+            table.insert(c.queue, words)
+            table.insert(c.waiting, add(c, 1, words, "", 1))
+        end
+        if now and #c.queue > 0 and s == "working" then c.p.stop(c) end
+        return
+    end
+    if words == "" then return end
     text[field] = ""
+    local cmd, arg = words:match("^/(%a+)%s*([%w%-]*)$")
+    if cmd == "resume" then return resume(c, arg ~= "" and arg or nil) end
     add(c, 1, words)
+    deliver(c, words)
+end)
+
+-- Sent: to the provider, the first of a conversation with the window as it is.
+deliver = function(c, words)
     if c.primed then return c.p.send(c, words) end
     -- The first of a conversation goes with the window as it is, read here:
     -- the agent starts from it instead of asking for it.
@@ -329,14 +521,40 @@ on("sb_send", function(k)
         if #tree > TREE_CHARS then tree = tree:sub(1, TREE_CHARS) .. "\n..." end
         c.p.send(c, string.format("The window as it is now (`tree %s`, read just before this message):\n```\n%s\n```\n\n%s", c.pid, tree, words))
     end)
-end)
+end
+
+flush = function(c)
+    local words = table.concat(c.queue, "\n\n")
+    c.queue = {}
+    -- under what was answered while they waited
+    for _, r in ipairs(c.waiting) do
+        local at = table.find(c.rows, r)
+        if at then table.remove(c.rows, at) end
+        r.state = 0
+        table.insert(c.rows, r)
+    end
+    c.waiting = {}
+    paint(c)
+    deliver(c, words)
+end
 
 on("sb_stop", function(k)
     local c = ch[math.floor(k or 0)]
     if not c then return end
+    -- what waited goes with it
+    for _, r in ipairs(c.waiting) do table.remove(c.rows, table.find(c.rows, r) or #c.rows + 1) end
+    c.queue, c.waiting = {}, {}
     c.p.stop(c)
     add(c, 4, "Stopped")
     run("pleamar-wm", { "agent", "done" }, function() end)
+end)
+
+-- A row's copy button: channel * MAX + row.
+on("sb_copy", function(v)
+    v = math.floor(v or 0)
+    local words = text["sbr." .. (v // MAX) .. "." .. (v % MAX) .. ".text"] or ""
+    if words == "" then return end
+    run("wl-copy", {}, nil, { input = words, output = false })
 end)
 
 on("sb_new", function(k)

@@ -88,7 +88,8 @@ part AiDraw {
                 repeat n in 0..32 {
                     SbRow(sbr[kk].$n.kind * (n < sb.n[kk]), sbr[kk].$n.state,
                           pick(kk, sbr.0.$n.text, sbr.1.$n.text, sbr.2.$n.text, sbr.3.$n.text),
-                          pick(kk, sbr.0.$n.detail, sbr.1.$n.detail, sbr.2.$n.detail, sbr.3.$n.detail), ac)
+                          pick(kk, sbr.0.$n.detail, sbr.1.$n.detail, sbr.2.$n.detail, sbr.3.$n.detail), ac,
+                          kk * 32 + n, act)
                 }
             }
             group {
@@ -114,6 +115,46 @@ part AiDraw {
             zone box sbinz.$i { from: cx, footy + 8; size: sbrw - 44, 42; cursor: text; label: "Message"; active: act }
             zone box sbnew.$i { at: cx + sbrw - 14, py + 20; size: 28, 28; corner: 8; cursor: pointer; label: "New conversation"; active: act and sb.n[kk] > 0 }
             zone ellipse sbsend.$i { at: cx + sbrw - 22, footy + 29; radius: 16; cursor: pointer; label: pick(if(busy, 1, 0), "Send", "Stop"); active: act }
+
+            // The conversations to go back to: a clock and a chevron in the
+            // head, opening a list under it. A press anywhere else on the
+            // sidebar closes it (so that one goes first, under the rest).
+            let ddn = sb.sn[kk]
+            let ddx = cx + sbrw - 56
+            zone box sbddc.$i { from: px, py; size: sbw, cph; active: act and sbdd.$i }
+            zone box sbddb.$i { at: ddx, py + 20; size: 44, 28; corner: 8; cursor: pointer; label: "Conversations"; active: act }
+            box { at: ddx, py + 20; size: 44, 28; corner: 8; color: surface1; opacity: if(sbddb.$i.hover or sbdd.$i, 1, 0) }
+            ellipse { at: ddx - 7, py + 20; radius: 6; stroke: 1.4; color: text; opacity: 80% }
+            path { at: ddx - 7, py + 16; color: text; stroke: 1.4; opacity: 80%
+                   move 0, 0; line 0, 4; line 3, 6 }
+            path { at: ddx + 6, py + 18; color: text; stroke: 1.4; opacity: 80%
+                   move 0, if(sbdd.$i, 4, 0); line 4, if(sbdd.$i, 0, 4); line 8, if(sbdd.$i, 4, 0) }
+            group {
+                show: sbdd.$i
+                let ddh = max(ddn, 1) * 42 + 10
+                body {
+                    color: mantle
+                    shadow: 0, 8, 24, 40%
+                    box { from: cx, py + 40; size: sbrw, ddh; corner: 10 }
+                }
+                box { from: cx, py + 40; size: sbrw, ddh; corner: 10; stroke: 1; color: surface1 }
+                text "Nothing to go back to yet" { at: cx + sbrw / 2, py + 66; anchor: center; size: 12; color: overlay1; show: ddn < 1 }
+                repeat j in 0..8 {
+                    let ry = py + 45 + j * 42
+                    group {
+                        show: j < ddn
+                        zone box sbsz.$i.$j { from: cx + 5, ry; size: sbrw - 10, 40; corner: 8; cursor: pointer; active: act and sbdd.$i and j < ddn }
+                        box { from: cx + 5, ry; size: sbrw - 10, 40; corner: 8; color: surface0; opacity: if(sbsz.$i.$j.hover, 1, 0) }
+                        ellipse { at: cx + 16, ry + 20; radius: 3; color: ac; show: sb.scur[kk] == j }
+                        text pick(kk, sbs.0.$j.title, sbs.1.$j.title, sbs.2.$j.title, sbs.3.$j.title) { at: cx + 26, ry + 20; anchor: left center; size: 12.5; color: text; width: sbrw - 90; lines: 1 }
+                        text pick(kk, sbs.0.$j.when, sbs.1.$j.when, sbs.2.$j.when, sbs.3.$j.when) { at: cx + sbrw - 14, ry + 20; anchor: right center; size: 10.5; color: overlay1; family: "Berkeley Mono" }
+                    }
+                    on press sbsz.$i.$j {
+                        sbdd.$i = false
+                        emit sb_pick(kk * 8 + j)
+                    }
+                }
+            }
             // (a zone's hover is only known in its group)
             follow hv.n.$i = sbnew.$i.hover
             follow hv.s.$i = sbsend.$i.hover
@@ -134,6 +175,13 @@ part AiDraw {
         emit sb_switch(kk)
     }
     on press sbnew.$i { emit sb_new(kk) }
+    on press sbddb.$i while sbdd.$i { sbdd.$i = false }
+    on press sbddb.$i while not sbdd.$i {
+        sbdd.$i = true
+        emit sb_list(kk)
+    }
+    on press sbddc.$i { sbdd.$i = false }
+    on change sbon while not sbon { sbdd.$i = false }
     on press sbsend.$i while busy { emit sb_stop(kk) }
     on press sbsend.$i while not busy {
         sb.sent[kk] = sb.sent[kk] + 1

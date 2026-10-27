@@ -265,7 +265,7 @@ scene Session {
     // the wallpaper: two slots crossfading, already graded to the palette by
     // the logic, at the file's own pixels and cut to cover each monitor. It
     // drifts with the camera (parallax), and slides with the shell's drawer.
-    permissions { run: "sh", "nix", "pleamar-wm", "ls", "test", "magick", "lutgen", "rm", "tee", "cat" }
+    permissions { run: "sh", "nix", "pleamar-wm", "ls", "test", "magick", "lutgen", "rm", "tee", "cat", "wl-copy" }
     text wall.a = ""
     text wall.b = ""
     // A path the shell asks for (`text wall.req ...`, then `emit wall_set`).

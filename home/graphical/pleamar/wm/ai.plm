@@ -27,6 +27,8 @@ part Ai {
         fact sbgo.$i = false
         // what is being written to its sidebar
         text sbin.$i = ""
+        // its list of conversations, open
+        fact sbdd.$i = false
     }
     repeat k in 0..4 {
         fact sb.win.$k = -1
@@ -49,6 +51,14 @@ part Ai {
         }
         // bumped by each message sent: the thread goes back to its end
         fact sb.sent.$k = 0
+        // The provider's recent conversations, for the header's list: what was
+        // first said and when, newest first; sb.scur, the one going (-1 none).
+        fact sb.sn.$k = 0
+        fact sb.scur.$k = -1
+        repeat j in 0..8 {
+            text sbs.$k.$j.title = ""
+            text sbs.$k.$j.when = ""
+        }
     }
     let sbfree = if(sb.win.0 < 0, 0, if(sb.win.1 < 0, 1, if(sb.win.2 < 0, 2, if(sb.win.3 < 0, 3, -1))))
     // The window asked for, for the logic to find its PID by.
@@ -61,6 +71,12 @@ part Ai {
     event sb_stop ->
     event sb_new ->
     event sb_close ->
+    // a row's words to the clipboard (channel * 32 + row)
+    event sb_copy ->
+    // the list of conversations asked for (its channel), and one picked
+    // (channel * 8 + place)
+    event sb_list ->
+    event sb_pick ->
     // a window's sidebar opened, or put away and brought back (its slot)
     event sb_toggle
     // the provider of a sidebar not yet talked to (its channel)
@@ -78,35 +94,92 @@ part Ai {
     component SbThread(tx: number, ty: number, th: number, sent: number, on: bool) {
         fact stuck = true
         prop len = 0
-        column lst { at: tx, ty; view: sbrw, th; children }
+        // (under the rows, so their copy buttons take the click)
         zone box area { from: tx, ty; size: sbrw, th; active: on }
+        column lst { at: tx, ty; view: sbrw, th; step: 160; children }
         follow len = lst.content
         on scroll area while wheel > 0 { stuck = false }
         on drag area while drag.dy > 12 { stuck = false }
         on change lst.scroll while lst.content - lst.scroll < th + 16 { stuck = true }
         on change len while stuck { lst.scroll: max(0, len - th) ~0ms }
         on change sent { stuck = true }
+        // Scrolled back: a button at the foot that goes to the end, and
+        // follows again from there.
+        prop away = 0 ~160ms
+        follow away = if(lst.content - lst.scroll > th + 40, 1, 0)
+        let jx = tx + sbrw / 2
+        let jy = ty + th - 22 + 6 * (1 - away)
+        zone ellipse jump { at: jx, jy; radius: 15; cursor: pointer; label: "Jump to the end"; active: on and away > 0.5 }
+        on press jump {
+            stuck = true
+            lst.scroll: max(0, len - th) ~260ms
+        }
+        // Ctrl+End too, with the pointer over the thread: only then, so a
+        // program keeps its own
+        on key Ctrl+End while on and area.hover {
+            stuck = true
+            lst.scroll: max(0, len - th) ~260ms
+        }
+        group {
+            show: away > 0.01
+            opacity: away
+            ellipse { at: jx, jy; radius: 15; color: if(jump.hover, surface1, surface0) }
+            ellipse { at: jx, jy; radius: 15; stroke: 1; color: surface2 }
+            path { at: jx - 5, jy - 6; color: text; stroke: 1.6
+                   move 5, 0; line 5, 11 }
+            path { at: jx - 5, jy - 6; color: text; stroke: 1.6
+                   move 0, 6.5; line 5, 11.5; line 10, 6.5 }
+        }
     }
 
-    component SbRow(kind: number, st: number, words: text, detail: text, ac: color) {
+    component SbRow(kind: number, st: number, words: text, detail: text, ac: color, id: number, on: bool) {
         measure said
         measure reply
         measure note
         // the width of what you said on one line, for its bubble: a wrapped
         // text measures as wide as its wrap
         measure line
+        measure qd
         let bw = min(line.width, sbrw - 60)
         // (the gap below it included: an empty row takes no room)
-        size: sbrw, if(kind < 0.5, 0, 10 + if(kind == 1, said.height + 16, if(kind == 2, reply.height + 4, if(kind == 4, note.height + 4, 22))))
-        // 1 · yours, a bubble on the right as wide as it says
+        size: sbrw, if(kind < 0.5, 0, 10 + if(kind == 1, said.height + 16 + 18 * (st == 1), if(kind == 2, reply.height + 28, if(kind == 4, note.height + 4, 22))))
+        // 1 · yours, a bubble on the right as wide as it says; dim and marked
+        // while it waits for the turn to end (st 1)
         group {
             show: kind == 1
+            opacity: if(st == 1, 0.55, 1)
             text words { at: 0, 0; anchor: left top; size: 13; lines: 1; measure: line; opacity: 0 }
             box { from: sbrw - bw - 24, 0; size: bw + 24, said.height + 12; corner: 12; color: surface0 }
             text words { at: sbrw - 12, 6; anchor: right top; width: sbrw - 60; size: 13; color: text; align: right; measure: said; selectable: true }
         }
+        group {
+            show: kind == 1 and st == 1
+            ellipse { at: sbrw - qd.width - 10, said.height + 22; radius: 2.5; color: ac }
+            text "queued, Ctrl+Enter sends now" { at: sbrw - 2, said.height + 22; anchor: right center; size: 10.5; color: overlay1; measure: qd }
+        }
         // 2 · the agent's, loose
         text words { at: 2, 2; anchor: left top; width: sbrw - 8; size: 13; line_height: 1.4; color: text; measure: reply; markdown: true; selectable: true; show: kind == 2 }
+        // its copy button, under it: faint until pointed at, a check once copied
+        let cy = reply.height + 6
+        zone box cp { from: 0, cy; size: 22, 20; corner: 6; cursor: pointer; label: "Copy"; active: on and kind == 2 }
+        fact copied = false
+        on press cp {
+            copied = true
+            emit sb_copy(id)
+        }
+        on still copied for 1200ms while copied { copied = false }
+        group {
+            show: kind == 2
+            opacity: if(cp.hover or copied, 1, 0.45)
+            box { from: 0, cy; size: 22, 20; corner: 6; color: surface0; opacity: if(cp.hover, 1, 0) }
+            group {
+                show: not copied
+                box { from: 5, cy + 3; size: 8, 10; corner: 2; stroke: 1.2; color: subtext0 }
+                box { from: 9, cy + 7; size: 8, 10; corner: 2; stroke: 1.2; color: text }
+            }
+            path { at: 5, cy + 4; color: ac; stroke: 1.6; show: copied
+                   move 1, 6; line 4.5, 9.5; line 11, 2 }
+        }
         // 3 · a tool: a ring that turns while it goes, a dot when done, red when it failed
         group {
             show: kind == 3

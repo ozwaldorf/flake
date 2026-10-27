@@ -264,6 +264,9 @@ in
       export XCURSOR_THEME=${config.home.pointerCursor.name}
       export XCURSOR_SIZE=${toString config.home.pointerCursor.size}
       export NIXOS_OZONE_WL=1
+      # Its own display (the first socket it takes), in its own environment:
+      # scenes copy to the clipboard through it
+      export WAYLAND_DISPLAY=pleamar-1
     '';
   };
 
