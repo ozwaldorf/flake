@@ -457,11 +457,13 @@ scene Session {
             let still = abs(camx - cam.tx[sc]) < 2 and abs(camy - cam.ty[sc]) < 2
 
             let tiled = win.$i.place >= 0
+            fact fake.$i = false
+            let full = win.$i.fullscreen and not fake.$i
             // Where its row puts it, with the camera's pan taken off. The pan
             // is dropped in the overview.
             let ovt = ov[sc]
-            let pn.x = if(tiled and not win.$i.fullscreen and not ovt, cam.tx[sc], 0)
-            let pn.y = if(tiled and not win.$i.fullscreen and not ovt, cam.ty[sc], 0)
+            let pn.x = if(tiled and not full and not ovt, cam.tx[sc], 0)
+            let pn.y = if(tiled and not full and not ovt, cam.ty[sc], 0)
             // on whole pixels, so the program's buffer is not resampled
             let tx = round(AxT + gap + avs / 2 + lx.$i - pn.x)
             let ty = round(Ays + Has / 2 + ly.$i - pn.y)
@@ -487,7 +489,6 @@ scene Session {
             let fgh = if(fw.$i >= 1, max(fh.$i, 120), if(win.$i.dialog, dh + tbar * win.$i.framed, 120))
             let fgx = if(fw.$i < 1, AxT + (Was - fgw) / 2, fx.$i)
             let fgy = if(fw.$i < 1, (Hs - fgh) / 2, fy.$i)
-            let full = win.$i.fullscreen
             // A tiled window being carried leaves its place and follows the mouse.
             let lifted = dmode == 1 and dslot == i and tiled
             // where the pointer's monitor sits from this window's, for a
@@ -1001,9 +1002,15 @@ scene Session {
             on window_maximize(v) while v == i and here { emit maxi(i) }
             // Super+f: tapped, maximized or back to its size (out of fullscreen
             // first); held, fullscreen and back.
-            on max_tap while win.focus == i and not full { emit maxi(i) }
-            on max_tap while win.focus == i and full { fullscreen win.$i }
-            on max_hold while win.focus == i { fullscreen win.$i }
+            on max_tap while win.focus == i and not win.$i.fullscreen { emit maxi(i) }
+            on max_tap while win.focus == i and win.$i.fullscreen { fullscreen win.$i }
+            on max_hold while win.focus == i and not fake.$i { fullscreen win.$i }
+            on max_hold while win.focus == i { fake.$i = false }
+            // Client fullscreen without changing the window's layout.
+            on fake_fullscreen while win.focus == i and (fake.$i or not win.$i.fullscreen) { fullscreen win.$i }
+            on fake_fullscreen while win.focus == i { toggle fake.$i }
+            on change win.$i.fullscreen while not win.$i.fullscreen { fake.$i = false }
+            on change win.$i.open while not win.$i.open { fake.$i = false }
             // Its own minimize button floats it, 800 by 500 in the middle, and back.
             on window_minimize(v) while v == i and here and not win.$i.floating {
                 fw.$i = 800
@@ -1198,6 +1205,7 @@ scene Session {
     // the AI sidebar of the window with the keyboard, opened or put away
     event ai_toggle
     event fullscreen
+    event fake_fullscreen
     event max_down
     event max_up
     event max_tap
@@ -1239,7 +1247,7 @@ scene Session {
         }
     }
     on close while win.focus >= 0 { close win(win.focus) }
-    on fullscreen while win.focus >= 0 { fullscreen win(win.focus) }
+    on fullscreen while win.focus >= 0 { emit max_hold }
     // Super+f held 300 ms is a hold, let go sooner a tap. mxn counts presses,
     // so each restarts the wait.
     fact mxh = false

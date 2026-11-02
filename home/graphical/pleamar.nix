@@ -88,6 +88,7 @@ let
         phone = "max_tap";
       }
     )
+    (bind "Windows" "Super+Shift+f" "Toggle fake fullscreen" "fake_fullscreen")
     (bind "Windows" "Super+r" "Cycle window width" "cycle_width")
     (bind "Windows" "Super+Shift+r" "Cycle row height" "cycle_height")
     (bind "Windows" "Super+a" "Open or hide the AI sidebar" "ai_toggle")
