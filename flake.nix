@@ -52,7 +52,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     pleamar-wm = {
-      url = "github:k4ditano/pleamar-wm";
+      url = "github:ozwaldorf/pleamar-wm/fix/user-seat-last";
       inputs.nixpkgs.follows = "nixpkgs";
       # Built against pleamar as a path dependency
       inputs.pleamar.follows = "pleamar";
